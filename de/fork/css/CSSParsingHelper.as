@@ -1,0 +1,125 @@
+package de.fork.css
+{ 
+	import de.fork.data.AdvancedColor;
+	import de.fork.utils.StringUtil;
+	import de.fork.utils.PathUtil;
+	import de.fork.data.URL;
+	
+	public class CSSParsingHelper
+	{
+			
+		
+		public function CSSParsingHelper() {}
+		
+		
+		
+		public static function parseColor(str:String) : AdvancedColor
+		{
+			var clr : AdvancedColor = new AdvancedColor();
+			clr.setColorString(str);
+			return clr;
+		}	
+		
+		
+		public static function parseURL(str:String, file:String) : String
+		{				
+			var url:String = StringUtil.stringBetweenMarkers(str, '(', ')', true);
+			if (url == null)
+			{
+				return str;
+			}
+			url = resolvePathAgainstPath(url, file);
+			return url;
+		}
+		
+		public static function removeImportantFlagFromString(str:String) : Object
+		{
+			var important : Boolean = false;
+			var index : Number = str.indexOf( CSSProperty.IMPORTANT_FLAG );
+			
+			if ( index > -1 && index == str.length - CSSProperty.IMPORTANT_FLAG.length )
+			{
+				important = true;
+				str = str.substr( 0, -CSSProperty.IMPORTANT_FLAG.length );
+			}
+			
+			return { important : important, result : str };
+		}
+		
+		public static function valueIsColor(val:String) : Boolean
+		{
+			val = val.toLowerCase();
+			if (val.indexOf('#') == 0 ||
+				val.indexOf('rgb') == 0 ||
+				val == 'transparent' ||
+				AdvancedColor.g_htmlColors[val] != null)
+			{
+				return true;
+			}
+			return false;
+		}
+	
+	public static function resolvePathAgainstPath(targetPath:String, sourcePath:String) : String
+	{
+		var targetURL : URL = new URL(targetPath);
+		if (!targetURL.isFileURL())
+		{
+			// sourcePath is an absolute URL
+			if (targetURL.scheme() != null)
+			{
+				return targetPath;
+			}
+			else if (PathUtil.isAbsolutePath(targetPath))
+			{
+				return targetPath;
+			}
+		}
+		else
+		{
+			targetPath = targetURL.path();
+		}
+		
+		var sourceURL : URL = new URL(sourcePath);
+		var sourceIsURL : Boolean = sourceURL.scheme() != null || sourceURL.isFileURL();
+
+		if (sourceIsURL)
+		{
+			sourcePath = sourceURL.path();
+		}
+		
+		if (PathUtil.pathExtension(sourcePath) != '')
+		{
+			sourcePath = PathUtil.stringByDeletingLastPathComponent(sourcePath);
+		}
+		
+		var absolutePath : String = PathUtil.absolutePathToBase(targetPath, sourcePath);
+
+		if (!sourceIsURL)
+		{
+			return absolutePath;
+		}
+
+		var host : String = sourceURL.host() || '';
+		return (sourceURL.scheme() || '') + host + absolutePath;
+	}
+	
+		public static function extractUnitFromString(str:String) : String
+		{
+			var unit : String;
+			
+			if ( str.indexOf( CSSProperty.UNIT_PIXEL ) != -1 )
+				return CSSProperty.UNIT_PIXEL;
+			if ( str.indexOf( CSSProperty.UNIT_PERCENT ) != -1 )
+				return CSSProperty.UNIT_PERCENT;
+			else if ( str.indexOf( CSSProperty.UNIT_EM ) != -1 )
+				return CSSProperty.UNIT_EM;
+			
+			return null;
+		}
+		
+		public static function valueShouldInherit(str:String) : Boolean
+		{
+			return str.indexOf( CSSProperty.INHERIT_FLAG ) > -1;
+		}
+	}
+}

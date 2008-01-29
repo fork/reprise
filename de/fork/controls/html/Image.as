@@ -1,0 +1,121 @@
+package de.fork.controls.html { 
+	import de.fork.events.DisplayEvent;
+	import de.fork.events.ResourceEvent;
+	import de.fork.external.BitmapResource;
+	import de.fork.ui.UIComponent;
+	
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.events.Event;
+	import flash.xml.XMLNode;
+	public class Image extends UIComponent
+	{
+		/***************************************************************************
+		*							public properties							   *
+		***************************************************************************/
+		public static var className:String = "img";
+		
+		
+		/***************************************************************************
+		*							protected properties							   *
+		***************************************************************************/
+		protected var m_imageLoader:BitmapResource;
+		protected var m_image : Bitmap;
+		
+		
+		protected var m_loaded : Boolean;
+		
+		
+		protected var m_imageDisplayed : Boolean;
+		
+		
+		protected var m_priority : Number = 0;
+		
+		
+		/***************************************************************************
+		*							public methods								   *
+		***************************************************************************/
+		public function Image()
+		{
+			m_elementType = className;
+		}
+		
+		
+		public function setSrc(src:String) : void
+		{
+			if (!src)
+			{
+				return;
+			}
+			m_loaded = false;
+			m_imageLoader = new BitmapResource();
+			m_imageLoader.setApplicationURL(applicationURL());
+			m_imageLoader.setPriority(m_priority);
+			m_imageLoader.setURL(src);
+			m_imageLoader.addEventListener(Event.COMPLETE, imageLoaded);
+			m_imageLoader.execute();
+		}
+		
+		public function setPriority(value : Number) : void
+		{
+			m_priority = value;
+			if (m_imageLoader)
+			{
+				m_imageLoader.setPriority(value);
+			}
+		}
+		
+		
+		/***************************************************************************
+		*							protected methods								   *
+		***************************************************************************/
+		protected override function parseXmlDefinition(xmlDefinition:XMLNode) : void
+		{
+			super.parseXmlDefinition(xmlDefinition);
+			if (m_nodeAttributes.src == null)
+			{
+				return;
+			}
+			setSrc(m_nodeAttributes.src);
+		}
+		
+		protected function imageLoaded(e:ResourceEvent):void
+		{
+			if (!e.success)
+			{
+				return;
+			}
+			m_loaded = true;
+			if (!m_firstDraw)
+			{
+				m_imageDisplayed = false;
+				m_contentDisplay.visible = false;
+			}
+			m_image = new Bitmap(BitmapData(m_imageLoader.content()));
+			m_contentDisplay.addChild(m_image);
+			invalidate();
+			dispatchEvent(new DisplayEvent(DisplayEvent.LOAD_COMPLETE));
+		}
+		
+		protected override function measure() : void
+		{
+			if (!m_imageLoader.didFinishLoading())
+			{
+				m_intrinsicWidth = 0;
+				m_intrinsicHeight = 0;
+				return;
+			}
+			m_intrinsicWidth = m_image.width;
+			m_intrinsicHeight = m_image.height;
+		}	
+		
+		protected override function draw() : void
+		{
+			if (m_loaded && !m_imageDisplayed)
+			{
+				m_imageDisplayed = true;
+				m_contentDisplay.visible = true;
+			}
+		}
+	}
+}

@@ -1,0 +1,1900 @@
+package de.fork.ui
+{
+	import de.fork.controls.Scrollbar;
+	import de.fork.core.UIRendererFactory;
+	import de.fork.css.CSSDeclaration;
+	import de.fork.css.CSSProperty;
+	import de.fork.css.propertyparsers.Filters;
+	import de.fork.ui.renderers.ICSSRenderer;
+	import de.fork.utils.GfxUtil;
+	
+	import flash.display.DisplayObject;
+	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.filters.DropShadowFilter;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.xml.XMLDocument;
+	import flash.xml.XMLNode;
+	public class UIComponent extends UIObject
+	{
+		/***************************************************************************
+		*							public properties							   *
+		***************************************************************************/
+		public static var className : String = "UIComponent";
+		
+		
+		/***************************************************************************
+		*							protected properties							   *
+		***************************************************************************/
+		protected static var DEFAULT_SCROLLBAR_WIDTH : uint = 16;
+		
+		
+		protected var m_containingBlock : UIComponent;
+		protected var m_explicitContainingBlock : UIComponent;
+	
+		protected var m_cssClasses : String = "";
+		protected var m_cssPseudoClasses : String = "";
+		protected var m_pseudoClassesBackup : String;
+		protected var m_cssId : String = "";
+		protected var m_selectorPath : String;
+		protected var m_currentStyles : Object;
+		protected var m_complexStyles : CSSDeclaration;
+		protected var m_elementDefaultStyles : Object;
+		protected var m_instanceStyles : Object;
+		protected var m_basicStyles : CSSDeclaration;
+	
+		protected var m_left : Number = 0;
+		protected var m_top : Number = 0;
+		protected var m_right : Number = 0;
+		protected var m_bottom : Number = 0;
+		
+		protected var m_width : Number = 0;
+		protected var m_height : Number = 0;
+	
+		protected var m_positionOffset : Point;
+	
+		protected var m_leftIsAuto : Boolean;
+		protected var m_rightIsAuto : Boolean;
+		protected var m_topIsAuto : Boolean;
+		protected var m_bottomIsAuto : Boolean;
+		
+		protected var m_paddingTop : Number = 0;
+		protected var m_paddingLeft : Number = 0;
+		protected var m_paddingBottom : Number = 0;
+		protected var m_paddingRight : Number = 0;
+		protected var m_marginTop : Number = 0;
+		protected var m_marginLeft : Number = 0;
+		protected var m_marginBottom : Number = 0;
+		protected var m_marginRight : Number = 0;
+		protected var m_borderTopWidth : Number = 0;
+		protected var m_borderLeftWidth : Number = 0;
+		protected var m_borderBottomWidth : Number = 0;
+		protected var m_borderRightWidth : Number = 0;
+		protected var m_borderBottomRightRadius : Number = 0;
+		protected var m_borderBottomLeftRadius : Number = 0;
+		protected var m_borderTopRightRadius : Number = 0;
+		protected var m_borderTopLeftRadius : Number = 0;
+	
+		protected var m_stylesInvalidated : Boolean;
+		protected var m_skipNextValidation : Boolean;
+	
+		protected var m_borderBoxHeight : Number = 0;
+		protected var m_borderBoxWidth : Number = 0;
+		
+		protected var m_borderRenderer : ICSSRenderer;
+		protected var m_backgroundRenderer : ICSSRenderer;
+		
+		protected var m_backgroundDisplay : Sprite;
+		protected var m_bordersDisplay : Sprite;
+		protected var m_inFlowContentDisplay : Sprite;
+		protected var m_outOfFlowContentDisplay : Sprite;
+		protected var m_contentMask : Sprite;
+		protected var m_scrollbarsDisplay : Sprite;
+		
+		protected var m_vScrollbar : Scrollbar;
+		protected var m_hScrollbar : Scrollbar;
+		
+		protected var m_dropShadowFilter : DropShadowFilter;
+	
+		protected var m_nodeAttributes : Object;
+	
+		protected var m_positionInFlow : uint = 1;
+		protected var m_oldInFlowStatus : int = -1;
+		protected var m_oldOuterBoxDimension : Point;
+	
+		protected var m_intrinsicWidth : Number = -1;
+		protected var m_intrinsicHeight : Number = -1;
+	
+		protected var m_verticalFlowPosition : Number = 0;
+	
+		protected var m_selectorPathChanged : Boolean;
+	
+		protected var m_positioningType : String;
+		protected var m_float : String;
+	
+		protected var m_dimensionsChanged : Boolean;
+		
+		/***************************************************************************
+		*							public methods								   *
+		***************************************************************************/
+		public function UIComponent()
+		{
+			m_elementType = className;
+		}
+		
+		/**
+		 * Convenience method that eases the process to add a child element.
+		 * 
+		 * @param classes The css classes the component should have.
+		 * @param id The css id the component should have.
+		 * @param componentClass The ActionScript class to instantiate. If this is 
+		 * omitted, an instance of UIComponent will be created.
+		 * @param index The index at which the element should be added. If this is 
+		 * omitted, the element will be created at the next available index.
+		 */
+		public function addComponent(classes : String = null, id : String = null, 
+			componentClass : Class = null, index : int = -1) : UIComponent
+		{
+			if (!componentClass)
+			{
+				componentClass = UIComponent;
+			}
+			var component : UIComponent;
+			if (index == -1)
+			{
+				component = UIComponent(addChild(new componentClass()));
+			}
+			else
+			{
+				component = UIComponent(addChildAt(new componentClass(), index));
+			}
+			if (id)
+			{
+				component.cssId = id;
+			}
+			if (classes)
+			{
+				component.cssClasses = classes;
+			}
+			return component;
+		}
+		
+		/**
+		 * initializes the UIComponent structure from the given xml structure, 
+		 * creating child views as needed
+		 */
+		public function setInnerXML(xml:XMLNode) : UIComponent
+		{
+			parseChildNodes(xml);
+			return this;
+		}
+		
+		/**
+		 * initializes the UIComponent structure from the given xml structure, 
+		 * creating child views as needed
+		 */
+		public function overrideContainingBlock(
+			containingBlock : UIComponent) : void
+		{
+			m_explicitContainingBlock = containingBlock;
+		}
+	
+		public override function set width(value : Number) : void
+		{
+			instanceStyles.width = value + "px";
+		}
+		
+		public function set outerWidth(value : Number) : void
+		{
+			instanceStyles.outerWidth = value;
+		}
+		public function get outerWidth() : Number
+		{
+			return m_currentStyles.outerWidth;
+		}
+		
+		public override function set height(value:Number) : void
+		{
+			instanceStyles.height = value + "px";
+		}
+		
+		public function get outerHeight() : Number
+		{
+			return m_currentStyles.outerHeight;
+		}
+		public function set outerHeight(value : Number) : void
+		{
+			instanceStyles.outerHeight = value + 'px';
+		}
+		
+		public override function get top() : Number
+		{
+			if (m_currentStyles.top == null && m_currentStyles.bottom != null)
+			{
+				return m_containingBlock.calculateContentHeight() - 
+					m_currentStyles.bottom - m_borderBoxHeight;
+			}
+			return m_currentStyles.top || 0;
+		}
+		public override function set top(value:Number) : void
+		{
+			m_currentStyles.top = value;
+			m_instanceStyles.top = value + "px";
+			m_topIsAuto = false;
+			if (!m_positionInFlow)
+			{
+				m_top = value;
+				y = value + m_marginTop;
+			}
+		}
+		public override function get left() : Number
+		{
+			if (m_currentStyles.left == null && m_currentStyles.right != null)
+			{
+				return m_containingBlock.calculateContentWidth() - 
+					m_currentStyles.right - m_borderBoxWidth;
+			}
+			return m_currentStyles.left || 0;
+		}
+		public override function set left(value:Number) : void
+		{
+			m_currentStyles.left = value;
+			m_instanceStyles.left = value + "px";
+			m_leftIsAuto = false;
+			if (!m_positionInFlow)
+			{
+				m_left = value;
+				x = value + m_marginLeft;
+			}
+		}
+		
+		public override function get right() : Number
+		{
+			if (m_currentStyles.left == null && m_currentStyles.right != null)
+			{
+				return m_currentStyles.right;
+			}
+			return left + m_borderBoxWidth;
+		}
+		public override function get bottom() : Number
+		{
+			if (m_currentStyles.top == null && m_currentStyles.bottom != null)
+			{
+				return m_currentStyles.bottom;
+			}
+			return top + m_borderBoxHeight;
+		}
+		
+		public function get marginTop() : Number
+		{
+			return m_marginTop;
+		}
+		public function get marginRight() : Number
+		{
+			return m_marginRight;
+		}
+		public function get marginBottom() : Number
+		{
+			return m_marginBottom;
+		}
+		public function get marginLeft() : Number
+		{
+			return m_marginLeft;
+		}
+		
+		public function get attributes() : Object
+		{
+			return m_nodeAttributes;
+		}
+		
+		/**
+		 * returns a Rectangle object that contains the current position and 
+		 * dimensions of the UIComponent relative to its parentElement
+		 */
+		public function actualBox() : Rectangle
+		{
+			return new Rectangle(
+				x, y, m_borderBoxWidth, m_borderBoxHeight);
+		}
+		
+	//	/**
+	//	 * Returns the width that is available to child elements.
+	//	 */
+	//	public function innerWidth() : Number
+	//	{
+	//		return m_width;
+	//		if (/*m_currentStyles.overflow == 'scrollV' || 
+	//			m_currentStyles.overflow == 'scrollV-vertical' || */
+	//			m_vScrollbar.getVisibility())
+	//		{
+	//			return m_width - m_vScrollbar.width;
+	//		}
+	//	}
+	//	
+	//	/**
+	//	 * Returns the height that is available to child elements.
+	//	 */
+	//	public function innerHeight() : Number
+	//	{
+	//		return m_height;
+	//		if (/*m_currentStyles.overflow == 'scrollV' || 
+	//			m_currentStyles.overflow == 'scrollV-horizontal' || */
+	//			m_hScrollbar.getVisibility())
+	//		{
+	//			return m_height - m_hScrollbar.width;
+	//		}
+	//	}
+		
+		public function get style() : Object
+		{
+			return m_currentStyles;
+		}
+		
+		/**
+		 * sets the CSS id and invalidates styling
+		 */
+		public function set cssId(id:String) : void
+		{
+			if (m_cssId)
+			{
+				m_rootElement.removeElementID(m_cssId);
+			}
+			m_rootElement.registerElementID(id, this);
+			m_cssId = id;
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		/**
+		 * returns the CSS id of this element
+		 */
+		public function get cssId() : String
+		{
+			return m_cssId;
+		}
+		/**
+		 * sets the CSS classes and invalidates styling
+		 */
+		public function set cssClasses(classes:String) : void
+		{
+			m_cssClasses = classes;
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		/**
+		 * returns the CSS classes of this element
+		 */
+		public function get cssClasses() : String
+		{
+			return m_cssClasses;
+		}
+		/**
+		 * sets the CSS pseudo classes and invalidates styling
+		 */
+		public function set cssPseudoClasses(classes:String) : void
+		{
+			m_cssPseudoClasses = classes;
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		/**
+		 * returns the CSS pseudo classes of this element
+		 */
+		public function get cssPseudoClasses() : String
+		{
+			return m_cssPseudoClasses;
+		}
+		
+		/**
+		* getter for the instanceStyles property
+		*/
+		public function get instanceStyles() : Object
+		{
+			m_stylesInvalidated = true;
+			invalidate();
+			return m_instanceStyles;
+		}
+		
+		public override function tooltipDelay() : Number
+		{
+			return m_currentStyles.tooltipDelay | 0;
+		}
+		public override function setTooltipDelay(delay:Number) : void
+		{
+			// we don't need no invalidation
+			m_instanceStyles.tooltipDelay = delay.toString();
+			m_currentStyles.tooltipDelay = delay;
+		}
+		public override function tooltipRenderer() : String
+		{
+			return m_tooltipRenderer;
+		}
+		public override function setTooltipRenderer(renderer:String) : void
+		{
+			// we don't need no invalidation
+			m_instanceStyles.tooltipRenderer = renderer;
+			m_currentStyles.tooltipRenderer = renderer;
+		}
+		
+		/**
+		 * replaces all CSS pseudo classes with the :error class, but saves the 
+		 * other classes for a switch back later on.
+		 */
+		public function setErrorMark() : void
+		{
+			if (m_pseudoClassesBackup == null)
+			{
+				m_pseudoClassesBackup = m_cssPseudoClasses;
+				cssPseudoClasses = " :error";
+			}
+		}
+		/**
+		 * removes the CSS error marking and reactivates the old pseudo classes.
+		 */
+		public function removeErrorMark() : void
+		{
+			if (m_pseudoClassesBackup != null)
+			{
+				cssPseudoClasses = m_pseudoClassesBackup;
+				m_pseudoClassesBackup = null;
+			}
+		}
+		/**
+		 * adds a pseudo class if it's not already in the list of pseudo classes.
+		 */
+		public function addPseudoClass(name:String) : void
+		{
+			if (m_pseudoClassesBackup)
+			{
+				if (m_pseudoClassesBackup.indexOf(name) > -1)
+				{
+					return;
+				}
+				m_pseudoClassesBackup += " :" + name;
+			}
+			else
+			{
+				if (m_cssPseudoClasses.indexOf(name) > -1)
+				{
+					return;
+				}
+				m_cssPseudoClasses += " :" + name;
+			}
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		/**
+		 * removes a pseudo class from the list.
+		 */
+		public function removePseudoClass(name:String) : void
+		{
+			if (m_pseudoClassesBackup)
+			{
+				if (m_pseudoClassesBackup.indexOf(name) == -1)
+				{
+					return;
+				}
+				m_pseudoClassesBackup = 
+					m_pseudoClassesBackup.split(" :" + name).join("");
+			}
+			else
+			{
+				if (m_cssPseudoClasses.indexOf(name) == -1)
+				{
+					return;
+				}
+				m_cssPseudoClasses = m_cssPseudoClasses.split(" :" + name).join("");
+			}
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		
+		/**
+		 * sets the views visibility without executing any transitions that might 
+		 * be defined in the views' <code>hide</code> and <code>show</code> methods
+		 */
+		public override function setVisibility(visible : Boolean) : void
+		{
+			var visibilityProperty:String = (visible ? 'visible' : 'hidden');
+			m_currentStyles.visibility = m_instanceStyles.visibility = 
+				visibilityProperty;
+			super.setVisibility(visible);
+		}
+		
+		/**
+		* setter for the alpha property
+		*/
+		public override function set alpha(value:Number) : void
+		{
+			opacity = value / 100;
+		}
+		/**
+		* getter for the alpha property
+		*/
+		public override function get alpha() : Number
+		{
+			if (m_currentStyles.opacity != null)
+			{
+				return m_currentStyles.opacity * 100;
+			}
+			return 100;
+		}
+		/**
+		* setter for the opacity property
+		*/
+		public function set opacity(value:Number) : void
+		{
+			super.alpha = value;
+			m_currentStyles.opacity = value;
+			m_instanceStyles.opacity = value.toString();
+		}
+		/**
+		* getter for the opacity property
+		*/
+		public function get opacity() : Number
+		{
+			if (m_currentStyles.opacity != null)
+			{
+				return m_currentStyles.opacity;
+			}
+			return 1;
+		}
+	
+		/**
+		* setter for the rotation property
+		*/
+		public override function set rotation(value : Number) : void
+		{
+			super.rotation = value;
+			m_currentStyles.rotation = value;
+			m_instanceStyles.rotation = value.toString();
+		}
+		
+		/**
+		 * removes the UIComponent from its' parents' display list
+		 */
+		public override function remove() : void
+		{
+			if (m_cssId)
+			{
+				m_rootElement.removeElementID(m_cssId);
+			}
+			super.remove();
+		}
+		
+		
+		public function getElementsByClassName(className:String) : Array
+		{
+			var i:Number;
+			var len:Number = m_contentDisplay.numChildren;
+			var elements:Array = [];
+			var subElements:Array;
+			var cssClasses:String;
+			
+			for (i = 0; i < len; i++)
+			{
+				var child : DisplayObject = m_children[i];
+				if (!child is UIComponent)
+				{
+					continue;
+				}
+				var childView : UIComponent = child as UIComponent;
+				cssClasses = childView.cssClasses;
+	
+				if (cssClasses.indexOf(className) != -1 &&
+					(cssClasses == className || 
+					cssClasses.indexOf(' ' + className + ' ') != -1 || 
+					cssClasses.indexOf(className + ' ') == 0 || 
+					cssClasses.indexOf(' ' + className) == 
+					(cssClasses.length - className.length - 1)))
+				{
+					elements.push(childView);
+				}
+				subElements = childView.getElementsByClassName(className);
+				if (subElements.length)
+				{
+					elements = elements.concat(subElements);
+				}
+			}		
+			return elements;		
+		}	
+	
+	
+		public override function toString() : String
+		{
+			//TODO: check if serializing the full path is needed for inspection
+			refreshSelectorPath();
+			return m_selectorPath.split('@').join('');
+//			return m_elementType + (m_cssId ? "#" + m_cssId : "") + 
+//				(m_cssClasses ? "." + m_cssClasses.split(' ').join('.') : "") + 
+//				": " + name;
+		}
+		
+		/***************************************************************************
+		*							protected methods								   *
+		***************************************************************************/
+		protected override function initialize() : void
+		{
+			m_elementDefaultStyles = {};
+			m_instanceStyles = {};
+			m_currentStyles = {};
+			initDefaultStyles();
+			m_stylesInvalidated = true;
+			super.initialize();
+		}
+		
+		/**
+		 * creates all clips needed to display the UIObjects' content
+		 */
+		protected override function createDisplayClips() : void
+		{
+			super.createDisplayClips();
+			m_inFlowContentDisplay = new Sprite();
+			m_inFlowContentDisplay.name = 'inFlowContent';
+			m_contentDisplay.addChild(m_inFlowContentDisplay);
+			m_outOfFlowContentDisplay = new Sprite();
+			m_outOfFlowContentDisplay.name = 'outOfFlowContent';
+			m_contentDisplay.addChild(m_outOfFlowContentDisplay);
+		}
+		
+		protected override function validateElement(
+			forceValidation:Boolean = false, validateStyles:Boolean = false) : void
+		{
+			if (m_skipNextValidation)
+			{
+				m_skipNextValidation = false;
+				return;
+			}
+			if (validateStyles)
+			{
+				m_stylesInvalidated = true;
+			}
+			m_dimensionsChanged = false;
+			super.validateElement(forceValidation);
+			
+			m_stylesInvalidated = false;
+		}
+		/**
+		 * Hook method, executed before the UIObjects' children get validated
+		 */
+		protected override function validateBeforeChildren() : void
+		{
+			m_oldOuterBoxDimension = new Point(
+				m_borderBoxWidth + m_marginLeft + m_marginRight, 
+				m_borderBoxHeight + m_marginTop + m_marginBottom);
+			m_oldInFlowStatus = m_positionInFlow;
+			
+			if (m_stylesInvalidated)
+			{
+				calculateStyles();
+				if (m_stylesInvalidated)
+				{
+					resolveSpecifiedDimensions();
+				}
+				else
+				{
+					m_stylesInvalidated = false;
+				}
+			}
+		}
+		/**
+		 * Hook method, executed after the UIObjects' children get validated
+		 */
+		protected override function validateAfterChildren() : void
+		{
+			applyInFlowChildPositions();
+			
+			var autoFlag:String = CSSProperty.AUTO_FLAG;
+			
+			var widthProperty:CSSProperty = m_complexStyles.getStyle('width');
+			var outerWidthProperty:CSSProperty = 
+				m_complexStyles.getStyle('outerWidth');
+			var widthIsAuto:Boolean = 
+				widthProperty.specifiedValue() == autoFlag && 
+				(!outerWidthProperty ||
+				outerWidthProperty.specifiedValue() == autoFlag);
+			var heightProperty:CSSProperty = m_complexStyles.getStyle('height');
+			var outerHeightProperty:CSSProperty = 
+				m_complexStyles.getStyle('outerHeight');
+			var heightIsAuto:Boolean = 
+				(!heightProperty || heightProperty.specifiedValue() == autoFlag) && 
+				(!outerHeightProperty || 
+				outerHeightProperty.specifiedValue() == autoFlag);
+			
+			var oldIntrinsicHeight : Number = m_intrinsicHeight;
+			var oldIntrinsicWidth : Number = m_intrinsicWidth;
+			if (widthIsAuto || heightIsAuto)
+			{
+				measure();
+				if (widthIsAuto && 
+					(m_currentStyles.display == 'inline' ||
+					(!m_positionInFlow && (m_leftIsAuto || m_rightIsAuto))))
+				{
+					m_width = m_intrinsicWidth;
+				}
+				if (m_intrinsicHeight != -1 && heightIsAuto)
+				{
+					m_height = m_intrinsicHeight;
+				}
+			}
+			
+			m_borderBoxHeight = calculateContentHeight() + 
+				m_borderTopWidth + m_borderBottomWidth + 
+				m_paddingTop + m_paddingBottom;
+			m_borderBoxWidth = calculateContentWidth() + 
+				m_borderLeftWidth + m_borderRightWidth + 
+				m_paddingLeft + m_paddingRight;
+			
+			m_dimensionsChanged = 
+				!m_oldOuterBoxDimension.equals(new Point(
+				m_borderBoxWidth + m_marginLeft + m_marginRight, 
+				m_borderBoxHeight + m_marginTop + m_marginBottom));
+			
+			var parentReflowNeeded:Boolean = false;
+			
+			if (m_dimensionsChanged || m_stylesInvalidated)
+			{
+				applyBackgroundAndBorders();
+				applyOverflowProperty();
+				if ((m_float || m_positionInFlow) && m_dimensionsChanged)
+				{
+					parentReflowNeeded = true;
+	//				trace("f reason for parentReflow: dims of in-flow changed");
+				}
+			}
+			else if (m_intrinsicHeight != oldIntrinsicHeight || 
+				m_intrinsicWidth != oldIntrinsicWidth)
+			{
+				applyOverflowProperty();
+			}
+			
+			if (!(m_parentElement is UIComponent && 
+				UIComponent(m_parentElement).m_isValidating))
+			{
+				if ((m_oldInFlowStatus == -1 || m_dimensionsChanged) && 
+					!m_positionInFlow)
+				{
+					//The element is positioned absolutely or fixed.
+					//check if at least one of the vertical and one of the 
+					//horizontal dimensions is specified. If not, we need to 
+					//let the parent do the positioning
+					if ((m_topIsAuto && m_bottomIsAuto) || 
+						(m_leftIsAuto && m_rightIsAuto))
+					{
+						parentReflowNeeded = true;
+	//					trace("f reason for reflow: All positions in " +
+	//						"absolute positioned element are auto");
+					}
+				}
+				else if (m_oldInFlowStatus != m_positionInFlow)
+				{
+					parentReflowNeeded = true;
+	//				trace("f reason for parentReflow: flowPos changed");
+				}
+				if (m_parentElement)
+				{
+					if (parentReflowNeeded)
+					{
+	//					trace("w parentreflow needed in " + 
+	//						m_elementType + "#"+m_cssId + "."+m_cssClasses);
+						m_skipNextValidation = true;
+						m_parentElement.forceRedraw();
+						return;
+					}
+					else
+					{
+	//					trace("w no parentreflow needed in " + 
+	//						m_elementType + "#"+m_cssId + "."+m_cssClasses);
+						UIComponent(m_parentElement).applyOutOfFlowChildPositions();
+					}
+				}
+				else
+				{
+					applyOutOfFlowChildPositions();
+				}
+			}
+		}
+		
+		protected override function validateChild(child:UIObject) : void
+		{
+			if (child is UIComponent)
+			{
+				UIComponent(child).validateElement(
+					true, m_stylesInvalidated || m_selectorPathChanged);
+			}
+			else
+			{
+				super.validateChild(child);
+			}
+		}
+		
+		protected function initDefaultStyles() : void
+		{
+		}
+		
+		protected function refreshSelectorPath() : void
+		{
+			var oldPath:String = m_selectorPath;
+			if (m_parentElement)
+			{
+				m_selectorPath = UIComponent(m_parentElement).m_selectorPath + " ";
+			}
+			else 
+			{
+				m_selectorPath = "";
+			}
+			m_selectorPath += "@" + m_elementType + "@";
+			if (m_cssId)
+			{
+				m_selectorPath += "@#" + m_cssId + "@";
+			}
+			if (m_cssClasses)
+			{
+				m_selectorPath += "@." + m_cssClasses.split(' ').join('@.') + "@";
+			}
+			if (m_cssPseudoClasses.length)
+			{
+				m_selectorPath += m_cssPseudoClasses.split(" :").join("@:") + "@";
+			}
+			if (m_isFirstChild)
+			{
+				m_selectorPath += "@:first-child@";
+			}
+			if (m_isLastChild)
+			{
+				m_selectorPath += "@:last-child@";
+			}
+			if (m_selectorPath != oldPath)
+			{
+				m_selectorPathChanged = true;
+				return;
+			}
+			m_selectorPathChanged = false;
+		}
+	
+		/**
+		 * parses all styles associated with this element and its classes
+		 * and creates a combined style object
+		 */
+		protected function calculateStyles() : void
+		{
+			refreshSelectorPath();
+			
+			var styles:CSSDeclaration;
+			
+			if (!m_basicStyles)
+			{
+				m_basicStyles = new CSSDeclaration();
+				m_basicStyles.addDefaultValues();
+				m_basicStyles.mergeCSSDeclaration(CSSDeclaration.
+					CSSDeclarationFromObject(m_elementDefaultStyles));
+			}
+			var oldStyles:CSSDeclaration = m_complexStyles;
+			styles = m_basicStyles.clone();
+			
+			if (m_parentElement is UIComponent)
+			{
+				styles.inheritCSSDeclaration(
+					UIComponent(m_parentElement).m_complexStyles);
+			}
+			
+			styles.mergeCSSDeclaration(m_rootElement.styleSheet.
+				getStyleForEscapedSelectorPath(m_selectorPath));
+			
+			styles.mergeCSSDeclaration(
+				CSSDeclaration.CSSDeclarationFromObject(m_instanceStyles));
+			
+			if (!(m_containingBlock && m_containingBlock.m_dimensionsChanged) && 
+				styles.compare(oldStyles))
+			{
+				m_stylesInvalidated = false;
+				return;
+			}
+			
+			var floatProperty : CSSProperty = styles.getStyle('float');
+			if (floatProperty != null)
+			{
+				m_float = floatProperty.valueOf() as String;
+			}
+			
+			var positioningProperty:CSSProperty = styles.getStyle('position');
+			var positioning:String;
+			if (!positioningProperty)
+			{
+				positioning = m_positioningType = 'static';
+			}
+			else
+			{
+				positioning = m_positioningType = 
+					String(positioningProperty.valueOf());
+			}
+			
+			if (!m_float && (positioning == 'static' || positioning == 'relative'))
+			{
+				m_positionInFlow = 1;
+			}
+			else
+			{
+				m_positionInFlow = 0;
+			}
+			var autoFlag:String = CSSProperty.AUTO_FLAG;
+			
+			var prop:CSSProperty;
+			prop = styles.getStyle('left');
+			if (!prop || prop.specifiedValue() == autoFlag)
+			{
+				m_leftIsAuto = true;
+				m_left = 0;
+			}
+			else
+			{
+				m_leftIsAuto = false;
+				m_left = Number(prop);
+			}
+			prop = styles.getStyle('right');
+			if (!prop || prop.specifiedValue() == autoFlag)
+			{
+				m_rightIsAuto = true;
+				m_right = 0;
+			}
+			else
+			{
+				m_rightIsAuto = false;
+				m_right = Number(prop);
+			}
+			prop = styles.getStyle('top');
+			if (!prop || prop.specifiedValue() == autoFlag)
+			{
+				m_topIsAuto = true;
+				m_top = 0;
+			}
+			else
+			{
+				m_topIsAuto = false;
+				m_top = Number(prop);
+			}
+			prop = styles.getStyle('bottom');
+			if (!prop || prop.specifiedValue() == autoFlag)
+			{
+				m_bottomIsAuto = true;
+				m_bottom = 0;
+			}
+			else
+			{
+				m_bottomIsAuto = false;
+				m_bottom = Number(prop);
+			}
+			
+			
+			m_positionOffset = new Point(0, 0);
+			if (positioning == 'relative')
+			{
+				m_positionOffset.x = m_left;
+				m_positionOffset.y = m_top;
+			}
+			
+			/*resolve containing block.
+			 * The containing block is defined as follows:
+			 * - if an explicit containg block is provided using 
+			 * overrideContainingBlock, the override is used
+			 * - if the elements' position is 'static' or 'relative', its 
+			 * containing block is its parentElement
+			 * - if the elements' position is 'absolute', its containing block
+			 * is the next ancestor with a position other than 'static'
+			 * - if the elements' position is 'static', its containing block
+			 * is the viewPort
+			 */
+			 if (m_explicitContainingBlock)
+			 {
+				m_containingBlock = m_explicitContainingBlock;
+			}
+			else
+			{
+				var parentComponent:UIComponent = UIComponent(m_parentElement);
+				if (positioning == 'fixed')
+				{
+					m_containingBlock = m_rootElement;
+				}
+				else if (positioning == 'absolute')
+				{
+					var inspectedBlock:UIComponent = parentComponent;
+					while (inspectedBlock && 
+						inspectedBlock.m_positioningType == 'static')
+					{
+						inspectedBlock = inspectedBlock.m_containingBlock;
+					}
+					m_containingBlock = inspectedBlock;
+				}
+				else
+				{
+					m_containingBlock = parentComponent;
+				}
+			}
+			
+			//calculate border widths
+			var borderWidthProp : CSSProperty;
+			var borderStyleProp : CSSProperty;
+			
+			borderWidthProp = styles.getStyle('borderLeftWidth');
+			borderStyleProp = styles.getStyle('borderLeftStyle');
+			if (borderWidthProp && borderStyleProp && 
+				borderStyleProp.valueOf() != 'none')
+			{
+				m_borderLeftWidth = borderWidthProp.valueOf() as Number;
+			}
+			else
+			{
+				m_borderLeftWidth = 0;
+			}
+			
+			borderWidthProp = styles.getStyle('borderTopWidth');
+			borderStyleProp = styles.getStyle('borderTopStyle');
+			if (borderWidthProp && borderStyleProp && 
+				borderStyleProp.valueOf() != 'none')
+			{
+				m_borderTopWidth = borderWidthProp.valueOf() as Number;
+			}
+			else
+			{
+				m_borderTopWidth = 0;
+			}
+			
+			borderWidthProp = styles.getStyle('borderRightWidth');
+			borderStyleProp = styles.getStyle('borderRightStyle');
+			if (borderWidthProp && borderStyleProp && 
+				borderStyleProp.valueOf() != 'none')
+			{
+				m_borderRightWidth = borderWidthProp.valueOf() as Number;
+			}
+			else
+			{
+				m_borderRightWidth = 0;
+			}
+			
+			borderWidthProp = styles.getStyle('borderBottomWidth');
+			borderStyleProp = styles.getStyle('borderBottomStyle');
+			if (borderWidthProp && borderStyleProp && 
+				borderStyleProp.valueOf() != 'none')
+			{
+				m_borderBottomWidth = borderWidthProp.valueOf() as Number;
+			}
+			else
+			{
+				m_borderBottomWidth = 0;
+			}
+			
+			
+			m_complexStyles = styles;
+			m_currentStyles = styles.toObject();
+			resolveRelativeStyles(styles);
+	
+			if (m_currentStyles.tabIndex != null)
+			{
+				m_tabIndex = m_currentStyles.tabIndex;
+			}
+	//		trace("f calculateStyles of " + m_elementType + "." + m_cssClasses + 
+	//			" finished. Took "+(getTimer() - t2));
+				
+			m_tooltipRenderer = m_currentStyles.tooltipRenderer;
+			m_tooltipDelay = m_currentStyles.tooltipDelay;
+			
+			if (m_currentStyles.blendMode != null)
+			{
+				m_contentDisplay.blendMode = m_currentStyles.blendMode;
+			}
+			
+			if (m_dropShadowFilter != null)
+			{
+				removeFilter(m_dropShadowFilter);
+			}
+			if (m_currentStyles.textShadowColor != null)
+			{
+				m_dropShadowFilter = Filters.dropShadowFilterFromStyleObjectForName(
+					m_currentStyles, 'text');
+				addFilter(m_dropShadowFilter);
+			}
+			
+			if (m_currentStyles.visibility == 'hidden' && m_visible)
+			{
+				m_visible = visible = false;
+			}
+			else if (m_currentStyles.visibility != 'hidden' && !m_visible)
+			{
+				m_visible = visible = true;
+			}
+			
+			rotation = m_currentStyles.rotation || 0;
+			
+			if (m_currentStyles.opacity == null)
+			{
+				m_currentStyles.opacity = 1;
+			}
+			alpha = 100 * (m_currentStyles.opacity);
+			
+			if (!m_currentStyles.outerWidth)
+			{
+				m_currentStyles.outerWidth = m_currentStyles.width + 
+					m_currentStyles.borderleftWidth + m_currentStyles.paddingLeft + 
+					m_currentStyles.borderRightWidth + m_currentStyles.paddingRight;
+			}
+			if (!m_currentStyles.outerHeight)
+			{
+				m_currentStyles.outerHeight = m_currentStyles.height + 
+					m_currentStyles.borderTopWidth + m_currentStyles.paddingTop + 
+					m_currentStyles.borderBottomWidth + m_currentStyles.paddingBottom;
+			}
+		}
+		
+		protected function resolveRelativeStyles(styles:CSSDeclaration) : void
+		{
+			var parentW:Number = m_containingBlock.m_currentStyles.width;
+			var parentH:Number = m_containingBlock.m_currentStyles.height;
+			
+			var propsResolvableToContainingWidth:Array = 
+			[
+				'marginTop',
+				'marginBottom',
+				'marginLeft',
+				'marginRight',
+				'paddingTop',
+				'paddingBottom',
+				'paddingLeft',
+				'paddingRight',
+				'width'
+			];
+			resolvePropsToValue(styles, propsResolvableToContainingWidth, parentW);
+			
+			var wProp : CSSProperty = styles.getStyle('width');
+			var hProp : CSSProperty = styles.getStyle('height');
+			
+			if (wProp.specifiedValue() == 'auto')
+			{
+				var outerWidthProp : CSSProperty = styles.getStyle('outerWidth');
+				if (outerWidthProp != null && 
+					outerWidthProp.specifiedValue() != 'auto')
+				{
+					var specOuterWidth : Number;
+					if (outerWidthProp.isRelativeValue())
+					{
+						specOuterWidth = 
+							Math.round(parentW / 100 * Number(outerWidthProp));
+					}
+					else
+					{
+						specOuterWidth = Number(outerWidthProp);
+					}
+					m_width = m_currentStyles.width = specOuterWidth - 
+						m_marginLeft - m_marginRight - 
+						m_paddingLeft - m_paddingRight - 
+						m_borderLeftWidth - m_borderRightWidth;
+				}
+				else if (!m_positionInFlow)
+				{
+					m_width = m_currentStyles.width = parentW - 
+						m_left - m_right - 
+						m_marginLeft - m_marginRight - 
+						m_paddingLeft - m_paddingRight - 
+						m_borderLeftWidth - m_borderRightWidth;
+				}
+				else
+				{
+					m_width = m_currentStyles.width = parentW - 
+						m_marginLeft - m_marginRight - 
+						m_paddingLeft - m_paddingRight - 
+						m_borderLeftWidth - m_borderRightWidth;
+				}
+			}
+			else
+			{
+				m_width = m_currentStyles.width || 0;
+			}
+			
+			var propsResolvableToOwnWidth:Array = 
+			[
+				'borderTopLeftRadius',
+				'borderTopRightRadius',
+				'borderBottomLeftRadius',
+				'borderBottomRightRadius'
+			];
+			resolvePropsToValue(styles, propsResolvableToOwnWidth, m_width);
+			
+			if (hProp.specifiedValue() == 'auto')
+			{
+				var outerHeightProp : CSSProperty = styles.getStyle('outerHeight');
+				if (outerHeightProp && 
+					outerHeightProp.specifiedValue() != 'auto')
+				{
+					var specOuterHeight : Number;
+					if (outerHeightProp.isRelativeValue())
+					{
+						specOuterHeight = 
+							Math.round(parentH / 100 * Number(outerHeightProp));
+					}
+					else
+					{
+						specOuterHeight = Number(outerHeightProp);
+					}
+					m_height = m_currentStyles.height = specOuterHeight - 
+						m_marginTop - m_marginBottom - 
+						m_paddingTop - m_paddingBottom - 
+						m_borderTopWidth - m_borderBottomWidth;
+				}
+				else
+				{
+					m_height = m_currentStyles.height;
+				}
+			}
+			else
+			{
+				if (hProp.isRelativeValue())
+				{
+					m_height = Math.round(parentH / 100 * Number(hProp));
+				}
+				else
+				{
+					m_height = m_currentStyles.height;
+				}
+			}
+		}
+		
+		protected function resolvePropsToValue(styles : CSSDeclaration, 
+			props : Array, baseValue : Number) : void
+		{
+			for (var i:Number = props.length; i--;)
+			{
+				var propName:String = props[i];
+				var cssProperty:CSSProperty = styles.getStyle(propName);
+				if (cssProperty)
+				{
+					if (cssProperty.isRelativeValue())
+					{
+						m_currentStyles[propName] = this["m_"+propName] = 
+							Math.round(baseValue / 100 * Number(cssProperty));
+					}
+					this["m_"+propName] = m_currentStyles[propName];
+				}
+				else 
+				{
+					m_currentStyles[propName] = this["m_"+propName] = 0;
+				}
+			}
+		}
+		
+		/**
+		 * calculates the vertical space taken by this elements' content
+		 */
+		protected function calculateContentHeight() : Number
+		{
+			return m_height;
+		}
+	
+		/**
+		 * calculates the horizontal space taken by this elements' content
+		 */
+		protected function calculateContentWidth() : Number
+		{
+			return m_width;
+		}
+		
+		/**
+		 * applies position and dimensions based on css definitions and other 
+		 * relevant factors.
+		 */
+		protected function resolveSpecifiedDimensions() : void
+		{
+			//apply final relative position/paddings/borderWidths to displays
+			m_contentDisplay.y = m_positionOffset.y + 
+				m_borderTopWidth + m_paddingTop;
+			m_contentDisplay.x = m_positionOffset.x + 
+				m_borderLeftWidth + m_paddingLeft;
+		}
+	
+		protected function applyInFlowChildPositions() : void
+		{
+//			trace(getTimer() + this);
+			var childCount:uint = m_contentDisplay.numChildren;
+			if (!childCount)
+			{
+				return;
+			}
+			
+			var autoFlag:String = CSSProperty.AUTO_FLAG;
+			
+			var inFlowDepth : uint = 0;
+			var outOfFlowDepth : uint = 0;
+			
+			var widestChildWidth:Number = 0;
+			var collapsibleMargin:Number = 0;
+			var topMarginCollapsible:Boolean = 
+				!m_borderTopWidth && !m_paddingTop && m_positionInFlow;
+			if (topMarginCollapsible)
+			{
+				collapsibleMargin = m_marginTop;
+			}
+			var totalAvailableWidth:Number = calculateContentWidth();
+			var currentLineBoxTop:Number = 0;
+			var currentLineBoxHeight:Number = 0;
+			var currentLineBoxLeftBoundary:Number = 0;
+			var currentLineBoxRightBoundary:Number = totalAvailableWidth;
+			
+			for (var i:Number = 0; i < childCount; i++)
+			{
+				var child:UIComponent = m_children[i] as UIComponent;
+				//only deal with children that derive from UIComponent
+				if (child)
+				{
+					var childStyles:CSSDeclaration = child.m_complexStyles;
+					
+					//apply horizontal position
+					if (child.m_float)
+					{
+						var childWidth:Number = child.m_borderBoxWidth + 
+							child.m_marginLeft + child.m_marginRight;
+						if (childWidth > currentLineBoxRightBoundary - 
+							currentLineBoxLeftBoundary)
+						{
+							currentLineBoxTop += 
+								currentLineBoxHeight + collapsibleMargin;
+							collapsibleMargin = 0;
+							currentLineBoxHeight = 0;
+							currentLineBoxLeftBoundary = 0;
+							currentLineBoxRightBoundary = totalAvailableWidth;
+						}
+						if (child.m_float == 'left')
+						{
+							child.x = 
+								currentLineBoxLeftBoundary + child.m_marginLeft;
+							currentLineBoxLeftBoundary = child.x + 
+								child.m_borderBoxWidth + child.m_marginRight;
+						}
+						else if (child.m_float == 'right')
+						{
+							child.x = currentLineBoxRightBoundary - 
+								child.m_borderBoxWidth - child.m_marginRight;
+							currentLineBoxRightBoundary = 
+								child.x - child.m_marginLeft;
+						}
+						currentLineBoxHeight = Math.max(currentLineBoxHeight, 
+							child.m_borderBoxHeight + 
+							child.m_marginTop + child.m_marginBottom);
+					}
+					else if (child.m_positionInFlow || 
+						(child.m_leftIsAuto && child.m_rightIsAuto))
+					{
+						if (childStyles.getStyle('marginLeft') &&
+							childStyles.getStyle('marginLeft').
+							specifiedValue() == autoFlag)
+						{
+							if (childStyles.getStyle('marginRight') && 
+								childStyles.getStyle('marginRight').
+								specifiedValue() == autoFlag)
+							{
+								child.x = 
+									Math.round(totalAvailableWidth / 2 - 
+									child.m_borderBoxWidth / 2);
+							}
+							else
+							{
+								child.x = totalAvailableWidth - 
+									child.m_borderBoxWidth - 
+									child.m_marginRight;
+							}
+						}
+						else
+						{
+							child.x = child.m_marginLeft;
+						}
+					}
+					widestChildWidth = Math.max(child.x + 
+						child.m_borderBoxWidth + child.m_marginRight, 
+						widestChildWidth);
+					
+					//apply vertical position including margin collapsing
+					if (child.m_positionInFlow)
+					{
+						var childMarginTop:Number = child.m_marginTop;
+						var collapsedMargin:Number;
+						if (collapsibleMargin >= 0 && childMarginTop >= 0)
+						{
+							collapsedMargin = 
+								Math.max(collapsibleMargin, childMarginTop);
+						}
+						else if (collapsibleMargin >= 0 && childMarginTop < 0)
+						{
+							collapsedMargin = collapsibleMargin + childMarginTop;
+						}
+						else if (collapsibleMargin < 0 && childMarginTop >= 0)
+						{
+							collapsedMargin = collapsibleMargin + childMarginTop;
+						}
+						else
+						{
+							collapsedMargin = 
+								Math.min(collapsibleMargin, childMarginTop);
+						}
+						
+						if (topMarginCollapsible)
+						{
+							m_marginTop = collapsedMargin;
+							collapsedMargin = 0;
+							topMarginCollapsible = false;
+						}
+						child.y = currentLineBoxTop + collapsedMargin;
+//						trace(child + (currentLineBoxTop + collapsedMargin));
+//						trace(child.m_borderBoxHeight);
+						
+						//collapse margins through empty elements 
+						if (!child.m_borderBoxHeight)
+						{
+							collapsibleMargin = 
+								Math.max(collapsedMargin, child.m_marginBottom);
+						}
+						else
+						{
+							collapsibleMargin = child.m_marginBottom;
+							topMarginCollapsible = false;
+						}
+						currentLineBoxTop = child.y + child.m_borderBoxHeight;
+						m_inFlowContentDisplay.addChild(child);
+						m_inFlowContentDisplay.setChildIndex(child, inFlowDepth++);
+					}
+					else
+					{
+						m_outOfFlowContentDisplay.addChild(child);
+						m_outOfFlowContentDisplay.setChildIndex(child, outOfFlowDepth++);
+						if (child.m_float || 
+							(child.m_topIsAuto && child.m_bottomIsAuto))
+						{
+							child.y = currentLineBoxTop + child.m_marginTop;
+						}
+					}
+				}
+			}
+			m_intrinsicHeight = 
+				currentLineBoxTop + currentLineBoxHeight + collapsibleMargin;
+			m_intrinsicWidth = widestChildWidth;
+		}
+		
+		protected function applyOutOfFlowChildPositions() : void
+		{
+			var childCount : uint = m_children.length;
+			for (var i:Number = 0; i < childCount; i++)
+			{
+				var child:UIComponent = m_children[i] as UIComponent;
+				if (!child)
+				{
+					//only deal with children that derive from UIComponent
+					continue;
+				}
+				var absolutePosition:Point;
+				if (!child.m_positionInFlow && !child.m_float)
+				{
+					absolutePosition = 
+						child.getPositionRelativeToContext(child.m_containingBlock);
+					absolutePosition.x -= child.x;
+					absolutePosition.y -= child.y;
+					
+					if (!child.m_leftIsAuto)
+					{
+						child.x = child.m_left + 
+							child.m_marginLeft - absolutePosition.x;
+					}
+					else if (!child.m_rightIsAuto)
+					{
+						child.x = child.m_containingBlock.calculateContentWidth() - 
+							child.m_borderBoxWidth - 
+							child.m_right - child.m_marginRight - absolutePosition.x;
+					}
+					
+					if (!child.m_topIsAuto)
+					{
+						child.y = child.m_top + child.m_marginTop - absolutePosition.y;
+					}
+					else if (!child.m_bottomIsAuto)
+					{
+						child.y = child.m_containingBlock.calculateContentHeight() - 
+							child.m_borderBoxHeight - 
+							child.m_bottom - child.m_marginBottom - absolutePosition.y;
+					}
+				}
+				child.applyOutOfFlowChildPositions();
+			}
+		}
+	
+	
+		/**
+		 * parses the elements' xmlDefinition as set through innerHTML
+		 */
+		protected function parseXmlDefinition(xmlDefinition : XMLNode) : void
+		{
+			//TODO: re-implement all features of parseXmlDefinition
+			if (xmlDefinition.nodeType == 3)
+			{
+				//this element is a textNode and is therefore guaranteed to have no
+				//styles attached. It should completely use its parents' styles.
+	//			m_domPath = m_parentElement.domPath;
+				m_elementType = "p";
+			}
+			else 
+			{
+				m_cssClasses = xmlDefinition.attributes["class"];
+				if (!m_cssClasses)
+				{
+					m_cssClasses = "";
+				}
+				var id:String = xmlDefinition.attributes.id;
+				if (id)
+				{
+					cssId = id;
+				}
+				m_elementType = xmlDefinition.nodeName;
+			}
+			
+			var tooltipText:String = xmlDefinition.attributes.tooltip;
+			if (!tooltipText)
+			{
+				tooltipText = xmlDefinition.attributes.title;
+			}
+			setTooltipData(tooltipText);
+			
+			m_stylesInvalidated = true;
+			invalidate();
+			m_nodeAttributes = xmlDefinition.attributes;
+	
+			parseChildNodes(xmlDefinition.firstChild);
+		}
+	
+		/**
+		 * parses and displays the elements' childNodes
+		 */
+		protected function parseChildNodes(firstChild:XMLNode) : void
+		{
+			//TODO: extract the textnode combining logic into a helper method
+			var textNodeTags : String = UIRendererFactory.TEXTNODE_TAGS;
+	
+			for(var node:XMLNode = firstChild;
+				node != null; node = node.nextSibling)
+			{
+				if (textNodeTags.indexOf(node.nodeName+",") != -1)
+				{
+					var nodesToCombine:Array = [node];
+					while (node.nextSibling && textNodeTags.indexOf(
+						node.nextSibling.nodeName+",") != -1)
+					{
+						nodesToCombine.push(node.nextSibling);
+						node = node.nextSibling;
+					}
+					var parentNode : XMLNode = node.parentNode;
+					var xmlParser : XMLDocument = new XMLDocument();
+					xmlParser.ignoreWhite = true;
+					var nodes : String = nodesToCombine.join('');
+					xmlParser.parseXML("<p>" + nodes + "</p>");
+					var nextNode:XMLNode = node.nextSibling;
+					node = xmlParser.firstChild;
+					node.removeNode();
+					parentNode.insertBefore(node, nextNode);
+				}
+				var child:UIComponent = 
+					m_rootElement.uiRendererFactory().rendererByNode(node);
+				if (child)
+				{
+					addChild(child);
+					child.parseXmlDefinition(node);
+				}
+				else
+				{
+					trace ("f No handler found for node: " + node.cloneNode(true));
+				}
+			}
+		}
+	
+		
+		/**
+		 * draws the background rect and borders according to the styles 
+		 * specified for this element.
+		 */
+		protected function applyBackgroundAndBorders() : void
+		{
+			var backgroundRendererId:String = 
+				m_currentStyles.backgroundRenderer || "";
+			if (!m_backgroundRenderer || 
+				m_backgroundRenderer.id() != backgroundRendererId)
+			{
+				if (m_backgroundDisplay)
+				{
+					m_backgroundRenderer.destroy();
+					removeChild(m_backgroundDisplay);
+				}
+				m_backgroundDisplay = new Sprite();
+				m_backgroundDisplay.name = "background_" + backgroundRendererId;
+				addChildAt(m_backgroundDisplay, 0);
+				m_backgroundRenderer = m_rootElement.uiRendererFactory().
+					backgroundRendererById(m_currentStyles.backgroundRenderer);
+				m_backgroundRenderer.setDisplay(m_backgroundDisplay);
+			}
+			
+			var borderRendererId:String = m_currentStyles.borderRenderer || "";
+			if (!m_borderRenderer || m_borderRenderer.id() != borderRendererId)
+			{
+				if (m_bordersDisplay)
+				{
+					m_borderRenderer.destroy();
+					removeChild(m_bordersDisplay);
+				}
+				m_bordersDisplay = new Sprite();
+				m_bordersDisplay.name = "border_" + borderRendererId;
+				addChild(m_bordersDisplay);
+				m_borderRenderer = m_rootElement.uiRendererFactory().
+					borderRendererById(m_currentStyles.borderRenderer);
+				m_borderRenderer.setDisplay(m_bordersDisplay);
+			}
+			
+			m_bordersDisplay.x = m_positionOffset.x;
+			m_bordersDisplay.y = m_positionOffset.y;
+			m_backgroundDisplay.y = m_positionOffset.y;
+			m_backgroundDisplay.x = m_positionOffset.x;
+			
+			m_backgroundRenderer.setSize(m_borderBoxWidth, m_borderBoxHeight);
+			m_backgroundRenderer.setStyles(m_currentStyles);
+			m_backgroundRenderer.setComplexStyles(m_complexStyles);
+			m_backgroundRenderer.draw();
+			
+			m_borderRenderer.setSize(m_borderBoxWidth, m_borderBoxHeight);
+			m_borderRenderer.setStyles(m_currentStyles);
+			m_borderRenderer.setComplexStyles(m_complexStyles);
+			m_borderRenderer.draw();
+			
+			if (m_currentStyles.backgroundBlendMode != null)
+			{
+				m_backgroundDisplay.blendMode = m_currentStyles.backgroundBlendMode;
+			}
+		}
+		protected function applyOverflowProperty() : void
+		{
+			switch (m_currentStyles.overflow)
+			{
+				case 'hidden':
+				{
+					applyMask();
+					break;
+				}
+				case 'scrollV':
+				case 'scrollV-vertical':
+				case 'scrollV-horizontal':
+				case 0:
+				{
+					applyScrollbars();
+					applyMask();
+					break;
+				}
+				case 'visible':
+				case undefined:
+				{
+					m_contentDisplay.mask = null;
+					if (m_vScrollbar)
+					{
+						m_vScrollbar.setVisibility(false);
+					}
+					if (m_hScrollbar)
+					{
+						m_hScrollbar.setVisibility(false);
+					}
+					break;
+				}
+				default:
+				{
+					trace("w style not supported: overflow: " + 
+						m_currentStyles.overflow + 
+						"in element with selectorPath '" +
+						m_selectorPath.split('@').join('') + "'");
+					m_contentDisplay.mask = null;
+				}
+			}
+		}
+		protected function applyMask() : void
+		{
+			if (!m_contentMask)
+			{
+				m_contentMask = new Sprite();
+				m_contentMask.name = 'mask';
+				addChild(m_contentMask);
+				m_contentMask.visible = false;
+			}
+			var radii : Array = [];
+			var order : Array = 
+				['borderTopLeftRadius', 'borderTopRightRadius', 
+				'borderBottomRightRadius', 'borderBottomLeftRadius'];
+			
+			var i : Number;
+			var radiusItem : Number;
+			for (i = 0; i < order.length; i++)
+			{
+				radii.push(m_currentStyles[order[i]] || 0);
+			}
+			m_contentMask.graphics.clear();
+			m_contentMask.graphics.beginFill(0x00ff00, 50);
+			GfxUtil.drawRoundRect(m_contentMask, 0, 0, 
+				m_borderBoxWidth, m_borderBoxHeight, radii);
+			m_contentDisplay.mask = m_contentMask;
+		}
+		
+		protected function applyScrollbars() : void
+		{
+			var availableWidth:Number = calculateContentWidth();
+			var availableHeight:Number = calculateContentHeight();
+			
+			if (m_currentStyles.overflow == 'scrollV-vertical')
+			{
+				if (!m_vScrollbar)
+				{
+					m_vScrollbar = createScrollbar(Scrollbar.ORIENTATION_VERTICAL);
+				}
+				availableWidth -= m_vScrollbar.outerWidth;
+				m_vScrollbar.setVisibility(true);
+				m_hScrollbar.setVisibility(false);
+			}
+			else if (m_currentStyles.overflow == 'scrollV')
+			{
+				if (!m_vScrollbar)
+				{
+					m_vScrollbar = createScrollbar(Scrollbar.ORIENTATION_VERTICAL);
+				}
+				if (!m_hScrollbar)
+				{
+					m_hScrollbar = 
+						createScrollbar(Scrollbar.ORIENTATION_HORIZONTAL);
+				}
+				availableWidth -= m_vScrollbar.outerWidth;
+				m_vScrollbar.setVisibility(true);
+				availableHeight -= m_hScrollbar.outerWidth;
+				m_hScrollbar.setVisibility(true);
+			}
+	//		else if (m_currentStyles.overflow == 0) //'auto' gets resolved to '0'
+	//		{
+	//			if (m_labelDisplay.textHeight > availableHeight)
+	//			{
+	//				if (!m_vScrollbar)
+	//				{
+	//					m_vScrollbar = 
+	//						createScrollbar(Scrollbar.ORIENTATION_VERTICAL);
+	//				}
+	//				availableWidth -= m_vScrollbar.width;
+	//				m_labelDisplay.width = availableWidth + 3;
+	//				m_vScrollbar.setVisibility(true);
+	//			}
+	//			else
+	//			{
+	//				m_vScrollbar.setVisibility(false);
+	//			}
+	//			
+	//			if (m_labelDisplay.textWidth > availableWidth)
+	//			{
+	//				if (!m_hScrollbar)
+	//				{
+	//					m_hScrollbar = 
+	//						createScrollbar(Scrollbar.ORIENTATION_HORIZONTAL);
+	//				}
+	//				availableHeight -= m_hScrollbar.width;
+	//				m_hScrollbar.setVisibility(true);
+	//				
+	//				if (!m_vScrollbar.getVisibility() && 
+	//					m_labelDisplay.textHeight > availableHeight)
+	//				{
+	//					if (!m_vScrollbar)
+	//					{
+	//						m_vScrollbar = 
+	//							createScrollbar(Scrollbar.ORIENTATION_VERTICAL);
+	//					}
+	//					availableWidth -= m_vScrollbar.width;
+	//					m_vScrollbar.setVisibility(true);
+	//				}
+	//			}
+	//			else
+	//			{
+	//				m_hScrollbar.setVisibility(false);
+	//			}
+	//		}
+			else
+			{
+				return;
+			}
+			
+			if (availableWidth != calculateContentWidth())
+			{
+				m_stylesInvalidated = true;
+				validateElement(true, true);
+			}
+			
+			m_vScrollbar.setScrollProperties(
+				availableHeight, 0, m_intrinsicHeight - availableHeight);
+			
+			availableHeight += m_paddingTop + m_paddingBottom;
+			availableWidth += m_paddingLeft + m_paddingRight;
+			
+			m_vScrollbar.top = m_borderTopWidth;
+			m_vScrollbar.outerHeight = availableHeight;
+			m_vScrollbar.left = availableWidth + m_borderLeftWidth;
+			m_vScrollbar.forceRedraw();
+			
+			m_hScrollbar.top = availableHeight + m_hScrollbar.outerWidth;
+			m_hScrollbar.outerHeight = availableWidth;
+		}
+	
+		protected function createScrollbar(
+			orientation:String, skipListenerRegistration : Boolean = false) : Scrollbar
+		{
+			if (!m_scrollbarsDisplay)
+			{
+				m_scrollbarsDisplay = new Sprite();
+				addChild(m_scrollbarsDisplay);
+			}
+			var scrollbar:Scrollbar = new Scrollbar();
+			scrollbar.setParent(this);
+			scrollbar.overrideContainingBlock(this);
+			m_scrollbarsDisplay.addChild(scrollbar);
+			scrollbar.cssClasses = orientation + "Scrollbar";
+			scrollbar.instanceStyles.position = 'absolute';
+			scrollbar.instanceStyles.autoHide = 'false';
+			scrollbar.instanceStyles.width = 
+				m_currentStyles.scrollbarWidth || DEFAULT_SCROLLBAR_WIDTH;
+			if (orientation == Scrollbar.ORIENTATION_HORIZONTAL)
+			{
+				scrollbar.rotation = -90;
+			}
+			if (!skipListenerRegistration)
+			{
+				scrollbar.addEventListener(Event.CHANGE, 
+					this[orientation + 'Scrollbar_change']);
+			}
+			scrollbar.addEventListener(MouseEvent.CLICK, scrollbar_event);
+			return scrollbar;
+		}	
+		
+		protected function scrollbar_event(event : Event) : void
+		{
+			event.stopImmediatePropagation();
+			event.stopPropagation();
+		}
+		
+		protected function verticalScrollbar_change(event : Event) : void
+		{
+			m_contentDisplay.y = m_positionOffset.y + 
+				m_borderTopWidth + m_paddingTop - m_vScrollbar.scrollPosition;
+		}
+		
+		protected function horizontalScrollbar_change(event : Event) : void
+		{
+			m_contentDisplay.x = m_positionOffset.x + 
+				m_borderLeftWidth + m_paddingLeft - m_hScrollbar.scrollPosition;
+		}
+		
+		protected function i18n(key : String) : String
+		{
+			return m_rootElement.getI18N(key);
+		}
+		protected function i18nFlag(key : String) : Boolean
+		{
+			return m_rootElement.getI18NFlag(key);
+		}
+		protected function i18nObject(key : String) : Object
+		{
+			return m_rootElement.getI18NObject(key);
+		}
+		protected function track(trackingId : String) : void
+		{
+			m_rootElement.getTrack(trackingId);
+		}
+		
+		/**
+		 * Hook method. Measures the intrinsic dimensions of the component.
+		 * The default implementation calculates the intrinsic height based
+		 * on the bottom of the last child that's positioned in-flow and the 
+		 * intrinsic width based on the style defined value.
+		 * This value is then applied to the height property as the calculated value.
+		 */
+		protected function measure() : void
+		{
+		}
+	}
+}
