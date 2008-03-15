@@ -4,7 +4,6 @@ package de.fork.controls {
 	import de.fork.css.CSSDeclaration;
 	import de.fork.events.LabelEvent;
 	import de.fork.ui.UIComponent;
-	import de.fork.utils.StringUtil;
 	
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
@@ -12,8 +11,6 @@ package de.fork.controls {
 	import flash.text.StyleSheet;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
-	import flash.xml.XMLDocument;
-	import flash.xml.XMLNode;
 	
 	use namespace ccInternal;
 	
@@ -40,12 +37,10 @@ package de.fork.controls {
 		protected var m_internalTextStylesheet : StyleSheet;
 		protected var m_internalStyleIndex : Number;
 	
-		protected var m_xmlDefinition : XMLNode;
+		protected var m_labelXML : XML;
 	
 		protected var m_htmlMode : Boolean;
 	
-		protected var m_labelXml : XMLNode;
-		
 		protected var m_textAlignment : String;
 		protected var m_containsImages : Boolean;	
 		protected var m_overflowIsInvalid : Boolean;
@@ -64,13 +59,14 @@ package de.fork.controls {
 		 */
 		public function setLabel(label:String) : void
 		{
-			m_labelXml = (new XMLDocument("<p>" + label + "</p>")).firstChild;
+			m_xmlDefinition = new XML('<p>' + label + '</p>');
 			m_textSetExternally = true;
 			invalidate();
 		}
 		public function getLabel() : String
 		{
-			var labelStr:String = m_labelXml.toString();
+			var labelStr:String = m_xmlDefinition.toXMLString();
+			return labelStr;
 			return labelStr.substring(
 				labelStr.indexOf(">") + 1, labelStr.lastIndexOf("<"));
 		}
@@ -163,15 +159,16 @@ package de.fork.controls {
 			}
 		}
 		
-		protected override function parseChildNodes(firstChild : XMLNode) : void
+		/**
+		 * Don't do anything here: Labels don't have child elements
+		 */
+		protected override function parseXMLContent(node : XML) : void
 		{
-			var labelXml:XMLDocument = new XMLDocument();
-			for(var node : XMLNode = firstChild;
-				node != null; node = node.nextSibling)
+			if (node.localName() != 'p')
 			{
-				labelXml.appendChild(node.cloneNode(true));
+				m_xmlDefinition = <p/>;
+				m_xmlDefinition.setChildren(node);
 			}
-			m_labelXml = labelXml;
 		}
 		
 		protected override function measure() : void
@@ -211,12 +208,17 @@ package de.fork.controls {
 				m_internalTextStylesheet = new StyleSheet();
 				m_labelDisplay.styleSheet = m_internalTextStylesheet;
 				m_internalStyleIndex = 0;
-				m_xmlDefinition = m_labelXml.cloneNode(true);
 				m_textAlignment = null;
 				m_containsImages = false;
-				cleanNode(m_xmlDefinition, m_selectorPath, 
-					m_rootElement.styleSheet);
-				var text:String = m_xmlDefinition.toString();
+				m_labelXML = m_xmlDefinition.copy();
+				m_labelXML.normalize();
+				cleanNode(m_labelXML, m_selectorPath, m_rootElement.styleSheet);
+				//TODO: check if condenseWhite = true is ok to use!
+//				var originalPrettyPrinting : Boolean = XML.prettyPrinting;
+//				XML.prettyPrinting = false;
+				m_labelDisplay.condenseWhite = true;
+				var text:String = m_labelXML.toXMLString();
+//				XML.prettyPrinting = originalPrettyPrinting;
 				if (m_currentStyles.fixLineEndings)
 				{
 					text = text.split('\r\n').join('\n').split('\r').join('\n');
@@ -273,22 +275,27 @@ package de.fork.controls {
 		/**
 		 * cleanes the given node to prepare it for display in a TextField
 		 */
-		protected function cleanNode(node:XMLNode, selectorPath:String, 
+		protected function cleanNode(node:XML, selectorPath:String, 
 			stylesheet:CSS, transform:String = null) : void
 		{
-			if (node.nodeType == 3 || node.nodeName == "br")
+			if (node.nodeKind() == 'text')
 			{
 				if (transform)
 				{
-					node.nodeValue = transformText(node.nodeValue, transform);
+					node.setChildren(transformText(node.text(), transform));
 				}
-				//nothing to clean in text nodes and <br>-nodes
+				//nothing else to clean in text nodes
+				return;
+			}
+			if (node.localName() == "br")
+			{
+				//nothing to clean in <br>-nodes
 				return;
 			}
 			
 			//bring all style definitions into a form the player can understand
-			var nodeStyle:CSSDeclaration;
-			if (node == m_xmlDefinition)
+			var nodeStyle : CSSDeclaration;
+			if (node == m_labelXML)
 			{
 				nodeStyle = m_complexStyles.clone();
 				if (nodeStyle.getStyle('transform'))
@@ -298,21 +305,13 @@ package de.fork.controls {
 			}
 			else
 			{
-				var classesStr:String = node.attributes["class"];
-				if (!classesStr)
-				{
-					classesStr = "";
-				}
-				else
+				var classesStr:String = node.@['class'].toString();
+				if (classesStr.length)
 				{
 					classesStr = "@." + classesStr.split(" ").join("@.") + "@";
 				}
-				var id:String = node.attributes.id;
-				if (!id)
-				{
-					id = "";
-				}
-				else
+				var id:String = node.@id.toString();
+				if (id.length)
 				{
 					id = "@#" + id + "@";
 				}
@@ -321,16 +320,16 @@ package de.fork.controls {
 			}
 			//the player doesn't understand the "style" attribute, so we need to
 			//copy all information into a class
-			var stylesStr:String = node.attributes.style;
+			var stylesStr:String = node.@style.toString();
 			var stylesStyle:Object;
-			if (stylesStr)
+			if (stylesStr.length)
 			{
 				var styleParser:StyleSheet = new StyleSheet();
 				styleParser.parseCSS("stylesClass {" + stylesStr + "}");
 				stylesStyle = styleParser.getStyle("stylesClass");
 				nodeStyle.mergeCSSDeclaration(
 					CSSDeclaration.CSSDeclarationFromObject(stylesStyle));
-				delete node.attributes.style;
+				delete node.@style;
 			}
 			
 			if (nodeStyle)
@@ -346,14 +345,12 @@ package de.fork.controls {
 					delete convertedNodeStyle.marginRight;
 				}
 				var styleName:String = "style_" + m_internalStyleIndex++;
-				m_internalTextStylesheet.setStyle(
-					"." + styleName, convertedNodeStyle);
-				node.attributes["class"] = styleName;
-				delete node.attributes.id;
+				m_internalTextStylesheet.setStyle("." + styleName, convertedNodeStyle);
+				node.@['class'] = styleName;
+				delete node.@id;
 				
-				/* check if the label has mixed textAlign properties.
-				 * If it does its TextField can't be shrinked horizontally 
-				 */
+				// check if the label has mixed textAlign properties.
+				// If it does its TextField can't be shrinked horizontally
 				if (m_textAlignment != 'mixed')
 				{
 					var textAlign:String = convertedNodeStyle.textAlign;
@@ -372,41 +369,58 @@ package de.fork.controls {
 				}
 			}
 			
-			switch (node.nodeName)
+			switch (node.localName())
 			{
-				case "br":
-					//remove all redundant whitespace around "<br />"-tags
-					if (node.previousSibling.nodeType == 3)
-					{
-						node.previousSibling.nodeValue = StringUtil.rTrim(
-							node.previousSibling.nodeValue);
-					}
-					if (node.nextSibling.nodeType == 3)
-					{
-						node.nextSibling.nodeValue = StringUtil.lTrim(
-							node.nextSibling.nodeValue);
-					}
-					break;
+				//TODO: Check if we need the whitespace cleanup stuff. We most certainly 
+				//don't, because we call XML::normalize on the root node. (Ok, turns out 
+				//we don't do that, but use TextField::condenseWhite, so that should be 
+				//fine.)
+//				case "br":
+//				{
+//					//remove all redundant whitespace around "<br />"-tags
+//					var parent : XML = node.parent();
+//					var siblings : XMLList = parent ? parent.children() : null;
+//					if (!siblings)
+//					{
+//						//we are the root node, get outta here
+//						//TODO: check if that's even possible
+//						 break;
+//					}
+//					var sibling : XML = siblings[node.childIndex() - 1];
+//					if (sibling && sibling.nodeKind() == 'text')
+//					{
+//						sibling.setChildren(StringUtil.rTrim(sibling.toString()));
+//					}
+//					sibling = siblings[node.childIndex() + 1];
+//					if (sibling && sibling.nodeKind() == 'text')
+//					{
+//						sibling.setChildren(StringUtil.lTrim(sibling.toString()));
+//					}
+//					break;
+//				}
 				case "a":
+				{
 					//extract all links and redirect them to an ActionScript method
-					var href:String = node.attributes.href;
-					if (href)
+					var href:String = node.@href.toString();
+					if (href.length)
 					{
-						var target:String = node.attributes.target;
-						if (target)
+						var target:String = node.@target.toString();
+						if (target.length)
 						{
-							href += "|"+target;
-							delete node.attributes.target;
+							href += '|' + target;
+							delete node.@target;
 						}
-						node.attributes.href = 
-							AS_LINK_PREFIX + m_textLinkHrefs.length;
+						node.@href = AS_LINK_PREFIX + m_textLinkHrefs.length;
 						m_textLinkHrefs.push(href);
 					}
 					break;
+				}
 				case "p":
 				case "span":
+				{
 					//do nothing these tags are fine
 					break;
+				}
 				case "img":
 				{
 					//we can't shrink the TextField later on, because the player 
@@ -417,14 +431,15 @@ package de.fork.controls {
 					break;
 				}
 				default:
+				{
 					//replace unknown tags by <span> tag. This enables styling 
 					//the node using the "class"-attribute, which is not possible 
 					//on tags unknown to the player
-					node.nodeName = "span";
+					node.setLocalName('span');
+				}
 			}
 			
-			for (var child:XMLNode = node.firstChild; 
-				child != null; child = child.nextSibling)
+			for each (var child : XML in node.children())
 			{
 				cleanNode(child, selectorPath, stylesheet, transform);
 			}

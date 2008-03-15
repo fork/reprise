@@ -1,4 +1,5 @@
-package de.fork.core { 
+package de.fork.core
+{ 
 	import de.fork.ui.UIComponent;
 	import de.fork.ui.renderers.AbstractTooltip;
 	import de.fork.ui.renderers.DefaultBackgroundRenderer;
@@ -6,7 +7,6 @@ package de.fork.core {
 	import de.fork.ui.renderers.DefaultTooltipRenderer;
 	import de.fork.ui.renderers.ICSSRenderer;
 	
-	import flash.xml.XMLNode;
 	public class UIRendererFactory 
 	{
 		/***************************************************************************
@@ -111,38 +111,25 @@ package de.fork.core {
 		 * returns a child class of UIComponent based on the handlers
 		 * registered with this factory and the given node definition
 		 */
-		public function rendererByNode(node : XMLNode) : UIComponent
+		public function rendererByNode(node : XML) : UIComponent
 		{
 			var renderer:UIComponent;
 			//check if the node is a text node.
 			//If so, tread it as a <p> node without any classes or an id.
-			if (node.nodeType == 3)
+			if (node.nodeKind() == 'text')
 			{
 				return rendererByTag("p");
 			}
-			
 			//check if the node has an id and there's a renderer registered for
 			//this id. If so, create an instance of the renderer and return it.
-			var nodeId:String = String(node.attributes.id);
-			if (nodeId)
+			var nodeId:String;
+			var idProps : XMLList = node.@id;
+			if (idProps.length())
 			{
-				renderer = rendererById(nodeId);
-				if (renderer)
+				nodeId = XML(idProps[0]).toString();
+				if (nodeId)
 				{
-					return renderer;
-				}
-			}
-			
-			//check for renderers for all of the classes of the node.
-			//Return an instance of the renderer if one is found.
-			var classesString:String = node.attributes['class'];
-			if (classesString)
-			{
-				var classes:Array = classesString.split(' ');
-				for (var i : Number = classes.length; i--;)
-				{
-					var className:String = String(classes[i]);
-					renderer = rendererByClass(className);
+					renderer = rendererById(nodeId);
 					if (renderer)
 					{
 						return renderer;
@@ -150,9 +137,30 @@ package de.fork.core {
 				}
 			}
 			
+			//check for renderers for all of the classes of the node.
+			//Return an instance of the renderer if one is found.
+			var classProps : XMLList = node.@['class'];
+			if (classProps.length())
+			{
+				var classesString:String = classProps[0];
+				if (classesString)
+				{
+					var classes:Array = classesString.split(' ');
+					for (var i : Number = classes.length; i--;)
+					{
+						var className:String = String(classes[i]);
+						renderer = rendererByClass(className);
+						if (renderer)
+						{
+							return renderer;
+						}
+					}
+				}
+			}
+			
 			//check for a renderer for the nodes' tag.
 			//Return an instance of the renderer if one is found.
-			renderer = rendererByTag(node.nodeName);
+			renderer = rendererByTag(node.localName());
 			return renderer;
 		}
 		

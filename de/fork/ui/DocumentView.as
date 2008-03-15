@@ -9,7 +9,6 @@ package de.fork.ui {
 	
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
-	import flash.xml.XMLNode;
 	
 	use namespace ccInternal;
 	public class DocumentView extends UIComponent
@@ -82,18 +81,16 @@ package de.fork.ui {
 		 * initializes the UIComponent structure from the given xml structure, 
 		 * creating child views as needed
 		 */
-		public function initFromXml(xml : XMLNode) : DocumentView
+		public function initFromXML(xml : XML) : DocumentView
 		{
-			parseChildNodes(xml);
+			parseXMLDefinition(xml);
 			return this;
 		}
-	
-	
 		
 		/**
 		 * sets the styleSheet to use vor this UIComponent and its' children
 		 */
-		public function set styleSheet(stylesheet:CSS) : void
+		public function set styleSheet(stylesheet : CSS) : void
 		{
 			m_styleSheet = stylesheet;
 			m_stylesInvalidated = true;

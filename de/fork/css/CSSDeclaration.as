@@ -257,7 +257,7 @@ package de.fork.css {
 			for (var key:String in m_properties)
 			{
 				str += "\t" + key + " : " + 
-					CSSProperty(m_properties[key]).specifiedValue() + "\n";
+					CSSProperty(m_properties[key]).specifiedValue() + ";\n";
 			}
 				
 			return str + '}';

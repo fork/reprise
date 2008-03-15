@@ -15,8 +15,6 @@ package de.fork.ui
 	import flash.filters.DropShadowFilter;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.xml.XMLDocument;
-	import flash.xml.XMLNode;
 	public class UIComponent extends UIObject
 	{
 		/***************************************************************************
@@ -33,7 +31,8 @@ package de.fork.ui
 		
 		protected var m_containingBlock : UIComponent;
 		protected var m_explicitContainingBlock : UIComponent;
-	
+		
+		protected var m_xmlDefinition : XML;
 		protected var m_cssClasses : String = "";
 		protected var m_cssPseudoClasses : String = "";
 		protected var m_pseudoClassesBackup : String;
@@ -164,10 +163,13 @@ package de.fork.ui
 		/**
 		 * initializes the UIComponent structure from the given xml structure, 
 		 * creating child views as needed
+		 * TODO: check if this method should call parseXMLDefinition to fully initialize 
+		 * using the xml data (including attributes)
 		 */
-		public function setInnerXML(xml:XMLNode) : UIComponent
+		public function setInnerXML(xml:XML) : UIComponent
 		{
-			parseChildNodes(xml);
+			m_xmlDefinition.setChildren(xml.children());
+			parseXMLContent(xml);
 			return this;
 		}
 		
@@ -1124,6 +1126,8 @@ package de.fork.ui
 					m_currentStyles.borderTopWidth + m_currentStyles.paddingTop + 
 					m_currentStyles.borderBottomWidth + m_currentStyles.paddingBottom;
 			}
+//			trace(m_selectorPath);
+//			trace(m_complexStyles);
 		}
 		
 		protected function resolveRelativeStyles(styles:CSSDeclaration) : void
@@ -1506,86 +1510,99 @@ package de.fork.ui
 		/**
 		 * parses the elements' xmlDefinition as set through innerHTML
 		 */
-		protected function parseXmlDefinition(xmlDefinition : XMLNode) : void
+		protected function parseXMLDefinition(xmlDefinition : XML) : void
 		{
-			//TODO: re-implement all features of parseXmlDefinition
-			if (xmlDefinition.nodeType == 3)
+			m_xmlDefinition = xmlDefinition;
+			parseXMLAttributes(xmlDefinition);
+			parseXMLContent(xmlDefinition);
+			
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		
+		protected function parseXMLAttributes(node : XML) : void
+		{
+			if (node.nodeKind() == 'text')
 			{
+				//TODO: check if this can happen at all. Shouldn't a text node be 
+				//rendered by the label component anyway?
 				//this element is a textNode and is therefore guaranteed to have no
 				//styles attached. It should completely use its parents' styles.
-	//			m_domPath = m_parentElement.domPath;
+				//m_domPath = m_parentElement.domPath;
 				m_elementType = "p";
 			}
 			else 
 			{
-				m_cssClasses = xmlDefinition.attributes["class"];
-				if (!m_cssClasses)
+				var attributes : Object = {};
+				for each (var attribute : XML in node.@*)
 				{
-					m_cssClasses = "";
+					if (attribute.nodeKind() != 'text')
+					{
+						attributes[attribute.localName()] = attribute.toString();
+					}
 				}
-				var id:String = xmlDefinition.attributes.id;
-				if (id)
+				m_nodeAttributes = attributes;
+				m_cssClasses = attributes['class'] || '';
+				if (attributes.id)
 				{
-					cssId = id;
+					cssId = attributes.id;
 				}
-				m_elementType = xmlDefinition.nodeName;
+				m_elementType = node.localName();
+				
+				setTooltipData(attributes.tooltip || attributes.title);
 			}
-			
-			var tooltipText:String = xmlDefinition.attributes.tooltip;
-			if (!tooltipText)
-			{
-				tooltipText = xmlDefinition.attributes.title;
-			}
-			setTooltipData(tooltipText);
-			
-			m_stylesInvalidated = true;
-			invalidate();
-			m_nodeAttributes = xmlDefinition.attributes;
-	
-			parseChildNodes(xmlDefinition.firstChild);
 		}
 	
 		/**
 		 * parses and displays the elements' childNodes
 		 */
-		protected function parseChildNodes(firstChild:XMLNode) : void
+		protected function parseXMLContent(node : XML) : void
 		{
-			//TODO: extract the textnode combining logic into a helper method
-			var textNodeTags : String = UIRendererFactory.TEXTNODE_TAGS;
-	
-			for(var node:XMLNode = firstChild;
-				node != null; node = node.nextSibling)
+			for each (var childNode:XML in node.children())
 			{
-				if (textNodeTags.indexOf(node.nodeName+",") != -1)
-				{
-					var nodesToCombine:Array = [node];
-					while (node.nextSibling && textNodeTags.indexOf(
-						node.nextSibling.nodeName+",") != -1)
-					{
-						nodesToCombine.push(node.nextSibling);
-						node = node.nextSibling;
-					}
-					var parentNode : XMLNode = node.parentNode;
-					var xmlParser : XMLDocument = new XMLDocument();
-					xmlParser.ignoreWhite = true;
-					var nodes : String = nodesToCombine.join('');
-					xmlParser.parseXML("<p>" + nodes + "</p>");
-					var nextNode:XMLNode = node.nextSibling;
-					node = xmlParser.firstChild;
-					node.removeNode();
-					parentNode.insertBefore(node, nextNode);
-				}
+				preprocessTextNode(childNode);
+				trace('node: ' + childNode.toXMLString());
 				var child:UIComponent = 
-					m_rootElement.uiRendererFactory().rendererByNode(node);
+					m_rootElement.uiRendererFactory().rendererByNode(childNode);
 				if (child)
 				{
 					addChild(child);
-					child.parseXmlDefinition(node);
+					child.parseXMLDefinition(childNode);
 				}
 				else
 				{
-					trace ("f No handler found for node: " + node.cloneNode(true));
+					trace ("f No handler found for node: " + childNode.toXMLString());
 				}
+			}
+		}
+		
+		protected function preprocessTextNode(node : XML) : void
+		{
+			var textNodeTags : String = UIRendererFactory.TEXTNODE_TAGS;
+			if (textNodeTags.indexOf(node.localName() + ",") != -1)
+			{
+				var nodesToCombine : XMLList = new XMLList(node);
+				var parentNode : XML = node.parent() as XML;
+				var siblings : XMLList = parentNode ? parentNode.* : null;
+				if (!siblings)
+				{
+					return;
+				}
+				//TODO: find a cleaner way to combine text nodes
+				for (var i : uint = node.childIndex() + 1; 
+					i < XMLList(parentNode.*).length();)
+				{
+					var sibling : XML = XMLList(parentNode.*)[i];
+					if (textNodeTags.indexOf(sibling.localName() + ',') == -1)
+					{
+						break;
+					}
+					nodesToCombine += sibling;
+					delete parentNode.*[i];
+				}
+				var xmlParser : XML = <p/>;
+				xmlParser.setChildren(nodesToCombine);
+				siblings[node.childIndex()] = xmlParser;
 			}
 		}
 	

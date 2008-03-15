@@ -1,6 +1,5 @@
 package de.fork.external
 { 
-	import flash.net.URLLoader;
 	import flash.xml.XMLDocument;
 	public class XMLResource extends FileResource
 	{
@@ -19,9 +18,7 @@ package de.fork.external
 		
 		public override function content() : *
 		{
-			var xml:XMLDocument = new XMLDocument();
-			xml.ignoreWhite = true;
-			xml.parseXML(m_data.split("\r\n").join("\n"));
+			var xml:XML = new XML(m_data.split("\r\n").join("\n"));
 			return xml;
 		}
 	}
