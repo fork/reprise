@@ -1,4 +1,5 @@
-package de.fork.utils { 
+package de.fork.utils
+{ 
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.geom.Matrix;
@@ -7,29 +8,16 @@ package de.fork.utils {
 	public class GfxUtil 
 	{
 		/***************************************************************************
-		*							public properties							   *
-		***************************************************************************/
-		
-		
-		/***************************************************************************
-		*							protected properties							   *
-		***************************************************************************/
-		
-		
-		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
 		/**
 		 * draws a rect in the given context
+		 * TODO: change interface to Rectangle
 		 */
-		public static function drawRect (
+		public static function drawRect(
 			mc:Sprite, x:Number, y:Number, w:Number, h:Number):void
 		{
-			mc.graphics.moveTo(x, y);
-			mc.graphics.lineTo(x + w, y);
-			mc.graphics.lineTo(x + w, y + h);
-			mc.graphics.lineTo(x, y + h);
-			mc.graphics.lineTo(x, y);
+			mc.graphics.drawRect(x, y, w, h);
 		}
 		
 		/**
@@ -38,22 +26,24 @@ package de.fork.utils {
 		public static function drawCircle (
 			mc:Sprite, x:Number, y:Number, radius:Number) : void
 		{
-			var kDegreesToRadians:Number = Math.PI / 180;
-			var theta:Number = 45 * kDegreesToRadians;
-			var cr:Number = radius / Math.cos(theta / 2);
-			var angle:Number = 0;
-			var cangle:Number = 0 - theta/2;
-			mc.graphics.moveTo(x + radius, y);
-			for (var i:Number = 0; i < 8; i++) 
-			{
-				angle += theta;
-				cangle += theta;
-				var endX:Number = radius * Math.cos (angle);
-				var endY:Number = radius * Math.sin (angle);
-				var cX:Number = cr * Math.cos (cangle);
-				var cY:Number = cr * Math.sin (cangle);
-				mc.graphics.curveTo(x + cX, y + cY, x + endX, y + endY);
-			}
+			//TODO: verify this change
+			mc.graphics.drawCircle(x, y, radius);
+//			var kDegreesToRadians:Number = Math.PI / 180;
+//			var theta:Number = 45 * kDegreesToRadians;
+//			var cr:Number = radius / Math.cos(theta / 2);
+//			var angle:Number = 0;
+//			var cangle:Number = 0 - theta/2;
+//			mc.graphics.moveTo(x + radius, y);
+//			for (var i:Number = 0; i < 8; i++) 
+//			{
+//				angle += theta;
+//				cangle += theta;
+//				var endX:Number = radius * Math.cos (angle);
+//				var endY:Number = radius * Math.sin (angle);
+//				var cX:Number = cr * Math.cos (cangle);
+//				var cY:Number = cr * Math.sin (cangle);
+//				mc.graphics.curveTo(x + cX, y + cY, x + endX, y + endY);
+//			}
 		}
 		
 		// drawRoundRect
@@ -65,6 +55,7 @@ package de.fork.utils {
 		public static function drawRoundRect(mc:Sprite, 
 			x:Number, y:Number, w:Number, h:Number, radius:Array) : void
 		{
+			//TODO: check if we can use the native function here
 			var rbr : Number, rbl : Number, rtl : Number, rtr : Number, r : Number;
 			var a : Number;
 			var s : Number;

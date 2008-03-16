@@ -1,4 +1,5 @@
 package de.fork.media { 
+	import de.fork.events.MediaEvent;
 	import de.fork.utils.ProxyFunction;
 	
 	import flash.display.MovieClip;
@@ -219,7 +220,7 @@ package de.fork.media {
 				m_isPlaying = false;
 				m_lastPosition = 0;
 				dispatchEvent(new MediaEvent(
-					MediaEvent.PLAYBACK_FINISH, this, true));
+					MediaEvent.PLAYBACK_FINISH, true));
 			}
 		}
 		protected function onMetaData (metaData:Object) : void
@@ -231,14 +232,14 @@ package de.fork.media {
 			setBuffering(true);
 			delete m_nStream.onMetaData;
 			var event : MediaEvent = 
-				new MediaEvent(MediaEvent.VIDEO_INITIALIZE, this, true);
+				new MediaEvent(MediaEvent.VIDEO_INITIALIZE, true);
 			event.metaData = metaData;
 			dispatchEvent(event);
 		};
 		protected function onCuePoint(cuePointData:Object) : void
 		{
 			var event : MediaEvent = 
-				new MediaEvent(MediaEvent.CUE_POINT, this, true);
+				new MediaEvent(MediaEvent.CUE_POINT, true);
 			event.cuePoint = cuePointData;
 			dispatchEvent(event);
 		};
@@ -253,7 +254,7 @@ package de.fork.media {
 				m_nStream.setBufferTime(10000);
 				m_nStream.pause(true);
 				m_sound.setVolume(0);
-				dispatchEvent(new MediaEvent(MediaEvent.BUFFERING, this, true));
+				dispatchEvent(new MediaEvent(MediaEvent.BUFFERING, true));
 			}
 			else
 			{
@@ -264,7 +265,7 @@ package de.fork.media {
 				}
 				m_sound.setVolume(m_volume);
 				dispatchEvent(new MediaEvent(
-					MediaEvent.PLAYBACK_START, this, true));
+					MediaEvent.PLAYBACK_START, true));
 			}
 		}
 	}

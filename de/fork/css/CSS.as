@@ -1,5 +1,8 @@
 package de.fork.css
 {	
+	import de.fork.core.Application;
+	import de.fork.core.ApplicationRegistry;
+	import de.fork.css.propertyparsers.RuntimeParser;
 	import de.fork.data.collection.IndexedArray;
 	import de.fork.events.CommandEvent;
 	import de.fork.events.ResourceEvent;
@@ -10,12 +13,23 @@ package de.fork.css
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.text.StyleSheet;
-	import flash.text.TextFormat;
 	import flash.utils.getTimer;
 	
-	public class CSS extends EventDispatcher
+	public class CSS 
+		extends EventDispatcher
 		implements IResource
 	{
+		/***************************************************************************
+		*							public properties							   *
+		***************************************************************************/
+		public static const PROPERTY_TYPE_STRING : uint = 1;
+		public static const PROPERTY_TYPE_INT : uint = 2;
+		public static const PROPERTY_TYPE_FLOAT : uint = 3;
+		public static const PROPERTY_TYPE_BOOL : uint = 4;
+		public static const PROPERTY_TYPE_URL : uint = 5;
+		public static const PROPERTY_TYPE_COLOR : uint = 6;
+		
+		
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
@@ -39,7 +53,8 @@ package de.fork.css
 		protected var m_failedTimes : Number;
 		protected var m_forceReload : Boolean;
 		protected var m_isCancelled : Boolean;
-		protected var m_didFinishLoading : Boolean;	
+		protected var m_didFinishLoading : Boolean;
+		protected var m_runtimeParserRegistered : Boolean;
 		
 		protected var m_cleanupTime : Number;
 		protected var m_parseTime : Number;
@@ -77,6 +92,12 @@ package de.fork.css
 				throw new Error('You didn\'t specify an URL for your ' + 
 					'resource! Make sure you do this before calling execute!');
 				return;
+			}
+			
+			if (!m_runtimeParserRegistered)
+			{
+				CSSDeclaration.registerPropertyCollection(RuntimeParser);
+				m_runtimeParserRegistered = true;
 			}
 			
 			m_didFinishLoading = false;
@@ -142,7 +163,7 @@ package de.fork.css
 		 * haven't, the escaping process starts after the last escape character, 
 		 * i.e. the last '@'.
 		 */
-		public function escapeSelectorPath(sp : String) : String
+		public static function escapeSelectorPath(sp : String) : String
 		{
 			var stringParts : Array = sp.split('@');
 			var input : String = String(stringParts.pop());
@@ -174,12 +195,13 @@ package de.fork.css
 		
 		public function baseURL() : String
 		{
-			//TODO: find a replacement for _level0._url
-//			if (m_baseURL == null)
-//			{
-//				return _level0._url;
-//			}
-			return m_baseURL;
+			if (m_baseURL == null)
+			{
+				var app : Application = 
+					ApplicationRegistry.instance().applicationForURL(null);
+				return app.applicationURL();
+			}
+			return m_baseURL; 
 		}
 	
 		public function setBaseURL(val:String) : void
@@ -306,6 +328,12 @@ package de.fork.css
 				addCSSVariableWithNameAndValue(key, obj[key]);
 			}
 		}
+	
+		public function registerProperty(
+			name : String, type : uint, inheritable : Boolean) : void
+		{
+			RuntimeParser.registerProperty(name, type, inheritable);
+		}
 		
 		
 		
@@ -324,7 +352,10 @@ package de.fork.css
 				for (j = 1; j < parts.length; j++)
 				{
 					var part : String = parts[j];
+					var lbPos : Number = part.indexOf(';\n');
 					var scPos : Number = part.indexOf(';');
+					var cutPos : Number = scPos == lbPos ? scPos + 1 : scPos;
+					
 					var varStr : String = part.substring(0, scPos);
 					
 					var wsPos : Number = part.indexOf(' ');
@@ -332,7 +363,7 @@ package de.fork.css
 					var varCnt : String = varStr.substring(wsPos + 1, scPos);
 					
 					addCSSVariableWithNameAndValue(varName, varCnt);
-					parts[j] = part.substr(scPos + 1);
+					parts[j] = part.substr(cutPos + 1);
 				}
 				seg.setContent(parts.join(''));
 			}

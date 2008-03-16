@@ -272,21 +272,18 @@ package de.fork.css {
 			var spec : Number = 0;
 			var patternParts : Array = pattern.split('.');
 			
-			if (patternParts.length > 1)
-			{
-				spec += (patternParts.length - 1) * specificityFactorClass;
-			}
+			//add specificity of classes multiplied by class count
+			spec += (patternParts.length - 1) * specificityFactorClass;
+			
 			patternParts = patternParts[0].split('#');
-			if (patternParts.length == 1)
+			if (patternParts[0] != '')
 			{
 				spec += specificityFactorElement;
 			}
-			else
+			if (patternParts[1])
 			{
-				spec += specificityFactorClass;
-				if (patternParts[ 0 ] != '')
-					spec += specificityFactorElement;
-			}		
+				spec += specificityFactorId;
+			}
 			return spec;
 		}
 	}

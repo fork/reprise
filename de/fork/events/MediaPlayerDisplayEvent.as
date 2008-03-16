@@ -6,26 +6,20 @@ package de.fork.events
 	/**
 	 * @author till
 	 */
-	public class MediaEvent extends Event
+	public class MediaPlayerDisplayEvent extends Event
 	{
 		/***************************************************************************
 		*							public properties							   *
 		***************************************************************************/
-		public static const PLAYBACK_START : String = "playbackStart";
-		public static const PLAYBACK_PAUSE : String = "playbackPause";
-		public static const PLAYBACK_FINISH : String = "playbackFinish";
-		public static const BUFFERING : String = "buffering";
-		public static const VIDEO_INITIALIZE : String = "videoInitialize";
-		public static const CUE_POINT : String = "cuePoint";
-		
-		public var metaData : Object;
-		public var cuePoint : Object;
+		public static const PLAY_CLICK : String = "playClickEvent";
+		public static const PAUSE_CLICK : String = "pauseClickEvent";
+		public static const STOP_CLICK : String = "stopClickEvent";
 		
 		
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function MediaEvent(type : String, bubbles : Boolean = false)
+		public function MediaPlayerDisplayEvent(type : String, bubbles : Boolean = false)
 		{
 			super(type, bubbles);
 		}

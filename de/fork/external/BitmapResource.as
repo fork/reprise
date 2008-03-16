@@ -141,5 +141,9 @@ package de.fork.external {
 			var cache : BitmapResourceCache = BitmapResourceCache.instance();
 			cache.loadBitmapResource(this);
 		}
+		protected override function doCancel() : void
+		{
+			// BitmapResourceCacheItem takes care of cancelling
+		}
 	}
 }

@@ -1,4 +1,5 @@
-package de.fork.controls.html { 
+package de.fork.controls.html
+{ 
 	import de.fork.events.DisplayEvent;
 	import de.fork.events.ResourceEvent;
 	import de.fork.external.BitmapResource;
@@ -8,6 +9,7 @@ package de.fork.controls.html {
 	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.xml.XMLNode;
+	
 	public class Image extends UIComponent
 	{
 		/***************************************************************************
@@ -22,12 +24,10 @@ package de.fork.controls.html {
 		protected var m_imageLoader:BitmapResource;
 		protected var m_image : Bitmap;
 		
-		
 		protected var m_loaded : Boolean;
-		
-		
 		protected var m_imageDisplayed : Boolean;
 		
+		protected var m_smoothing : Boolean = true;
 		
 		protected var m_priority : Number = 0;
 		
@@ -64,14 +64,24 @@ package de.fork.controls.html {
 				m_imageLoader.setPriority(value);
 			}
 		}
+	
+		public function setSmoothing(enabled : Boolean) : void
+		{
+			//TODO: found out how to enable smoothing
+			m_smoothing = enabled;
+		}
 		
 		
 		/***************************************************************************
-		*							protected methods								   *
+		*							protected methods							   *
 		***************************************************************************/
-		protected override function parseXmlDefinition(xmlDefinition:XMLNode) : void
+		protected override function initDefaultStyles() : void
 		{
-			super.parseXmlDefinition(xmlDefinition);
+			m_elementDefaultStyles.display = 'inline';
+		}
+		protected override function parseXMLDefinition(xmlDefinition:XML) : void
+		{
+			super.parseXMLDefinition(xmlDefinition);
 			if (m_nodeAttributes.src == null)
 			{
 				return;
@@ -83,6 +93,7 @@ package de.fork.controls.html {
 		{
 			if (!e.success)
 			{
+				dispatchEvent(new DisplayEvent(DisplayEvent.LOAD_FAIL));
 				return;
 			}
 			m_loaded = true;
@@ -90,6 +101,10 @@ package de.fork.controls.html {
 			{
 				m_imageDisplayed = false;
 				m_contentDisplay.visible = false;
+			}
+			if (m_image)
+			{
+				m_contentDisplay.removeChild(m_image);
 			}
 			m_image = new Bitmap(BitmapData(m_imageLoader.content()));
 			m_contentDisplay.addChild(m_image);

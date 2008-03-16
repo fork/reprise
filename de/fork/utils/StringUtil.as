@@ -1,15 +1,14 @@
-package de.fork.utils { 
+package de.fork.utils
+{ 
 	import de.fork.data.Range;
-	
-	
+
 	public class StringUtil
 	{
 		
-		public static var CASEINSENSITIVE_SEARCH : Number = 1;
-		public static var BACKWARDS_SEARCH : Number = 2;
+		public static const CASEINSENSITIVE_SEARCH : Number = 1;
+		public static const BACKWARDS_SEARCH : Number = 2;
 		
-		
-		public static var CHAR_WHITESPACE : Array = [" ", "\t", "\n", "\r"];
+		public static const CHAR_WHITESPACE : Array = [" ", "\t", "\n", "\r"];
 		
 		
 		public function StringUtil() {}
@@ -138,6 +137,42 @@ package de.fork.utils {
 				return {result : leftSlice + rightSlice, slice : slice};
 			}
 			return {result : input};
+		}
+		
+		public static function removeSubstringFromDelimitedString(
+			str : String, substr : String, delimiter : String) : String
+		{
+			if (!str.length || str.indexOf(substr) == -1)
+			{
+				return str;
+			}
+			var list : Array = str.split(delimiter);
+			for (var i:Number = list.length; i--;)
+			{
+				if (list[i] == substr)
+				{
+					list.splice(i, 1);
+				}
+			}
+			return list.join(delimiter);
+		}
+		
+		public static function delimitedStringContainsSubstring(
+			str : String, substr : String, delimiter : String) : Boolean
+		{
+			if (!str.length || str.indexOf(substr) == -1)
+			{
+				return false;
+			}
+			var list : Array = str.split(delimiter);
+			for (var i:Number = list.length; i--;)
+			{
+				if (list[i] == substr)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }

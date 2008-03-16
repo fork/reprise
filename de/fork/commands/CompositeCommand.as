@@ -11,10 +11,10 @@ package de.fork.commands {
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		protected static var DEFAULT_MAX_PARALLEL_EXECUTION_COUNT : Number = 1;
 		protected static var g_id : Number = 0;
 		
-		protected var m_maxParallelExecutionCount : Number;
+		//TODO: check if this should be uint
+		protected   var m_maxParallelExecutionCount : Number = 1; //default value
 		protected	var m_pendingCommands : IndexedArray;
 		protected	var m_finishedCommands : IndexedArray;
 		protected	var m_currentCommands : IndexedArray;
@@ -30,7 +30,6 @@ package de.fork.commands {
 		public function CompositeCommand()
 		{
 			m_id = g_id++;
-			m_maxParallelExecutionCount = DEFAULT_MAX_PARALLEL_EXECUTION_COUNT;
 			clear();
 		}
 		
@@ -135,19 +134,27 @@ package de.fork.commands {
 			executeNext();
 		}
 		
+		protected function command_cancel(event : CommandEvent) : void
+		{
+			// cancel makes no difference to us to a unsuccessful command
+			var completeEvent : CommandEvent = new CommandEvent(Event.COMPLETE, false);
+			command_complete(completeEvent);
+		}
+		
 		protected function executeNext() : void
 		{
-			while (m_currentCommands.length < m_maxParallelExecutionCount)
+			if (m_pendingCommands.length == 0)
 			{
-				if (m_pendingCommands.length == 0)
+				if (m_isExecutingAsynchronously && m_currentCommands.length == 0)
 				{
-					if (m_isExecutingAsynchronously && 
-						m_currentCommands.length == 0)
-					{
-						notifyComplete(m_failedCommands.length < 1);
-					}
-					return;
+					notifyComplete(m_failedCommands.length == 0);
 				}
+				return;
+			}
+			
+			while ((m_currentCommands.length < m_maxParallelExecutionCount || 
+				!m_maxParallelExecutionCount) && m_pendingCommands.length)
+			{
 				var currentCommand : ICommand = ICommand(m_pendingCommands.shift());
 				if (currentCommand is IAsynchronousCommand)
 				{
@@ -174,15 +181,15 @@ package de.fork.commands {
 		protected function registerListenersForAsynchronousCommand(
 			cmd:IAsynchronousCommand):void
 		{
-			cmd.addEventListener(Event.COMPLETE, 
-				command_complete);
+			cmd.addEventListener(Event.COMPLETE, command_complete);
+			cmd.addEventListener(Event.CANCEL, command_cancel);
 		}
 		
 		protected function unregisterListenersForAsynchronousCommand(
 			cmd:IAsynchronousCommand):void
 		{
-			cmd.removeEventListener(Event.COMPLETE, 
-				command_complete);
+			cmd.removeEventListener(Event.COMPLETE, command_complete);
+			cmd.removeEventListener(Event.CANCEL, command_cancel);
 		}
 		
 		protected function containsAsynchronousCommands():Boolean

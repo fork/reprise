@@ -1,20 +1,22 @@
-package de.fork.css { 
+package de.fork.css
+{
+	import de.fork.css.math.AbstractCSSCalculation;
+	import de.fork.css.math.CSSCalculationGroup;
+	import de.fork.css.math.CSSCalculationRelativeValue;
+	 
 	// @see http://www.w3.org/TR/REC-CSS2/cascade.html
 	public class CSSProperty
 	{
-		
-			
 		/***************************************************************************
 		*							public properties							   *
 		***************************************************************************/
-		public static var UNIT_PIXEL : String = 'px';
-		public static var UNIT_EM : String = 'em';
-		public static var UNIT_PERCENT : String = '%';
+		public static const UNIT_PIXEL : String = 'px';
+		public static const UNIT_EM : String = 'em';
+		public static const UNIT_PERCENT : String = '%';
 		
-		public static var IMPORTANT_FLAG : String = '!important';
-		public static var INHERIT_FLAG : String = 'inherit';
-		public static var AUTO_FLAG : String = 'auto';
-		
+		public static const IMPORTANT_FLAG : String = '!important';
+		public static const INHERIT_FLAG : String = 'inherit';
+		public static const AUTO_FLAG : String = 'auto';
 		
 		
 		/***************************************************************************
@@ -28,14 +30,16 @@ package de.fork.css {
 	                                    
 		protected var m_specifiedValue : Object = null;
 		protected var m_computedValue : Object = null;
-	//	protected var m_actualValue : Object = null;
+		
+		protected var m_isCalculation : Boolean;
+		protected var m_calculation : AbstractCSSCalculation;
+		protected var m_calculationResultsCache : Object;
 		
 		protected var m_unit : String = null;
 		
 		protected var m_cssFile : String;
 	
 		protected var m_id : Number;
-		
 		
 	
 		/***************************************************************************
@@ -65,11 +69,13 @@ package de.fork.css {
 		public function setUnit(unitStr:String) : void
 		{
 			if (unitStr == UNIT_PIXEL)
+			{
 				m_isRelativeValue = false;
-			else if (unitStr == UNIT_EM)
-				m_isRelativeValue = true;
-			else if (unitStr == UNIT_PERCENT)
-				m_isRelativeValue = true;
+			}
+			else if (unitStr == UNIT_EM || unitStr == UNIT_PERCENT)
+			{
+				setIsRelativeValue(true);
+			}
 			
 			m_unit = unitStr;
 		}
@@ -82,6 +88,30 @@ package de.fork.css {
 		public function setIsRelativeValue( bFlag : Boolean ) : void
 		{
 			m_isRelativeValue = bFlag;
+			m_calculationResultsCache = {};
+			if (m_specifiedValue)
+			{
+				setSpecifiedValue(m_specifiedValue);
+			}
+		}
+		
+		public function isCalculation() : Boolean
+		{
+			return m_isCalculation;
+		}
+	
+		public function setIsCalculation(value : Boolean) : void
+		{
+			m_isCalculation = value;
+			if (value)
+			{
+				m_calculationResultsCache = {};
+				m_isRelativeValue = true;
+				if (m_specifiedValue)
+				{
+					preprocessCalculation(m_specifiedValue);
+				}
+			}
 		}
 		
 		public function setInheritsValue( bFlag : Boolean ) : void
@@ -92,41 +122,37 @@ package de.fork.css {
 		public function inheritsValue() : Boolean
 		{
 			return m_inheritsValue;
-		}	
+		}
+		
+		public function isAuto() : Boolean
+		{
+			return m_specifiedValue == 'auto';
+		}
 		
 		public function specifiedValue() : Object
 		{
 			return m_specifiedValue;
 		}
 	
-		public function setSpecifiedValue(val:Object) : void
+		public function setSpecifiedValue(value : Object) : void
 		{
-			m_specifiedValue = val;
-			if (val == 'auto')
+			m_specifiedValue = value;
+			if (value == 'auto')
 			{
 				m_computedValue = 0;
 			}
+			else if (m_isRelativeValue)
+			{
+				if (m_isCalculation)
+				{
+					preprocessCalculation(value);
+				}
+				else
+				{
+					m_calculation = new CSSCalculationRelativeValue(value.toString());
+				}
+			}
 		}
-		
-	//	public function computedValue() : Object
-	//	{
-	//		return m_computedValue;
-	//	}
-	//
-	//	public function setComputedValue( val : Object ) : void
-	//	{
-	//		m_computedValue = val;
-	//	}
-	//	
-	//	public function actualValue() : Object
-	//	{
-	//		return m_actualValue;
-	//	}
-	//
-	//	public function setActualValue( val : Object ) : void
-	//	{
-	//		m_actualValue = val;
-	//	}
 		
 		public function setCSSFile(cssFile : String) : void
 		{
@@ -143,7 +169,6 @@ package de.fork.css {
 			var str:String = "property {\n";
 			str += "\tspecified Value : " + m_specifiedValue + "\n";
 			str += "\tcomputed Value : " + m_computedValue + "\n";
-	//		str += "\tactual Value : " + m_actualValue + "\n";
 			str += "\tunit : " + m_unit + "\n";
 			str += "\timportant : " + m_important + "\n";
 			return str;
@@ -151,16 +176,22 @@ package de.fork.css {
 		
 		public function valueOf() : Object
 		{
-	//		if (m_actualValue != null)
-	//		{
-	//			return m_actualValue;
-	//		}
 			if (m_computedValue != null)
 			{
 				return m_computedValue;
 			}
 			return m_specifiedValue;
-		}	
+		}
+		
+		public function resolveRelativeValueTo(reference : Number) : Number
+		{
+			if (m_calculationResultsCache[reference])
+			{
+				return m_calculationResultsCache[reference];
+			}
+			return m_calculationResultsCache[reference] = 
+				resolveCalculation(reference);
+		}
 		
 		public function clone() : CSSProperty
 		{
@@ -169,11 +200,25 @@ package de.fork.css {
 			prop.m_unit = m_unit;
 			prop.m_specifiedValue = m_specifiedValue;
 			prop.m_inheritsValue = m_inheritsValue;
-	//		prop.m_actualValue = m_actualValue;
 			prop.m_isRelativeValue = m_isRelativeValue;
 			prop.m_computedValue = m_computedValue;
 			prop.m_cssFile = m_cssFile;
 			return prop;
+		}
+	
+		/***************************************************************************
+		*							protected methods								   *
+		***************************************************************************/
+		protected function preprocessCalculation(val : Object) : void
+		{
+			var expression : String = val.substring(5, val.length - 1);
+			m_calculation = CSSCalculationGroup.
+				PrepareCalculation(String(expression));
+		}
+		
+		protected function resolveCalculation(reference : Number) : Number
+		{
+			return m_calculation.resolve(reference);
 		}
 	}
 	

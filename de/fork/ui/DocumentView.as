@@ -1,14 +1,17 @@
-package de.fork.ui { 
+package de.fork.ui
+{ 
 	import de.fork.core.UIRendererFactory;
 	import de.fork.core.ccInternal;
 	import de.fork.css.CSS;
 	import de.fork.css.CSSDeclaration;
+	import de.fork.css.CSSProperty;
 	import de.fork.data.collection.HashMap;
 	import de.fork.i18n.II18NService;
 	import de.fork.services.tracking.ITrackingService;
 	
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.utils.getTimer;
 	
 	use namespace ccInternal;
 	public class DocumentView extends UIComponent
@@ -17,6 +20,8 @@ package de.fork.ui {
 		*							public properties							   *
 		***************************************************************************/
 		public static var className : String = "html";
+		
+		public var stageDimensionsChanged : Boolean;
 		
 		
 		/***************************************************************************
@@ -30,6 +35,11 @@ package de.fork.ui {
 		
 		protected var m_i18nService : II18NService;
 		protected var m_trackingService : ITrackingService;
+		
+		protected var m_invalidChildren : Array;
+		
+		protected var m_widthIsRelative : Boolean;
+		protected var m_heightIsRelative : Boolean;
 		
 		/***************************************************************************
 		*							public methods								   *
@@ -172,6 +182,14 @@ package de.fork.ui {
 			m_trackingService.track(trackingId);
 		}
 		
+		public function markChildAsInvalid(child : UIObject) : void
+		{
+			//TODO: check if child.toString() is ok to use
+			m_invalidChildren.push(
+				{element : child, path : child.toString()});
+			stage.invalidate();
+		}
+		
 		
 		/***************************************************************************
 		*							protected methods								   *
@@ -181,24 +199,54 @@ package de.fork.ui {
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			m_rootElement = this;
 			m_containingBlock = this;
+			m_invalidChildren = [];
 			stage.addEventListener(Event.RESIZE, stage_resize);
 			super.initialize();
-			m_instanceStyles.width = stage.stageWidth;
-			m_instanceStyles.height = stage.stageHeight;
+			stage.addEventListener(Event.RENDER, stage_render);
 		}
 		
 		protected override function initDefaultStyles() : void
 		{
+			m_elementDefaultStyles.width = "100%";
+			m_elementDefaultStyles.height = "100%";
 			m_elementDefaultStyles.padding = "0";
 			m_elementDefaultStyles.margin = "0";
 			m_elementDefaultStyles.position = "absolute";
 			m_elementDefaultStyles.fontFamily = "_sans";
 			m_elementDefaultStyles.fontSize = "12px";
 		}
+		protected override function validateElement(
+			forceValidation:Boolean = false, validateStyles:Boolean = false) : void
+		{
+			super.validateElement(forceValidation, validateStyles);
+			stageDimensionsChanged = false;
+		}
 		protected override function resolveRelativeStyles(styles:CSSDeclaration) : void
 		{
-			m_width = m_currentStyles.width;
-			m_height = m_currentStyles.height;
+			var widthStyle : CSSProperty = m_complexStyles.getStyle('width');
+			var heightStyle : CSSProperty = m_complexStyles.getStyle('height');
+			if (widthStyle.isRelativeValue())
+			{
+				m_widthIsRelative = true;
+				m_width = m_currentStyles.width = 
+					Math.round(widthStyle.resolveRelativeValueTo(stage.stageWidth));
+			}
+			else
+			{
+				m_widthIsRelative = false;
+				m_width = Number(widthStyle.valueOf());
+			}
+			if (heightStyle.isRelativeValue())
+			{
+				m_heightIsRelative = true;
+				m_height = m_currentStyles.height = 
+					Math.round(heightStyle.resolveRelativeValueTo(stage.stageHeight));
+			}
+			else
+			{
+				m_heightIsRelative = false;
+				m_height = Number(heightStyle.valueOf());
+			}
 		}
 		
 		protected override function applyOutOfFlowChildPositions() : void
@@ -208,10 +256,48 @@ package de.fork.ui {
 			x = m_marginLeft;
 		}
 		
+		protected function validateElements() : void
+		{
+			//TODO: verify this validation scheme
+			var t1 : Number = getTimer();
+			if (m_invalidChildren.length == 0)
+			{
+				return;
+			}
+			var lastValidatedPath : String;
+			var sortedElements : Array = m_invalidChildren.sortOn(
+				'path', Array.DESCENDING);
+			m_invalidChildren = [];
+			for(var i : Number = sortedElements.length; i--;)
+			{
+				var path : String = sortedElements[i].path;
+				if (path.indexOf(lastValidatedPath) == 0)
+				{
+//					trace("d skip validation of: " + path);
+					continue;
+				}
+//				trace("d validate " + path);
+				lastValidatedPath = path;
+				var element : UIObject = UIObject(sortedElements[i].element);
+				element.validation_execute();
+			}
+			trace("validation took " + (getTimer() - t1) + "ms");
+		}
+		
 		protected function stage_resize(event : Event) : void
 		{
-			instanceStyles.width = stage.stageWidth;
-			instanceStyles.height = stage.stageHeight;
+			if ((m_widthIsRelative && m_width != stage.stageWidth) || 
+				(m_heightIsRelative && m_height != stage.stageHeight))
+			{
+				stageDimensionsChanged = true;
+				m_stylesInvalidated = true;
+				invalidate();
+			}
+		}
+		
+		protected function stage_render(event : Event) : void
+		{
+			validateElements();
 		}
 	}
 }

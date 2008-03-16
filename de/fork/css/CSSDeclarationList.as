@@ -24,10 +24,12 @@ package de.fork.css {
 			m_declarationCache = [];		
 		}	
 		
-		public function addDeclarationWithSelectorFromFile(decl:Object, path:String, file:String) : void
+		public function addDeclarationWithSelectorFromFile(
+			decl : Object, path : String, file : String) : void
 		{
-			m_items.push(new CSSDeclarationListItem(path, decl, m_declarationIndex++, file));
-		}	
+			m_items.push(new CSSDeclarationListItem(
+				path, decl, m_declarationIndex++, file));
+		}
 		
 		public function getStyleForSelectorsPath(sp:String) : CSSDeclaration
 		{

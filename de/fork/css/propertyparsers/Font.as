@@ -14,7 +14,11 @@ package de.fork.css.propertyparsers {
 			'fontSize',
 			'fontFamily',
 			'embedFonts',
+			'cacheAsBitmap',
 			'antiAliasType',
+			'gridFitType',
+			'sharpness',
+			'thickness',
 			'fontWeight',
 			'fontStyle',
 			'textAlign',
@@ -36,6 +40,9 @@ package de.fork.css.propertyparsers {
 			fontFamily : true,
 			embedFonts : true,
 			antiAliasType : true,
+			gridFitType : true,
+			sharpness : true,
+			thickness : true,
 			fontWeight : true,
 			fontStyle : true,
 			textAlign : true,
@@ -91,12 +98,32 @@ package de.fork.css.propertyparsers {
 		public static function parseEmbedFonts(val:String, file:String) : CSSProperty
 		{		
 			return strToBoolProperty(val, ['embed'], file);
-		}	
+		}
+		
+		public static function parseCacheAsBitmap(val:String, file:String) : CSSProperty
+		{
+			return strToBoolProperty(val, ['cache'], file);
+		}
 		
 		public static function parseAntiAliasType(val:String, file:String) : CSSProperty
 		{
 			return strToStringProperty(val, file);
-		}	
+		}
+		
+		public static function parseGridFitType(val:String, file:String) : CSSProperty
+		{
+			return strToStringProperty(val, file);
+		}
+		
+		public static function parseSharpness(val:String, file:String) : CSSProperty
+		{
+			return strToIntProperty(val, file);
+		}
+		
+		public static function parseThickness(val:String, file:String) : CSSProperty
+		{
+			return strToIntProperty(val, file);
+		}
 		
 		public static function parseFontWeight(val:String, file:String) : CSSProperty
 		{

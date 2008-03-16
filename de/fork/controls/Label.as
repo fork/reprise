@@ -5,9 +5,13 @@ package de.fork.controls {
 	import de.fork.events.LabelEvent;
 	import de.fork.ui.UIComponent;
 	
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.events.Event;
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
 	import flash.text.AntiAliasType;
+	import flash.text.GridFitType;
 	import flash.text.StyleSheet;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
@@ -45,6 +49,8 @@ package de.fork.controls {
 		protected var m_containsImages : Boolean;	
 		protected var m_overflowIsInvalid : Boolean;
 		
+		protected var m_bitmapCache : Bitmap;
+		
 		
 		/***************************************************************************
 		*							public methods								   *
@@ -69,6 +75,16 @@ package de.fork.controls {
 			return labelStr;
 			return labelStr.substring(
 				labelStr.indexOf(">") + 1, labelStr.lastIndexOf("<"));
+		}
+	
+		public function get label() : String
+		{
+			return getLabel();
+		}
+		
+		public function set label(txt:String) : void
+		{
+			setLabel(txt);
 		}
 		
 		/**
@@ -109,6 +125,32 @@ package de.fork.controls {
 		public function get textHeight() : Number
 		{
 			return m_labelDisplay.textHeight;
+		}
+	
+		/**
+		* setter for the opacity property.
+		* This override allows for proper opacity setting even for labels 
+		* containing device text.
+		*/
+		public override function set opacity(value : Number) : void
+		{
+			//set oldOpacity to an impossible value if it doesn't exist 
+			//to make comparison easy
+			var oldOpacity : Number = m_currentStyles.opacity || -1;
+			if (value == oldOpacity)
+			{
+				return;
+			}
+			
+			super.opacity = value;
+			var oldOpacityRange : Number = 
+				(oldOpacity == 0 ? 0 : (oldOpacity < 1 ? 1 : 2));
+			var opacityRange : Number = 
+				(value == 0 ? 0 : (value < 1 ? 1 : 2));
+			if (oldOpacityRange != opacityRange)
+			{
+				draw();
+			}
 		}
 		
 		
@@ -174,8 +216,8 @@ package de.fork.controls {
 		protected override function measure() : void
 		{
 			//TODO: find a way to make measuring work if the TextField contains IMGs
-			m_intrinsicWidth = m_labelDisplay.textWidth;
-			m_intrinsicHeight = m_labelDisplay.height - 4;
+			m_intrinsicWidth = Math.ceil(m_labelDisplay.textWidth);
+			m_intrinsicHeight = Math.ceil(m_labelDisplay.height - 4);
 		}
 		
 		protected function renderLabel() : void
@@ -189,6 +231,13 @@ package de.fork.controls {
 					m_labelDisplay.embedFonts = m_currentStyles.embedFonts;
 					m_labelDisplay.antiAliasType = m_currentStyles.antiAliasType || 
 						AntiAliasType.NORMAL;
+					if (m_labelDisplay.antiAliasType == AntiAliasType.ADVANCED)
+					{
+						m_labelDisplay.gridFitType = 
+							m_currentStyles.gridFitType || GridFitType.PIXEL;
+						m_labelDisplay.sharpness = m_currentStyles.sharpness || 0;
+						m_labelDisplay.thickness = m_currentStyles.thickness || 0;
+					}
 					m_labelDisplay.wordWrap = m_currentStyles.wordWrap == 'wrap';
 					m_labelDisplay.multiline = m_currentStyles.multiline;
 				}
@@ -238,9 +287,9 @@ package de.fork.controls {
 				//shrink the TextField to the smallest width possible
 				if (m_textAlignment != 'mixed' && !m_containsImages)
 				{
-					if (m_labelDisplay.textWidth < m_labelDisplay.width - 8)
+					if (m_labelDisplay.textWidth < m_labelDisplay.width - 10)
 					{
-						m_labelDisplay.width = m_labelDisplay.textWidth + 8;
+						m_labelDisplay.width = m_labelDisplay.textWidth + 10;
 						if (m_textAlignment == 'right')
 						{
 							m_labelDisplay.x = 
@@ -599,7 +648,42 @@ package de.fork.controls {
 		{
 			var scrollbar : Scrollbar = super.createScrollbar(orientation, true);
 			scrollbar.setScrollTarget(m_labelDisplay, orientation);
+			scrollbar.addEventListener(Event.CHANGE, scrollbar_change);
 			return scrollbar;
+		}
+	
+		protected override function draw() : void
+		{
+			if (m_bitmapCache)
+			{
+				m_contentDisplay.removeChild(m_bitmapCache);
+			}
+			//TODO: check if caching should only ever happen for device fonts
+			if ((m_currentStyles.opacity < 1 && !m_currentStyles.embedFonts) || 
+				m_currentStyles.cacheAsBitmap)
+			{
+				m_labelDisplay.visible = false;
+				if (m_currentStyles.opacity == 0)
+				{
+					return;
+				}
+				var bitmap : BitmapData = new BitmapData(
+					m_labelDisplay.width, m_labelDisplay.height, true, 0);
+				bitmap.draw(m_labelDisplay);
+				m_bitmapCache = new Bitmap(bitmap);
+				m_contentDisplay.addChild(m_bitmapCache);
+				m_bitmapCache.x = -2;
+				m_bitmapCache.y = -2;
+			}
+			else
+			{
+				m_labelDisplay.visible = true;
+			}
+		}
+		
+		protected function scrollbar_change(event : Event) : void
+		{
+			draw();
 		}
 	}
 }

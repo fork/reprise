@@ -407,6 +407,33 @@ package de.fork.ui {
 		 */
 		public function forceRedraw() : void
 		{
+			//TODO: turn into an exception for as3. Alternatively, consider this
+			//code:
+			/*
+			var validatableElement : UIObject = this;
+			while(validatableElement.m_parentElement && 
+				validatableElement.m_parentElement.m_isInvalidated)
+			{
+				validatableElement = validatableElement.m_parentElement;
+			}
+			validatableElement.validateElement(true);
+			*/
+			var validatableElement : UIObject = this;
+			while(validatableElement.m_parentElement)
+			{
+				validatableElement = validatableElement.m_parentElement;
+				if (validatableElement.m_isInvalidated)
+				{
+					trace('f Be ye warned: The element you are calling ' + 
+					'forceRedraw on has invalid ascendants. This might cause ' + 
+					'styling and all sorts of other things not to work as ' + 
+					'expected. Consider calling m_rootElement.forceRedraw ' + 
+					'instead.\nAfflicted element: ' + this + 
+					'\ninvalid parent: ' + validatableElement);
+					break;
+				}
+			}
+			
 			validateElement(true);
 		}	
 		/**
@@ -570,8 +597,7 @@ package de.fork.ui {
 			if ((!m_parentElement || !m_parentElement.m_isInvalidated) && 
 				!m_isInvalidated)
 			{
-				addEventListener(Event.RENDER, validation_execute);
-				stage.invalidate();
+				m_rootElement.markChildAsInvalid(this);
 			}
 			m_isInvalidated = true;
 		}
@@ -687,9 +713,10 @@ package de.fork.ui {
 			if (m_firstDraw)
 			{
 				visible = m_visible;
+				m_firstDraw = false;
 				//call hook method:
 				beforeFirstDraw();
-				m_firstDraw = false;
+				dispatchEvent(new DisplayEvent(DisplayEvent.FIRST_DRAW));
 			}
 			draw();
 			
@@ -773,7 +800,7 @@ package de.fork.ui {
 			m_keyOrder = keyOrder;
 		}
 		
-		protected function validation_execute(event : Event = null) : void
+		internal function validation_execute() : void
 		{
 			validateElement();
 			for each (var method : Function in m_delayedMethods)

@@ -38,7 +38,10 @@ package de.fork.data
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function AdvancedColor() {}
+		public function AdvancedColor(rgb : uint = 0)
+		{
+			setRGB(rgb);
+		}
 		
 		
 		public function setRGB(rgb:uint) : void
@@ -292,7 +295,11 @@ package de.fork.data
 			return m_alpha / 100;
 		}
 		
-		
+	
+		public function equals(color : AdvancedColor) : Boolean
+		{
+			return color.rgba() == rgba();
+		}
 		
 		public function valueOf() : Object
 		{

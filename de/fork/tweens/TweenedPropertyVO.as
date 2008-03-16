@@ -6,6 +6,9 @@ package de.fork.tweens {
 	 */
 	public class TweenedPropertyVO
 	{
+		/***************************************************************************
+		*							public properties							   *
+		***************************************************************************/
 		public var scope:Object;
 		public var property:String;
 		public var startValue:Number;
@@ -110,10 +113,6 @@ package de.fork.tweens {
 			startValue = targetValue;
 			targetValue = tmpValue;
 			valueChange = targetValue - startValue;
-		}
-		
-		public function toString() : String {
-			return "de.fork.tweens.TweenedPropertyVO";
 		}
 	}
 }

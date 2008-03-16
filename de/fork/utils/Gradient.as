@@ -4,21 +4,22 @@ package de.fork.utils {
 	
 	import flash.display.Sprite;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
 	public class Gradient
 	{
 		
 		/***************************************************************************
 		*							public properties							   *
 		***************************************************************************/
-		public static var LINEAR:String = Background.GRADIENT_TYPE_LINEAR;
-		public static var RADIAL:String = Background.GRADIENT_TYPE_RADIAL;
+		public static const LINEAR:String = Background.GRADIENT_TYPE_LINEAR;
+		public static const RADIAL:String = Background.GRADIENT_TYPE_RADIAL;
 		
-		public static var SPREAD_PAD:String = 'pad';
-		public static var SPREAD_REFLECT:String = 'reflect';
-		public static var SPREAD_REPEAT:String = 'repeat';
+		public static const SPREAD_PAD:String = 'pad';
+		public static const SPREAD_REFLECT:String = 'reflect';
+		public static const SPREAD_REPEAT:String = 'repeat';
 		
-		public static var INTERPOLATION_LINEAR:String = 'linearRGB';
-		public static var INTERPOLATION_RGB:String = 'RGB';
+		public static const INTERPOLATION_LINEAR:String = 'linearRGB';
+		public static const INTERPOLATION_RGB:String = 'RGB';
 		
 		
 		
@@ -34,9 +35,10 @@ package de.fork.utils {
 		protected var m_interpolationMethod:String;
 		protected var m_focalPointRatio:Number;
 		
-		protected var m_rotation:Number;
+		protected var m_rotation:Number = 90;
 		protected var m_width:Number;
 		protected var m_height:Number;
+		protected var m_origin:Point;
 		
 		
 		
@@ -55,7 +57,7 @@ package de.fork.utils {
 			m_spreadMethod = spreadMethod;
 			m_interpolationMethod = interpolationMethod;
 			m_focalPointRatio = focalPointRatio;
-			m_rotation = 90;
+			m_origin = new Point(0, 0);
 		}	
 		
 		public function beginGradientFill(target:Sprite, width:Number = 0, 
@@ -74,7 +76,8 @@ package de.fork.utils {
 			if (m_matrix == null)
 			{
 				matrix = new Matrix();
-				matrix.createGradientBox(width, height, (m_rotation / 180) * Math.PI);
+				matrix.createGradientBox(width, height, (m_rotation / 180) * Math.PI,
+					m_origin.x, m_origin.y);
 			}
 			
 			target.graphics.beginGradientFill(m_fillType, m_colors, m_alphas, m_ratios, 
@@ -97,7 +100,8 @@ package de.fork.utils {
 			if (m_matrix == null)
 			{
 				matrix = new Matrix();
-				matrix.createGradientBox(width, height, (m_rotation / 180) * Math.PI);
+				matrix.createGradientBox(width, height, (m_rotation / 180) * Math.PI,
+					m_origin.x, m_origin.y);
 			}
 			
 			target.graphics.lineGradientStyle(m_fillType, m_colors, m_alphas, m_ratios, matrix, m_spreadMethod,
@@ -221,6 +225,15 @@ package de.fork.utils {
 			m_height = val;
 		}
 		
+		public function setOrigin(origin : Point) : void
+		{
+			m_origin = origin;
+		}
+		public function origin() : Point
+		{
+			return m_origin;
+		}
+		
 		public function clone() : Gradient
 		{
 			var grad : Gradient = new Gradient(m_fillType);
@@ -235,6 +248,22 @@ package de.fork.utils {
 			grad.setRotation(m_rotation);
 			grad.setMatrix(m_matrix.clone());
 			return grad;
+		}
+		
+		public function equals(grad:Gradient) : Boolean
+		{
+			return fillType() == grad.fillType() &&
+				ArrayUtil.compareArrays(colors(), grad.colors()) &&
+				ArrayUtil.compareArrays(alphas(), grad.alphas()) &&
+				ArrayUtil.compareArrays(ratios(), grad.ratios()) &&
+				spreadMethod() == grad.spreadMethod() &&
+				interpolationMethod() == grad.interpolationMethod() &&
+				focalPointRatio() == grad.focalPointRatio() &&
+				width() == grad.width() &&
+				height() == grad.height() &&
+				rotation() == grad.rotation() &&
+				(matrix() == grad.matrix() || 
+					matrix().toString() == grad.matrix().toString());
 		}
 		
 		

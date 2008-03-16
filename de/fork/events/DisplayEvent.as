@@ -1,4 +1,5 @@
-package de.fork.events {
+package de.fork.events
+{
 	import flash.events.Event;
 	 
 	/**
@@ -16,11 +17,8 @@ package de.fork.events {
 		public static const INTERACTION_COMPLETE : String = "interactionComplete";
 		public static const TOOLTIPDATA_CHANGED : String = 'tooltipDataChanged';
 		public static const LOAD_COMPLETE : String = 'loadComplete';
-		
-		
-		/***************************************************************************
-		*							protected properties							   *
-		***************************************************************************/
+		public static const LOAD_FAIL : String = 'loadFail';
+		public static const FIRST_DRAW : String = 'firstDraw';
 		
 		
 		/***************************************************************************
@@ -30,11 +28,5 @@ package de.fork.events {
 		{
 			super(type);
 		}
-		
-		
-		/***************************************************************************
-		*							protected methods								   *
-		***************************************************************************/
-		
 	}
 }

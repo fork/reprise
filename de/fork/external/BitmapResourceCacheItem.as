@@ -3,7 +3,6 @@ package de.fork.external {
 	import de.fork.events.ResourceEvent;
 	
 	import flash.display.BitmapData;
-	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	public class BitmapResourceCacheItem extends EventDispatcher
@@ -73,6 +72,7 @@ package de.fork.external {
 			m_loader.setRetryTimes(Math.max(m_loader.retryTimes(), target.retryTimes()));
 			m_loader.setTimeout(Math.max(m_loader.timeout(), target.timeout()));
 			m_loader.setForceReload(m_loader.forceReload() || target.forceReload());
+			target.addEventListener(Event.CANCEL, target_cancel);
 			
 			if (target.cacheBitmap() && !target.forceReload())
 			{
@@ -104,6 +104,31 @@ package de.fork.external {
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
+		protected function removeTarget(target:BitmapResource) : void
+		{
+			var i : uint = m_targets.length;
+			var numTargets : Number = 0;
+			var foundTarget : BitmapResource;
+			
+			while (i--)
+			{
+				foundTarget = m_targets[i];
+				if (foundTarget == target)
+				{
+					m_targets[i] = null;
+				}
+				else if (foundTarget != null)
+				{
+					numTargets++;
+				}
+			}
+	
+			if (numTargets == 0)
+			{
+				m_loader.cancel();
+			}
+		}
+		
 		protected function applyDataToTarget(target : BitmapResource) : void
 		{
 			target.setBytesLoaded(m_bytesLoaded);
@@ -169,6 +194,11 @@ package de.fork.external {
 			var event : ResourceEvent = new ResourceEvent(
 				Event.COMPLETE, false, ResourceEvent.USER_CANCELLED);
 			dispatchEvent(event);
+		}
+		
+		protected function target_cancel(e : CommandEvent) : void
+		{		
+			removeTarget(BitmapResource(e.target));
 		}
 	}
 }

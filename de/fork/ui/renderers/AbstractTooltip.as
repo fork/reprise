@@ -1,14 +1,16 @@
-package de.fork.ui.renderers { 
+package de.fork.ui.renderers
+{ 
 	import de.fork.controls.Label;
 	import de.fork.core.ccInternal;
 	import de.fork.events.DisplayEvent;
+	import de.fork.ui.UIComponent;
 	import de.fork.ui.UIObject;
 	
 	import flash.geom.Point;
 	
 	use namespace ccInternal;
 	
-	public class AbstractTooltip extends Label
+	public class AbstractTooltip extends UIComponent
 	{
 			
 		/***************************************************************************
@@ -22,6 +24,7 @@ package de.fork.ui.renderers {
 		***************************************************************************/
 		protected var m_target : UIObject;
 		protected var m_dataSupplyTarget : Object;
+		protected var m_label : Label;
 			
 		
 		/***************************************************************************
@@ -36,7 +39,7 @@ package de.fork.ui.renderers {
 		public function setData(data : Object) : void
 		{
 			m_tooltipData = data;
-			setLabel(String(data));
+			m_label.setLabel(String(data));
 		}
 		
 		public function data() : Object
@@ -52,7 +55,7 @@ package de.fork.ui.renderers {
 		public override function setPosition(x : Number, y : Number) : void
 		{
 			var newPos : Point = new Point(x, y);
-			newPos = parent.localToGlobal(newPos);
+			newPos = stage.localToGlobal(newPos);
 			newPos.y = Math.max(-m_marginTop, newPos.y + m_marginTop);
 			newPos.y = Math.min(stage.stageHeight - outerHeight - m_marginTop, newPos.y);
 			newPos.x = Math.max(-m_marginLeft, newPos.x + m_marginLeft);
@@ -98,12 +101,35 @@ package de.fork.ui.renderers {
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
+		protected override function createChildren() : void
+		{
+			m_label = Label(addChild(new Label()));
+			m_label.cssClasses = 'tooltipLabel';
+		}
 		protected override function initDefaultStyles() : void
 		{
 			super.initDefaultStyles();
 			m_instanceStyles.position = 'absolute';
 			m_elementDefaultStyles.left = 0;
 			m_elementDefaultStyles.top = 0;
+		}
+		
+		protected override function refreshSelectorPath() : void
+		{
+			var oldPath:String = m_selectorPath;
+			super.refreshSelectorPath();
+			if (!m_target is UIComponent)
+			{
+				return;
+			}
+			m_selectorPath = UIComponent(m_target).selectorPath + 
+				' ' + m_selectorPath.split(' ').pop();
+			if (m_selectorPath != oldPath)
+			{
+				m_selectorPathChanged = true;
+				return;
+			}
+			m_selectorPathChanged = false;
 		}
 		
 		protected function target_remove(event : DisplayEvent) : void

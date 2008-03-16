@@ -1,4 +1,5 @@
-package de.fork.services.tracking { 
+package de.fork.services.tracking
+{ 
 	/**
 	 * @author Till Schneidereit
 	 * 
@@ -22,6 +23,8 @@ package de.fork.services.tracking {
 	 * If you enable debugging with {@link CounterPixel#setDebug}, the 
 	 * CounterPixels are traced as well.
 	 */
+	import de.fork.core.ApplicationRegistry;
+	
 	import flash.system.System;
 	public class CounterPixel implements ITrackingService
 	{
@@ -176,15 +179,25 @@ package de.fork.services.tracking {
 			System.security.allowDomain(getHost(0));
 			System.security.allowDomain(getHost(1));
 			
-			m_domain = _root.tld;
+			var parameters : Object = ApplicationRegistry.instance().
+				applicationForURL().stage.loaderInfo.parameters;
 			
-			if((m_domain == undefined) || (m_domain == ""))
+			if (parameters.tld)
 			{
-				m_domain = _level0.tld;
-				if((m_domain == undefined) || (m_domain == ""))
-				{
-					m_domain = "com";
-				}
+				m_domain = parameters.tld;
+			}
+			else if (parameters.language_short_id)
+			{
+				m_domain = parameters.language_short_id;
+			}
+			else if (parameters.hostname && parameters.hostname.indexOf('nivea.') != -1)
+			{
+				m_domain = parameters.hostname.split('nivea.').pop();
+			}
+			
+			if(!m_domain.length)
+			{
+				m_domain = 'com';
 			}
 		}
 		
@@ -230,26 +243,21 @@ package de.fork.services.tracking {
 		}
 		protected function getHost(pixelNumber: Number) : String
 		{
-			var host:String = _root._HTTP_HOST.toLowerCase();
-			if(_root._HTTP_HOST == undefined)
+			//TODO: adapt this
+			var host:String = _root.hostname.toLowerCase();
+			if(!host)
 			{
-				host	= "www.nivea.com";
-			}
-			
-			var len:Number = host.length;
-			if(host.substr(len - 4, 4) == ".biz")
-			{
-				host = host.substr(0, len - 4) + ".com";
+				host = 'http://www.nivea.com';
 			}
 			
 			if(host.indexOf(".") != -1)
 			{
-				var pixelStr:String = "counterpixel";
+				var pixelStr:String = 'counterpixel';
 				if( pixelNumber > 0 )
 				{
 					pixelStr += pixelNumber.toString();
 				}
-				host = pixelStr + host.substr(host.indexOf("."), len);
+				host = 'http://' + pixelStr + host.substr(host.indexOf('.'));
 			}
 			
 			return host;

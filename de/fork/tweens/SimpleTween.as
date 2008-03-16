@@ -13,8 +13,8 @@ package de.fork.tweens {
 		/***************************************************************************
 		*							public properties							   *
 		***************************************************************************/
-		public static var DIRECTION_FORWARD : Number = 1;
-		public static var DIRECTION_BACKWARD : Number = -1;
+		public static const DIRECTION_FORWARD : Number = 1;
+		public static const DIRECTION_BACKWARD : Number = -1;
 		
 		
 		/***************************************************************************
@@ -27,6 +27,7 @@ package de.fork.tweens {
 		protected var m_startTime : Number;
 		protected var m_currentTime:Number;
 		protected var m_duration:Number;
+		protected var m_delay : uint;
 	
 		protected var m_tweenedProperties:Array;
 		
@@ -37,13 +38,15 @@ package de.fork.tweens {
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function SimpleTween(duration:Number = 1)
+		public function SimpleTween(duration:Number = 1, delay : uint = 0)
 		{
 			m_duration = duration;
 			if (m_duration <= 0 || isNaN(m_duration))
 			{
 				m_duration = 1;
 			}
+			
+			m_delay = delay;
 			
 			m_currentTime = 0;
 			m_direction = DIRECTION_FORWARD;
@@ -281,7 +284,11 @@ package de.fork.tweens {
 		 */
 		protected function executeTick() : void
 		{
-			m_currentTime = getTimer() - m_startTime;
+			m_currentTime = getTimer() - m_startTime - m_delay;
+			if (m_currentTime < 0)
+			{
+				return;
+			}
 			if (m_currentTime > m_duration)
 			{
 				m_currentTime = m_duration;

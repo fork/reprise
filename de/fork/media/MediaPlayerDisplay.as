@@ -1,5 +1,6 @@
 package de.fork.media
 { 
+	import de.fork.events.MediaPlayerDisplayEvent;
 	import de.fork.utils.ProxyFunction;
 	
 	import flash.display.MovieClip;
@@ -10,15 +11,6 @@ package de.fork.media
 	
 	public class MediaPlayerDisplay extends EventDispatcher
 	{
-		
-		/***************************************************************************
-		*							public properties							   *
-		***************************************************************************/
-		public static var EVENT_PLAY_CLICK : String = "playClickEvent";
-		public static var EVENT_PAUSE_CLICK : String = "pauseClickEvent";
-		public static var EVENT_STOP_CLICK : String = "stopClickEvent";
-		
-		
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
@@ -51,14 +43,16 @@ package de.fork.media
 		
 		public function setAudio (source:String) : void
 		{
-			m_player = new MP3Player (m_audioTarget);
-			m_player.setDispatcherParent(this);
+			m_player = new MP3Player(m_audioTarget);
+			//TODO: add proper event relaying
+//			m_player.setDispatcherParent(this);
 			initPlayer(source);
 		}
 		public function setVideo (source:String) : void
 		{
 			m_player = new FLVPlayer (m_display, m_audioTarget);
-			m_player.setDispatcherParent(this);
+			//TODO: add proper event relaying
+//			m_player.setDispatcherParent(this);
 			initPlayer(source);
 		}
 		
@@ -97,6 +91,12 @@ package de.fork.media
 			scrubber.onRelease = scrubber.onReleaseOutside = 
 				ProxyFunction.create (this, stopTimeScrub);
 		}
+		public function setScrubbingArea(minX:Number, maxX:Number) : void
+		{
+			m_timeScrubberMinX = minX;
+			m_timeScrubberMaxX = maxX;
+			
+		}
 		
 		public function setLoadingBar (bar:MovieClip, seekToClickPosition:Boolean, 
 			loadingBarMaxWidth:Number) : void
@@ -132,12 +132,12 @@ package de.fork.media
 		/**
 		 * starts the media at the given offset
 		 */
-		public function play(offset:Number) : void
+		public function play(offset : Number = -1) : void
 		{
 			m_playButton.visible = false;
 			m_pauseButton.visible = true;
 			
-			if (offset == null)
+			if (offset == -1)
 			{
 				m_player.resume();
 			}
@@ -203,17 +203,20 @@ package de.fork.media
 		protected function onPlayClick () : void
 		{
 			this.play();
-			dispatchEvent(new Event(EVENT_PLAY_CLICK, this));
+			dispatchEvent(new MediaPlayerDisplayEvent(
+				MediaPlayerDisplayEvent.PLAY_CLICK));
 		}
 		protected function onPauseClick () : void
 		{
 			pause();
-			dispatchEvent(new Event(EVENT_PAUSE_CLICK, this));
+			dispatchEvent(new MediaPlayerDisplayEvent(
+				MediaPlayerDisplayEvent.PAUSE_CLICK));
 		}
 		protected function onStopClick () : void
 		{
 			this.stop();
-			dispatchEvent(new Event(EVENT_STOP_CLICK, this));
+			dispatchEvent(new MediaPlayerDisplayEvent(
+				MediaPlayerDisplayEvent.STOP_CLICK));
 		}
 		
 		protected function startTimeScrub () : void
@@ -254,7 +257,8 @@ package de.fork.media
 				m_loadingBar.scaleX = m_player.getPercentLoaded();
 			}
 			m_progressBar.width = m_timeScrubber.x - m_timeScrubberMinX;
-			updateAfterEvent ();
+			//TODO: check if we need this and find a replacement if true
+//			updateAfterEvent ();
 		}
 	
 		protected function loadingBar_click() : void

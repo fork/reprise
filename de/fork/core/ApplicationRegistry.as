@@ -6,7 +6,9 @@ package de.fork.core
 		*							protected properties							   *
 		***************************************************************************/
 		protected static var g_instance : ApplicationRegistry;
-		protected var m_applications : Array;
+		
+		protected var m_applications : Object;
+		protected var m_defaultApplication : Application;
 
 		
 		/***************************************************************************
@@ -24,10 +26,23 @@ package de.fork.core
 		public function registerApplication(app:Application) : void
 		{
 			m_applications[app.applicationURL()] = app;
+			if (!m_defaultApplication)
+			{
+				m_defaultApplication = app;
+			}
 		}
 		
-		public function applicationForURL(appURL:String) : Application
+		/**
+		 * returns the application for the given url.
+		 * Returns the default application (ie, the first one to be registered), 
+		 * if no url is provided.
+		 */
+		public function applicationForURL(appURL : String = null) : Application
 		{
+			if (!appURL)
+			{
+				return m_defaultApplication;
+			}
 			return Application(m_applications[appURL]);
 		}
 		
@@ -37,7 +52,7 @@ package de.fork.core
 		***************************************************************************/
 		public function ApplicationRegistry() 
 		{
-			m_applications = [];
+			m_applications = {};
 		}	
 	}
 }

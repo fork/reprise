@@ -1,15 +1,18 @@
-package de.fork.ui.renderers { 
+package de.fork.ui.renderers
+{ 
 	import de.fork.css.CSSProperty;
 	import de.fork.css.propertyparsers.Background;
 	import de.fork.css.propertyparsers.Filters;
 	import de.fork.data.AdvancedColor;
 	import de.fork.events.ResourceEvent;
+	import de.fork.external.AbstractResource;
 	import de.fork.external.BitmapResource;
 	import de.fork.external.ImageResource;
 	import de.fork.utils.GfxUtil;
 	import de.fork.utils.Gradient;
 	
 	import flash.display.BitmapData;
+	import flash.display.DisplayObjectContainer;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -19,17 +22,21 @@ package de.fork.ui.renderers {
 	import flash.geom.Rectangle;
 	public class DefaultBackgroundRenderer extends AbstractCSSRenderer
 	{
-	
-	
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		protected var m_backgroundImage : BitmapData = null;
-		protected var m_backgroundImageLoader : BitmapResource;
-		protected var m_backgroundAnimationLoader : ImageResource;
-		protected var m_backgroundAnimationWrapper : Sprite;
-		protected var m_backgroundAnimationContainer : Sprite;
+		protected var m_backgroundImageContainer : Sprite;
+		protected var m_activeBackgroundAnimationContainer : DisplayObjectContainer;
+		protected var m_inactiveBackgroundAnimationContainer : DisplayObjectContainer;
 		protected var m_backgroundMask : Sprite;
+		
+		protected var m_backgroundImage : BitmapData = null;
+		protected var m_backgroundImageLoader : AbstractResource;
+		
+		protected var m_lastBackgroundImageType : String;
+		protected var m_lastBackgroundImageURL : String;
+		protected var m_lastBackgroundColor : AdvancedColor;
+		
 		
 		/***************************************************************************
 		*							public methods								   *
@@ -39,22 +46,31 @@ package de.fork.ui.renderers {
 		
 		public override function draw() : void
 		{
-			m_display.graphics.clear();
+			var hasAnyContent:Boolean = false;
 			
 			var color:AdvancedColor = m_styles.backgroundColor;
 			var hasBackgroundGradient:Boolean = (m_styles.backgroundGradientType == 
 				Background.GRADIENT_TYPE_LINEAR || m_styles.backgroundGradientType == 
 				Background.GRADIENT_TYPE_RADIAL) && m_styles.backgroundGradientColors;
 			
+			// draw plain background color
 			if (color != null && color.alpha() >= 0 && !hasBackgroundGradient)
 			{
+				if (m_lastBackgroundColor && !m_lastBackgroundColor.equals(color))
+				{
+					m_display.graphics.clear();
+					m_lastBackgroundColor = color;
+				}
+				hasAnyContent = true;
 				m_display.graphics.beginFill(color.rgb(), color.opacity());
 				GfxUtil.drawRect(m_display, 0, 0, m_width, m_height);
 				m_display.graphics.endFill();
 			}
-			
-			if (hasBackgroundGradient)
+			// draw background gradient
+			else if (hasBackgroundGradient)
 			{
+				m_lastBackgroundColor = null;
+				hasAnyContent = true;
 				var grad : Gradient = new Gradient(m_styles.backgroundGradientType);
 				grad.setColors(m_styles.backgroundGradientColors);
 				if (m_styles.backgroundGradientRatios)
@@ -66,95 +82,159 @@ package de.fork.ui.renderers {
 					grad.setRotation(m_styles.backgroundGradientRotation);
 				}
 				
+				m_display.graphics.clear();
 				grad.beginGradientFill(m_display, m_width, m_height);
 				GfxUtil.drawRect(m_display, 0, 0, m_width, m_height);
 				m_display.graphics.endFill();
 			}
 			
-			
+			// load a background image
 			if (m_styles.backgroundImage != null && 
 				m_styles.backgroundImage != Background.IMAGE_NONE)
 			{
+				hasAnyContent = true;
 				loadBackgroundImage();
 			}
+			// stop any loading of prior background images
 			else
 			{
-				if (m_backgroundImage != null)
+				if (m_backgroundImageLoader && m_backgroundImageLoader.isExecuting())
 				{
-					m_backgroundImage.dispose();
-					m_backgroundImage = null;
+					m_backgroundImageLoader.cancel();
 				}
+				clearBackgroundImage();	
 			}
-			
+				
+			// apply dropshadow
 			if (m_styles.backgroundShadowColor != null)
 			{
-				var dropShadow : DropShadowFilter = Filters.dropShadowFilterFromStyleObjectForName(
-					m_styles, 'background');
+				hasAnyContent = true;
+				var dropShadow : DropShadowFilter = Filters.
+					dropShadowFilterFromStyleObjectForName(m_styles, 'background');
 				m_display.filters = [dropShadow];
 			}
 			
-			drawBackgroundMask();
+			// draw mask if neccessary
+			if (hasAnyContent)
+			{
+				drawBackgroundMask();
+			}
+			else
+			{
+				m_display.mask = null;
+			}
 		}
-	
+		
+		public override function destroy() : void
+		{
+			m_backgroundImageLoader && m_backgroundImageLoader.cancel();
+		}
 		
 		
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
+		protected function clearBackgroundImage() : void
+		{
+			if (m_backgroundImageContainer != null)
+			{
+				//TODO: find out parent and call directly
+				m_backgroundImageContainer.parent.removeChild(m_backgroundImageContainer);
+				m_backgroundImageContainer = null;
+				m_activeBackgroundAnimationContainer = null;
+				m_inactiveBackgroundAnimationContainer = null;
+			}
+			if (m_backgroundImage != null)
+			{
+				m_backgroundImage.dispose();
+				m_backgroundImage = null;
+			}
+		}
 		protected function loadBackgroundImage() : void
 		{
 			if (m_styles.backgroundImageType != 'animation')
 			{
-				if (m_backgroundAnimationWrapper != null)
+				// cancel background animation loader since we don't need it
+				if (m_backgroundImageLoader.isExecuting() && 
+					m_backgroundImageLoader is ImageResource)
 				{
-					if (m_backgroundAnimationWrapper.parent != null)
+					m_backgroundImageLoader.cancel();
+				}
+				
+				// if we're already loading the right bitmap, do nothing			
+				if (m_backgroundImageLoader.url() == m_styles.backgroundImage && 
+					m_backgroundImageLoader is BitmapResource)
+				{
+					if (!BitmapResource(m_backgroundImageLoader.isExecuting()))
 					{
-						m_backgroundAnimationWrapper.parent.
-							removeChild(m_backgroundAnimationWrapper);
+						// we force redrawing here, due to the fact that our size or 
+						// the image position could have changed
+						//TODO: verify that this really calls bitmapLoader_complete
+						m_backgroundImageLoader.dispatchEvent(
+							new ResourceEvent(Event.COMPLETE, true));
 					}
-					m_backgroundAnimationWrapper = null;
-					m_backgroundAnimationContainer = null;
+					return;
+				}
+				
+				if (m_backgroundImageLoader.isExecuting())
+				{
+					m_backgroundImageLoader.cancel();
 				}
 				
 				m_backgroundImageLoader = new BitmapResource();
 				m_backgroundImageLoader.setURL(m_styles.backgroundImage);
-				m_backgroundImageLoader.setCacheBitmap(true);
-				m_backgroundImageLoader.setCloneBitmap(false);
-				m_backgroundImageLoader.setApplicationURL(
+				BitmapResource(m_backgroundImageLoader).setCacheBitmap(true);
+				BitmapResource(m_backgroundImageLoader).setCloneBitmap(false);
+				BitmapResource(m_backgroundImageLoader).setApplicationURL(
 					m_display.loaderInfo.url);
-				m_backgroundImageLoader.addEventListener(Event.COMPLETE, 
-				 bitmapLoader_complete);
+				m_backgroundImageLoader.addEventListener(
+					Event.COMPLETE, bitmapLoader_complete);
 				m_backgroundImageLoader.execute();
 				return;
 			}
 			
-			//TODO: check if this is correct
-			if (m_backgroundAnimationContainer.loaderInfo.url == 
-				m_styles.backgroundImage)
+			// if we're loading a background image, cancel it, since we don't need it
+			if (m_backgroundImageLoader.isExecuting() && 
+				m_backgroundImageLoader is BitmapResource)
 			{
-				imageLoader_complete();
+				m_backgroundImageLoader.cancel();
+				m_backgroundImageLoader.removeEventListener(
+					Event.COMPLETE, bitmapLoader_complete);
+				m_backgroundImageLoader = null;
+			}
+			
+			// if we're already loading the right animation, do nothing
+			if (m_backgroundImageLoader.url() == m_styles.backgroundImage && 
+				m_backgroundImageLoader is ImageResource)
+			{
+				if (!ImageResource(m_backgroundImageLoader.isExecuting()))
+				{
+					// we force redrawing here, due to the fact that our size or 
+					// the image position could have changed
+					//TODO: verify that this really calls imageLoader_complete
+					m_backgroundImageLoader.dispatchEvent(
+						new ResourceEvent(Event.COMPLETE, true));
+				}
 				return;
 			}
 			
-			if (m_backgroundAnimationWrapper == null)
+			if (!m_backgroundImageContainer)
 			{
-				m_backgroundAnimationWrapper = new Sprite();
-				m_backgroundAnimationWrapper.name = 
-					'm_backgroundAnimationWrapper';
-				m_display.addChild(m_backgroundAnimationWrapper);
+				m_backgroundImageContainer = Sprite(m_display.addChildAt(
+					new Sprite(), 0));
+				m_backgroundImageContainer.name = 'm_backgroundImageContainer';
 			}
+			
+			m_inactiveBackgroundAnimationContainer = m_activeBackgroundAnimationContainer;
+			m_activeBackgroundAnimationContainer = DisplayObjectContainer(
+				m_backgroundImageContainer.addChild(new DisplayObjectContainer()));
+			m_activeBackgroundAnimationContainer.name = 'm_backgroundAnimation';
 	
-			m_backgroundAnimationContainer = new Sprite();
-			m_backgroundAnimationContainer.name = 'm_backgroundAnimation';
-			m_backgroundAnimationWrapper.addChild(
-				m_backgroundAnimationContainer);
-	
-			m_backgroundAnimationWrapper.visible = false;
-			m_backgroundAnimationLoader = new ImageResource();
-			m_backgroundAnimationLoader.setURL(m_styles.backgroundImage);
-			m_backgroundAnimationLoader.addEventListener(Event.COMPLETE, 
-				imageLoader_complete);
-			m_backgroundAnimationLoader.execute();
+			m_backgroundImageLoader = new ImageResource();
+			m_backgroundImageLoader.setURL(m_styles.backgroundImage);
+			m_backgroundImageLoader.addEventListener(
+				Event.COMPLETE, imageLoader_complete);
+			m_backgroundImageLoader.execute();
 		}
 		
 		protected function drawBackgroundMask() : void
@@ -208,7 +288,10 @@ package de.fork.ui.renderers {
 		
 		protected function bitmapLoader_complete(e : ResourceEvent) : void
 		{
-			if (!e.success)
+			clearBackgroundImage();
+			
+			if (!e.success || m_styles.backgroundImage == null || 
+				m_styles.backgroundImage == Background.IMAGE_NONE)
 			{
 				return;
 			}
@@ -226,6 +309,13 @@ package de.fork.ui.renderers {
 			{
 				return;
 			}
+			
+			if (!m_backgroundImageContainer)
+			{
+				m_backgroundImageContainer = Sprite(m_display.addChildAt(
+					new Sprite(), 0));
+				m_backgroundImageContainer.name = 'm_backgroundImageContainer';
+			}
 	
 			
 			var backgroundRepeat : String = m_styles.backgroundRepeat;
@@ -233,17 +323,17 @@ package de.fork.ui.renderers {
 				m_styles.backgroundPositionX | 0, m_styles.backgroundPositionY | 0);
 			var xProperty : CSSProperty = 
 				m_complexStyles.getStyle('backgroundPositionX');
-			if (xProperty && xProperty.unit() == CSSProperty.UNIT_PERCENT)
+			if (xProperty && xProperty.isRelativeValue())
 			{
 				origin.x = 
-					Math.round((m_width - imgWidth) / 100 * Number(xProperty));
+					Math.round(xProperty.resolveRelativeValueTo(m_width - imgWidth));
 			}
 			var yProperty : CSSProperty = 
 				m_complexStyles.getStyle('backgroundPositionY');
-			if (yProperty && yProperty.unit() == CSSProperty.UNIT_PERCENT)
+			if (yProperty && yProperty.isRelativeValue())
 			{
 				origin.y = 
-					Math.round((m_height - imgHeight) / 100 * Number(yProperty));
+					Math.round(yProperty.resolveRelativeValueTo(m_height - imgHeight));
 			}
 	
 			var scale9Rect : Rectangle = constructScale9Rect(imgWidth, imgHeight);
@@ -302,9 +392,11 @@ package de.fork.ui.renderers {
 			rect.right = Math.min(m_width, rect.right);
 			rect.bottom = Math.min(m_height, rect.bottom);
 	
-			m_display.graphics.beginBitmapFill(newBackgroundImage, offset, true, true);
-			GfxUtil.drawRect(m_display, rect.left, rect.top, rect.width, rect.height);
-			m_display.graphics.endFill();
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				newBackgroundImage, offset, true, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, 
+				rect.left, rect.top, rect.width, rect.height);
+			m_backgroundImageContainer.graphics.endFill();
 		}
 		
 		protected function drawScale9RepeatedBackground(sourceImage : BitmapData, 
@@ -319,71 +411,85 @@ package de.fork.ui.renderers {
 			
 			// TL
 			offset.translate(0, 0);
-			m_display.graphics.beginBitmapFill(bitmaps.tl, offset, false, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, bitmaps.tl.width, bitmaps.tl.height);
-			m_display.graphics.endFill();
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.tl, offset, false, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, 
+				offset.tx, offset.ty, bitmaps.tl.width, bitmaps.tl.height);
 			// T
 			offset.tx = bitmaps.tl.width;
 			offset.ty = 0;
-			m_display.graphics.beginBitmapFill(bitmaps.t, offset, true, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.t, offset, true, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				m_width - bitmaps.tl.width - bitmaps.tr.width, bitmaps.t.height);
-			m_display.graphics.endFill();
 			// TR
 			offset.tx = m_width - bitmaps.tr.width;
 			offset.ty = 0;
-			m_display.graphics.beginBitmapFill(bitmaps.tr, offset, false, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.tr, offset, false, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				bitmaps.tr.width, bitmaps.tr.height);
-			m_display.graphics.endFill();
 			// R
 			offset.tx = m_width - bitmaps.r.width;
 			offset.ty = bitmaps.tr.height;
-			m_display.graphics.beginBitmapFill(bitmaps.r, offset, true, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.r, offset, true, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				bitmaps.r.width, m_height - bitmaps.tr.height - bitmaps.br.height);
-			m_display.graphics.endFill();
 			// BR
 			offset.tx = m_width - bitmaps.br.width;
 			offset.ty = m_height - bitmaps.br.height;
-			m_display.graphics.beginBitmapFill(bitmaps.br, offset, false, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.br, offset, false, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				bitmaps.br.width, bitmaps.br.height);
-			m_display.graphics.endFill();
 			// B
 			offset.tx = bitmaps.bl.width;
 			offset.ty = m_height - bitmaps.b.height;
-			m_display.graphics.beginBitmapFill(bitmaps.b, offset, true, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.b, offset, true, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				m_width - bitmaps.bl.width - bitmaps.br.width, bitmaps.b.height);
-			m_display.graphics.endFill();
 			// BL
 			offset.tx = 0;
 			offset.ty = m_height - bitmaps.bl.height;
-			m_display.graphics.beginBitmapFill(bitmaps.bl, offset, false, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.bl, offset, false, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				bitmaps.bl.width, bitmaps.bl.height);
-			m_display.graphics.endFill();
 			// L
 			offset.tx = 0;
 			offset.ty = bitmaps.tl.height;
-			m_display.graphics.beginBitmapFill(bitmaps.l, offset, true, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.l, offset, true, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				bitmaps.l.width, m_height - bitmaps.tl.height - bitmaps.bl.height);
-			m_display.graphics.endFill();
 			// C
 			offset.tx = bitmaps.tl.width;
 			offset.ty = bitmaps.tl.height;
-			m_display.graphics.beginBitmapFill(bitmaps.c, offset, true, true);
-			GfxUtil.drawRect(m_display, offset.tx, offset.ty, 
+			m_backgroundImageContainer.graphics.beginBitmapFill(
+				bitmaps.c, offset, true, true);
+			GfxUtil.drawRect(m_backgroundImageContainer, offset.tx, offset.ty, 
 				m_width - bitmaps.l.width - bitmaps.r.width, 
 				m_height - bitmaps.t.height - bitmaps.b.height);
-			m_display.graphics.endFill();
+			m_backgroundImageContainer.graphics.endFill();
 		}
 		
 		protected function imageLoader_complete(e : ResourceEvent = null) : void
 		{
-			var imgContainer : MovieClip = MovieClip(m_backgroundAnimationLoader.content());
+			if (!e.success || m_styles.backgroundImage == null || 
+				m_styles.backgroundImage == Background.IMAGE_NONE)
+			{
+				clearBackgroundImage();
+				return;
+			}
+			
+			m_inactiveBackgroundAnimationContainer.parent.removeChild(
+				m_inactiveBackgroundAnimationContainer);
+			m_inactiveBackgroundAnimationContainer = null;
+			
+			var imgContainer : DisplayObjectContainer = 
+				m_activeBackgroundAnimationContainer;
 			var imgWidth : Number = imgContainer.width;
 			var imgHeight : Number = imgContainer.height;
 					
@@ -394,7 +500,7 @@ package de.fork.ui.renderers {
 				imgContainer.scale9Grid = scale9Rect;
 				imgContainer.width = m_width;
 				imgContainer.height = m_height;
-				m_backgroundAnimationWrapper.visible = true;
+				m_backgroundImageContainer.graphics.clear();
 				return;
 			}
 	
@@ -404,22 +510,22 @@ package de.fork.ui.renderers {
 				m_styles.backgroundPositionX | 0, m_styles.backgroundPositionY | 0);
 			var xProperty : CSSProperty = 
 				m_complexStyles.getStyle('backgroundPositionX');
-			if (xProperty && xProperty.unit() == CSSProperty.UNIT_PERCENT)
+			if (xProperty && xProperty.isRelativeValue())
 			{
-				origin.x = 
-					Math.round((m_width - imgWidth) / 100 * Number(xProperty));
+				origin.x = Math.round(
+					xProperty.resolveRelativeValueTo(m_width - imgWidth));
 			}
 			var yProperty : CSSProperty = 
 				m_complexStyles.getStyle('backgroundPositionY');
-			if (yProperty && yProperty.unit() == CSSProperty.UNIT_PERCENT)
+			if (yProperty && yProperty.isRelativeValue())
 			{
-				origin.y = 
-					Math.round((m_height - imgHeight) / 100 * Number(yProperty));
+				origin.y = Math.round(
+					yProperty.resolveRelativeValueTo(m_height - imgHeight));
 			}
 			
 			imgContainer.x = origin.x;
 			imgContainer.y = origin.y;
-			m_backgroundAnimationWrapper.visible = true;
+			m_backgroundImageContainer.graphics.clear();
 		}
 		
 		protected function constructScale9Rect(imgWidth : Number, imgHeight : Number) : Rectangle

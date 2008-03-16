@@ -18,11 +18,11 @@ package de.fork.controls {
 		***************************************************************************/
 		protected var m_buttonDisplay : UIComponent;
 		
-		protected var m_isToggleButton : Boolean;
+		protected var m_isToggleButton : Boolean = false;
 		protected var m_currentState : String;
 	
-		protected var m_selected : Boolean;
-		protected var m_enabled : Boolean;
+		protected var m_selected : Boolean = false;
+		protected var m_enabled : Boolean = true;
 		
 		
 		/***************************************************************************
@@ -113,8 +113,6 @@ package de.fork.controls {
 		protected override function initialize () : void
 		{
 			super.initialize();
-			m_enabled = true;
-			m_isToggleButton = false;
 			createButtonDisplay();
 			initializeButtonHandlers();
 		}
@@ -125,14 +123,10 @@ package de.fork.controls {
 		}
 		protected function initializeButtonHandlers() : void
 		{
-			addEventListener(MouseEvent.ROLL_OVER, 
-			 buttonDisplay_over);
-			addEventListener(MouseEvent.ROLL_OUT, 
-			 buttonDisplay_out);
-			addEventListener(MouseEvent.MOUSE_DOWN, 
-			 buttonDisplay_down);
-			addEventListener(MouseEvent.CLICK, 
-			 buttonDisplay_click);
+			addEventListener(MouseEvent.ROLL_OVER, buttonDisplay_over);
+			addEventListener(MouseEvent.ROLL_OUT, buttonDisplay_out);
+			addEventListener(MouseEvent.MOUSE_DOWN, buttonDisplay_down);
+			addEventListener(MouseEvent.CLICK, buttonDisplay_click);
 		}
 		
 		protected function activate() : void
@@ -179,6 +173,18 @@ package de.fork.controls {
 			if (m_enabled)
 			{
 				removeErrorMark();
+			}
+		
+			if(isToggleButton)
+			{
+				if(selected)
+				{
+					selected = false;	
+				}
+				else
+				{
+					selected = true;	
+				}	
 			}
 		}
 	}

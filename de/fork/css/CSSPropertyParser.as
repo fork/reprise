@@ -22,7 +22,7 @@ package de.fork.css {
 		/**
 		* don't touch this. no need to call this directly
 		**/
-		/*protected*/ protected static function strToProperty(val:String, file:String = null) : Object
+		protected static function strToProperty(val:String, file:String = null) : Object
 		{
 			var prop : CSSProperty = new CSSProperty();
 			var obj : Object = CSSParsingHelper.removeImportantFlagFromString(val);
@@ -38,7 +38,8 @@ package de.fork.css {
 			return {property : prop, filteredString : val};
 		}
 		
-		/*protected*/ protected static function strToNumericProperty(val:String, file:String = null) : Object
+		protected static function strToNumericProperty(
+			val:String, file:String = null) : Object
 		{		
 			var obj : Object = strToProperty(val, file);
 			var prop : CSSProperty = obj.property;
@@ -49,7 +50,14 @@ package de.fork.css {
 				return obj;
 			}
 			
-			prop.setUnit(CSSParsingHelper.extractUnitFromString(val));
+			if (val.indexOf('calc(') > -1)
+			{
+				prop.setIsCalculation(true);
+			}
+			else
+			{
+				prop.setUnit(CSSParsingHelper.extractUnitFromString(val));
+			}
 			
 			return {property : prop, filteredString : val};
 		}
@@ -71,7 +79,7 @@ package de.fork.css {
 				return prop;
 			}
 			
-			if (val == 'auto')
+			if (val == 'auto' || prop.isCalculation())
 			{
 				prop.setSpecifiedValue(val);
 				return prop;
@@ -91,7 +99,7 @@ package de.fork.css {
 				return prop;
 			}
 			
-			if (val == 'auto')
+			if (val == 'auto' || prop.isCalculation())
 			{
 				prop.setSpecifiedValue(val);
 				return prop;

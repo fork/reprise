@@ -7,6 +7,7 @@ package de.fork.ui
 	import de.fork.css.propertyparsers.Filters;
 	import de.fork.ui.renderers.ICSSRenderer;
 	import de.fork.utils.GfxUtil;
+	import de.fork.utils.StringUtil;
 	
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
@@ -114,6 +115,8 @@ package de.fork.ui
 		protected var m_float : String;
 	
 		protected var m_dimensionsChanged : Boolean;
+		protected var m_specifiedDimensionsChanged : Boolean;
+		
 		
 		/***************************************************************************
 		*							public methods								   *
@@ -222,6 +225,10 @@ package de.fork.ui
 		}
 		public override function set top(value:Number) : void
 		{
+			if (isNaN(value))
+			{
+				value = 0;
+			}
 			m_currentStyles.top = value;
 			m_instanceStyles.top = value + "px";
 			m_topIsAuto = false;
@@ -242,6 +249,10 @@ package de.fork.ui
 		}
 		public override function set left(value:Number) : void
 		{
+			if (isNaN(value))
+			{
+				value = 0;
+			}
 			m_currentStyles.left = value;
 			m_instanceStyles.left = value + "px";
 			m_leftIsAuto = false;
@@ -260,6 +271,26 @@ package de.fork.ui
 			}
 			return left + m_borderBoxWidth;
 		}
+		public function set right(value:Number) : void
+		{
+			if (isNaN(value))
+			{
+				value = 0;
+			}
+			m_currentStyles.right = value;
+			m_instanceStyles.right = value + "px";
+			m_rightIsAuto = false;
+			if (!m_positionInFlow)
+			{
+				m_right = value;
+				var absolutePosition : Point = 
+					getPositionRelativeToContext(m_containingBlock);
+				absolutePosition.x -= x;
+				x = m_containingBlock.calculateContentWidth() - m_borderBoxWidth - 
+					m_right - m_marginRight - absolutePosition.x;
+			}
+		}
+		
 		public override function get bottom() : Number
 		{
 			if (m_currentStyles.top == null && m_currentStyles.bottom != null)
@@ -267,6 +298,25 @@ package de.fork.ui
 				return m_currentStyles.bottom;
 			}
 			return top + m_borderBoxHeight;
+		}
+		public function set bottom(value:Number) : void
+		{
+			if (isNaN(value))
+			{
+				value = 0;
+			}
+			m_currentStyles.bottom = value;
+			m_instanceStyles.bottom = value + "px";
+			m_bottomIsAuto = false;
+			if (!m_positionInFlow)
+			{
+				m_bottom = value;
+				var absolutePosition : Point = 
+					getPositionRelativeToContext(m_containingBlock);
+				absolutePosition.y -= y;
+				y = m_containingBlock.calculateContentHeight() - m_borderBoxHeight - 
+					m_bottom - m_marginBottom - absolutePosition.y;
+			}
 		}
 		
 		public function get marginTop() : Number
@@ -449,19 +499,29 @@ package de.fork.ui
 		{
 			if (m_pseudoClassesBackup)
 			{
-				if (m_pseudoClassesBackup.indexOf(name) > -1)
+				if (StringUtil.delimitedStringContainsSubstring(
+					m_pseudoClassesBackup, ':' + name, ' '))
 				{
 					return;
 				}
 				m_pseudoClassesBackup += " :" + name;
+				if (m_pseudoClassesBackup.charAt(0) == ' ')
+				{
+					m_pseudoClassesBackup = m_pseudoClassesBackup.substr(1);
+				}
 			}
 			else
 			{
-				if (m_cssPseudoClasses.indexOf(name) > -1)
+				if (StringUtil.delimitedStringContainsSubstring(
+					m_cssPseudoClasses, ':' + name, ' '))
 				{
 					return;
 				}
 				m_cssPseudoClasses += " :" + name;
+				if (m_cssPseudoClasses.charAt(0) == ' ')
+				{
+					m_cssPseudoClasses = m_cssPseudoClasses.substr(1);
+				}
 			}
 			m_stylesInvalidated = true;
 			invalidate();
@@ -473,21 +533,44 @@ package de.fork.ui
 		{
 			if (m_pseudoClassesBackup)
 			{
-				if (m_pseudoClassesBackup.indexOf(name) == -1)
-				{
-					return;
-				}
 				m_pseudoClassesBackup = 
-					m_pseudoClassesBackup.split(" :" + name).join("");
+					StringUtil.removeSubstringFromDelimitedString(
+					m_pseudoClassesBackup, ':' + name, ' ');
 			}
 			else
 			{
-				if (m_cssPseudoClasses.indexOf(name) == -1)
-				{
-					return;
-				}
-				m_cssPseudoClasses = m_cssPseudoClasses.split(" :" + name).join("");
+				m_cssPseudoClasses = StringUtil.removeSubstringFromDelimitedString(
+					m_cssPseudoClasses, ':' + name, ' ');
 			}
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		
+		/**
+		 * adds a CSS class if it's not already in the list of CSS classes.
+		 */
+		public function addCSSClass(name : String) : void
+		{
+			if (StringUtil.delimitedStringContainsSubstring(
+				m_cssClasses, name, ' '))
+			{
+				return;
+			}
+			m_cssClasses += ' ' + name;
+			if (m_cssClasses.charAt(0) == ' ')
+			{
+				m_cssClasses = m_cssClasses.substr(1);
+			}
+			m_stylesInvalidated = true;
+			invalidate();
+		}
+		/**
+		 * removes a CSS class from the list.
+		 */
+		public function removeCSSClass(name : String) : void
+		{
+			m_cssClasses = StringUtil.
+				removeSubstringFromDelimitedString(m_cssClasses, name, ' ');
 			m_stylesInvalidated = true;
 			invalidate();
 		}
@@ -552,6 +635,13 @@ package de.fork.ui
 			m_currentStyles.rotation = value;
 			m_instanceStyles.rotation = value.toString();
 		}
+		/**
+		* getter for the rotation property
+		*/
+		public override function get rotation() : Number
+		{
+			return m_currentStyles.rotation || 0;
+		}
 		
 		/**
 		 * removes the UIComponent from its' parents' display list
@@ -600,7 +690,12 @@ package de.fork.ui
 				}
 			}		
 			return elements;		
-		}	
+		}
+		
+		public function get selectorPath() : String
+		{
+			return m_selectorPath;
+		}
 	
 	
 		public override function toString() : String
@@ -608,9 +703,6 @@ package de.fork.ui
 			//TODO: check if serializing the full path is needed for inspection
 			refreshSelectorPath();
 			return m_selectorPath.split('@').join('');
-//			return m_elementType + (m_cssId ? "#" + m_cssId : "") + 
-//				(m_cssClasses ? "." + m_cssClasses.split(' ').join('.') : "") + 
-//				": " + name;
 		}
 		
 		/***************************************************************************
@@ -652,8 +744,10 @@ package de.fork.ui
 			{
 				m_stylesInvalidated = true;
 			}
-			m_dimensionsChanged = false;
 			super.validateElement(forceValidation);
+			
+			m_dimensionsChanged = false;
+			m_specifiedDimensionsChanged = false;
 			
 			m_stylesInvalidated = false;
 		}
@@ -666,13 +760,21 @@ package de.fork.ui
 				m_borderBoxWidth + m_marginLeft + m_marginRight, 
 				m_borderBoxHeight + m_marginTop + m_marginBottom);
 			m_oldInFlowStatus = m_positionInFlow;
+		
+			var oldSpecifiedDimensions : Point = 
+				new Point(m_currentStyles.width, m_currentStyles.height);
 			
 			if (m_stylesInvalidated)
 			{
 				calculateStyles();
 				if (m_stylesInvalidated)
 				{
-					resolveSpecifiedDimensions();
+					m_specifiedDimensionsChanged = !oldSpecifiedDimensions.equals(
+						new Point(m_currentStyles.width, m_currentStyles.height));
+					if (m_specifiedDimensionsChanged)
+					{
+						resolveSpecifiedDimensions();
+					}
 				}
 				else
 				{
@@ -706,9 +808,11 @@ package de.fork.ui
 			
 			var oldIntrinsicHeight : Number = m_intrinsicHeight;
 			var oldIntrinsicWidth : Number = m_intrinsicWidth;
+			
+			measure();
+			
 			if (widthIsAuto || heightIsAuto)
 			{
-				measure();
 				if (widthIsAuto && 
 					(m_currentStyles.display == 'inline' ||
 					(!m_positionInFlow && (m_leftIsAuto || m_rightIsAuto))))
@@ -818,37 +922,39 @@ package de.fork.ui
 		protected function refreshSelectorPath() : void
 		{
 			var oldPath:String = m_selectorPath;
+			var path : String;
 			if (m_parentElement)
 			{
-				m_selectorPath = UIComponent(m_parentElement).m_selectorPath + " ";
+				path = UIComponent(m_parentElement).m_selectorPath + " ";
 			}
 			else 
 			{
-				m_selectorPath = "";
+				path = "";
 			}
-			m_selectorPath += "@" + m_elementType + "@";
+			path += "@" + m_elementType + "@";
 			if (m_cssId)
 			{
-				m_selectorPath += "@#" + m_cssId + "@";
+				path += "@#" + m_cssId + "@";
 			}
 			if (m_cssClasses)
 			{
-				m_selectorPath += "@." + m_cssClasses.split(' ').join('@.') + "@";
+				path += "@." + m_cssClasses.split(' ').join('@.') + "@";
 			}
 			if (m_cssPseudoClasses.length)
 			{
-				m_selectorPath += m_cssPseudoClasses.split(" :").join("@:") + "@";
+				path += m_cssPseudoClasses.split(" :").join("@:") + "@";
 			}
 			if (m_isFirstChild)
 			{
-				m_selectorPath += "@:first-child@";
+				path += "@:first-child@";
 			}
 			if (m_isLastChild)
 			{
-				m_selectorPath += "@:last-child@";
+				path += "@:last-child@";
 			}
-			if (m_selectorPath != oldPath)
+			if (path != oldPath)
 			{
+				m_selectorPath = path;
 				m_selectorPathChanged = true;
 				return;
 			}
@@ -887,17 +993,23 @@ package de.fork.ui
 			styles.mergeCSSDeclaration(
 				CSSDeclaration.CSSDeclarationFromObject(m_instanceStyles));
 			
-			if (!(m_containingBlock && m_containingBlock.m_dimensionsChanged) && 
-				styles.compare(oldStyles))
+			if (!(m_containingBlock && m_containingBlock.m_specifiedDimensionsChanged) && 
+				styles.compare(oldStyles) && 
+				!(this == m_rootElement && 
+					DocumentView(this).stageDimensionsChanged))
 			{
 				m_stylesInvalidated = false;
 				return;
 			}
 			
 			var floatProperty : CSSProperty = styles.getStyle('float');
-			if (floatProperty != null)
+			if (floatProperty != null && floatProperty.valueOf() != 'none')
 			{
 				m_float = floatProperty.valueOf() as String;
+			}
+			else
+			{
+				m_float = null;
 			}
 			
 			var positioningProperty:CSSProperty = styles.getStyle('position');
@@ -1161,8 +1273,8 @@ package de.fork.ui
 					var specOuterWidth : Number;
 					if (outerWidthProp.isRelativeValue())
 					{
-						specOuterWidth = 
-							Math.round(parentW / 100 * Number(outerWidthProp));
+						specOuterWidth = Math.round(
+							outerWidthProp.resolveRelativeValueTo(parentW));
 					}
 					else
 					{
@@ -1254,7 +1366,7 @@ package de.fork.ui
 					if (cssProperty.isRelativeValue())
 					{
 						m_currentStyles[propName] = this["m_"+propName] = 
-							Math.round(baseValue / 100 * Number(cssProperty));
+							Math.round(cssProperty.resolveRelativeValueTo(baseValue));
 					}
 					this["m_"+propName] = m_currentStyles[propName];
 				}
@@ -1321,6 +1433,7 @@ package de.fork.ui
 			var currentLineBoxHeight:Number = 0;
 			var currentLineBoxLeftBoundary:Number = 0;
 			var currentLineBoxRightBoundary:Number = totalAvailableWidth;
+			var currentLineBoxChildren : Array = [];
 			
 			for (var i:Number = 0; i < childCount; i++)
 			{
@@ -1338,12 +1451,19 @@ package de.fork.ui
 						if (childWidth > currentLineBoxRightBoundary - 
 							currentLineBoxLeftBoundary)
 						{
+							if (currentLineBoxChildren.length)
+							{
+								applyVerticalPositionsInLineBox(
+									currentLineBoxTop, currentLineBoxHeight, 
+									currentLineBoxChildren);
+							}
 							currentLineBoxTop += 
 								currentLineBoxHeight + collapsibleMargin;
 							collapsibleMargin = 0;
 							currentLineBoxHeight = 0;
 							currentLineBoxLeftBoundary = 0;
 							currentLineBoxRightBoundary = totalAvailableWidth;
+							currentLineBoxChildren = [];
 						}
 						if (child.m_float == 'left')
 						{
@@ -1362,24 +1482,31 @@ package de.fork.ui
 						currentLineBoxHeight = Math.max(currentLineBoxHeight, 
 							child.m_borderBoxHeight + 
 							child.m_marginTop + child.m_marginBottom);
+						var childVAlign : String = 
+							child.m_currentStyles.verticalAlign || 'top';
+						if (childVAlign != 'top')
+						{
+							currentLineBoxChildren.push(child);
+						}
 					}
 					else if (child.m_positionInFlow || 
 						(child.m_leftIsAuto && child.m_rightIsAuto))
 					{
-						if (childStyles.getStyle('marginLeft') &&
-							childStyles.getStyle('marginLeft').
-							specifiedValue() == autoFlag)
+						var childMarginLeft = childStyles.getStyle('marginLeft');
+						if (childMarginLeft && 
+							childMarginLeft.specifiedValue() == autoFlag)
 						{
-							if (childStyles.getStyle('marginRight') && 
-								childStyles.getStyle('marginRight').
-								specifiedValue() == autoFlag)
+							var childMarginRight = childStyles.getStyle('marginRight');
+							if (childMarginRight && 
+								childMarginRight.specifiedValue() == autoFlag)
 							{
-								child.x = 
-									Math.round(totalAvailableWidth / 2 - 
+								//center horizontally
+								child.x = Math.round(totalAvailableWidth / 2 - 
 									child.m_borderBoxWidth / 2);
 							}
 							else
 							{
+								//align right
 								child.x = totalAvailableWidth - 
 									child.m_borderBoxWidth - 
 									child.m_marginRight;
@@ -1387,6 +1514,7 @@ package de.fork.ui
 						}
 						else
 						{
+							//align left
 							child.x = child.m_marginLeft;
 						}
 					}
@@ -1455,9 +1583,44 @@ package de.fork.ui
 					}
 				}
 			}
+			
+			if (currentLineBoxChildren.length)
+			{
+				applyVerticalPositionsInLineBox(
+					currentLineBoxTop, currentLineBoxHeight, currentLineBoxChildren);
+			}
 			m_intrinsicHeight = 
 				currentLineBoxTop + currentLineBoxHeight + collapsibleMargin;
 			m_intrinsicWidth = widestChildWidth;
+		}
+		
+		protected function applyVerticalPositionsInLineBox(
+			lineBoxTop : Number, lineBoxHeight : Number, lineBoxChildren : Array) : void
+		{
+			var i : Number = lineBoxChildren.length;
+			while (i--)
+			{
+				var child : UIComponent = lineBoxChildren[i];
+				switch (child.m_currentStyles.verticalAlign)
+				{
+					case 'middle':
+					{
+						child.y = lineBoxTop + Math.round(
+							lineBoxHeight / 2 - (child.m_borderBoxHeight + 
+							child.m_marginTop + child.m_marginBottom) / 2);
+						break;
+					}
+					case 'bottom':
+					case 'baseline':
+					{
+						child.y = lineBoxTop + Math.round(
+							lineBoxHeight - (child.m_borderBoxHeight + 
+							child.m_marginTop + child.m_marginBottom));
+						break;
+					}
+					default:
+				}
+			}
 		}
 		
 		protected function applyOutOfFlowChildPositions() : void
@@ -1493,13 +1656,32 @@ package de.fork.ui
 					
 					if (!child.m_topIsAuto)
 					{
-						child.y = child.m_top + child.m_marginTop - absolutePosition.y;
+						var childMarginTop : CSSProperty = 
+							child.m_complexStyles.getStyle('marginTop');
+						var childMarginBottom : CSSProperty = 
+							child.m_complexStyles.getStyle('marginBotto');
+						if (!child.m_bottomIsAuto && 
+							childMarginTop && childMarginTop.isAuto() && 
+							childMarginBottom && childMarginBottom.isAuto())
+						{
+							//center vertically if margin-top and margin-bottom 
+							//are both auto and top and bottom have values.
+							child.y = child.m_top + Math.round((
+								child.m_containingBlock.calculateContentHeight() - 
+								child.m_bottom - child.m_top) / 2 - 
+								child.m_borderBoxHeight /2);
+						}
+						else
+						{
+							child.y = child.m_top + 
+								child.m_marginTop - absolutePosition.y;
+						}
 					}
 					else if (!child.m_bottomIsAuto)
 					{
 						child.y = child.m_containingBlock.calculateContentHeight() - 
-							child.m_borderBoxHeight - 
-							child.m_bottom - child.m_marginBottom - absolutePosition.y;
+							child.m_borderBoxHeight - child.m_bottom - 
+							child.m_marginBottom - absolutePosition.y;
 					}
 				}
 				child.applyOutOfFlowChildPositions();
@@ -1627,7 +1809,7 @@ package de.fork.ui
 				m_backgroundDisplay.name = "background_" + backgroundRendererId;
 				addChildAt(m_backgroundDisplay, 0);
 				m_backgroundRenderer = m_rootElement.uiRendererFactory().
-					backgroundRendererById(m_currentStyles.backgroundRenderer);
+					backgroundRendererById(backgroundRendererId);
 				m_backgroundRenderer.setDisplay(m_backgroundDisplay);
 			}
 			
@@ -1643,7 +1825,7 @@ package de.fork.ui
 				m_bordersDisplay.name = "border_" + borderRendererId;
 				addChild(m_bordersDisplay);
 				m_borderRenderer = m_rootElement.uiRendererFactory().
-					borderRendererById(m_currentStyles.borderRenderer);
+					borderRendererById(borderRendererId);
 				m_borderRenderer.setDisplay(m_bordersDisplay);
 			}
 			

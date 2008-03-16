@@ -6,26 +6,23 @@ package de.fork.core
 	
 	public class GlobalMCManager
 	{
-		
-		
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		protected static var g_lowLevelContainerDepth:Number = -17000;
-		protected static var g_highLevelContainerDepth:Number = 10000;
-		protected static var g_lowLevelContainerName:String = 'LOW_LEVEL_CONTAINER';
-		protected static var g_highLevelContainerName:String = 'HIGH_LEVEL_CONTAINER';
+		protected static const g_highLevelContainerDepth:Number = 10000;
+		protected static const g_lowLevelContainerName:String = 'LOW_LEVEL_CONTAINER';
+		protected static const g_highLevelContainerName:String = 'HIGH_LEVEL_CONTAINER';
 		
-		protected static var g_instance:GlobalMCManager;
-		protected var m_lowLevelContainer:DisplayObjectContainer;
-		protected var m_highLevelContainer:DisplayObjectContainer;
-		
+		protected static var g_instance : GlobalMCManager;
+		protected var m_lowLevelContainer : DisplayObjectContainer;
+		protected var m_highLevelContainer : DisplayObjectContainer;
 		
 		
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public static function instance(stage : DisplayObjectContainer = null) : GlobalMCManager
+		public static function instance(
+			stage : DisplayObjectContainer = null) : GlobalMCManager
 		{
 			if (!g_instance)
 			{
@@ -34,7 +31,7 @@ package de.fork.core
 			return g_instance;
 		}
 		
-		public function addHighLevelMc(name:String = null) : Sprite
+		public function addHighLevelMc(name : String = null) : Sprite
 		{
 			var clip : Sprite = new Sprite();
 			if (name)
@@ -57,7 +54,6 @@ package de.fork.core
 		}
 		
 		
-		
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
@@ -69,14 +65,18 @@ package de.fork.core
 		
 		protected function createLowLevelContainer(stage : DisplayObjectContainer) : void
 		{
+			//TODO: check if the changes in the AS2 version that happened in 622:15.3.08
+			//are relevant to the as3 version
 			m_lowLevelContainer = new DisplayObjectContainer();
-			stage.addChildAt(m_lowLevelContainer, g_lowLevelContainerDepth);
+			stage.addChildAt(m_lowLevelContainer, 0);
 		}
 		
 		protected function createHighLevelContainer(stage : DisplayObjectContainer) : void
 		{
+			//TODO: check if the changes in the AS2 version that happened in 622:15.3.08
+			//are relevant to the as3 version
 			m_highLevelContainer = new DisplayObjectContainer();
-			stage.addChildAt(m_highLevelContainer, g_highLevelContainerDepth);
+			stage.addChild(m_highLevelContainer);
 		}
 	}
 }

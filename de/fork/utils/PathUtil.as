@@ -1,11 +1,10 @@
-package de.fork.utils { 
+package de.fork.utils
+{ 
 	import de.fork.data.Range;
 	
 	
 	public class PathUtil
 	{
-	
-	
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
@@ -214,18 +213,31 @@ package de.fork.utils {
 			return stringByStandardizingPath(pathWithComponents(baseComponents));
 		}
 		
-		public static function relativePathToFilename(file1:String, file2:String) : String
+		/**
+		 * Takes two absolute paths and returns a relative path that would resolve 
+		 * to the second absolute path if related to the first absolute path.
+		 * 
+		 * @param basePath The path to make the filename relative to
+		 * @param filename The path to make relative to the basePath
+		 * 
+		 * @return A relative path to filename 
+		 */
+		public static function relativePathToFilename(
+			basePath : String, filename : String) : String
 		{
-			file2 = stringByStandardizingPath(file2);
-			var commonRoot : Array = commonRootPathComponents(stringByStandardizingPath(file1), file2);
+			filename = stringByStandardizingPath(filename);
+			var commonRoot : Array = 
+				commonRootPathComponents(stringByStandardizingPath(basePath), filename);
 			
 			if (commonRoot == null)
 			{
-				return file2;
+				return filename;
 			}
 			
-			var uniquePart1 : Array = pathComponents(file1).slice(commonRoot.length - 1);
-			var uniquePart2 : Array = pathComponents(file2).slice(commonRoot.length - 1);
+			var uniquePart1 : Array = 
+				pathComponents(basePath).slice(commonRoot.length - 1);
+			var uniquePart2 : Array = 
+				pathComponents(filename).slice(commonRoot.length - 1);
 			
 			var numberOfStepsUp : Number = uniquePart1.length;
 			if (uniquePart1[uniquePart1.length - 1] == '')

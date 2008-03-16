@@ -41,6 +41,10 @@ package de.fork.external
 		
 		public override function execute(...rest) : void
 		{	
+			if (m_isExecuting)
+			{
+				return;
+			}
 			if (m_url == null)
 			{
 				throw new Error('You didn\'t specify an URL for your ' + 
@@ -143,6 +147,7 @@ package de.fork.external
 			{
 				return;
 			}
+			TimeCommandExecutor.instance().removeCommand(m_controlDelegate);
 			m_isExecuting = false;
 			m_isCancelled = true;
 			doCancel();

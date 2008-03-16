@@ -72,7 +72,7 @@ package de.fork.controls {
 
 		public function delayValidation() : void
 		{
-			setTimeout(validation_execute, 1);
+			setTimeout(forceRedraw, 1);
 		}
 		
 		/**

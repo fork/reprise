@@ -12,5 +12,10 @@ package de.fork.data
 			location = loc;
 			length = len;
 		}
+		
+		public function clone() : Range
+		{
+			return new Range(location, length);
+		}
 	}
 }

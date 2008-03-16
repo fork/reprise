@@ -7,17 +7,21 @@ package de.fork.commands {
 	public class AbstractAsynchronousCommand extends EventDispatcher
 		implements IAsynchronousCommand
 	{
-	
+		/***************************************************************************
+		*							publc properties							   *
+		***************************************************************************/
+		//TODO: probably rename this to 'id' as it has to be public to use Array.sortOn
+		public var m_id : Number;
+		
+		
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		public var m_id : Number;
 		protected var m_inited : Boolean;
 		protected var m_isExecuting : Boolean;
 		protected var m_isCancelled : Boolean;
 		
 		public var m_priority : Number = 0;
-		
 		
 		
 		/***************************************************************************
@@ -26,7 +30,9 @@ package de.fork.commands {
 		public function execute(...args) : void
 		{
 			if (m_isExecuting)
+			{
 				return;
+			}
 			m_isExecuting = true;
 			m_isCancelled = false;
 		}

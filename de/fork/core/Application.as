@@ -5,7 +5,8 @@ package de.fork.core
 	import de.fork.ui.UIObject;
 	
 	import flash.display.Sprite;
-	import flash.events.TimerEvent;
+	import flash.display.StageAlign;
+	import flash.display.StageScaleMode;
 	import flash.utils.Timer;
 	public class Application extends Sprite
 	{
@@ -43,6 +44,8 @@ package de.fork.core
 		
 		protected function initialize () : void
 		{
+			stage.align = StageAlign.TOP_LEFT;
+			stage.scaleMode = StageScaleMode.NO_SCALE;
 			m_baseView = new DocumentView();
 			addChild(m_baseView);
 //			EventMonitor.instance(m_stage.stage).trackMouseEvents();
