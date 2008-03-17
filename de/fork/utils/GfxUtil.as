@@ -23,7 +23,7 @@ package de.fork.utils
 		/**
 		 * draws a circle in the given context
 		 */
-		public static function drawCircle (
+		public static function drawCircle(
 			mc:Sprite, x:Number, y:Number, radius:Number) : void
 		{
 			//TODO: verify this change
@@ -55,7 +55,6 @@ package de.fork.utils
 		public static function drawRoundRect(mc:Sprite, 
 			x:Number, y:Number, w:Number, h:Number, radius:Array) : void
 		{
-			//TODO: check if we can use the native function here
 			var rbr : Number, rbl : Number, rtl : Number, rtr : Number, r : Number;
 			var a : Number;
 			var s : Number;
@@ -94,57 +93,8 @@ package de.fork.utils
 					trace('w Wrong number of parameters (radius) in drawRoundRect!');
 					return;
 				}
-			}		
-	
-			// Math.sin and Math,tan values for optimal performance.
-			// Math.rad = Math.PI/180 = 0.0174532925199433
-			// r*Math.sin(45*Math.rad) =  (r*0.707106781186547);
-			// r*Math.tan(22.5*Math.rad) = (r*0.414213562373095);
-	
-			//bottom right corner
-			r = rbr;
-			mc.graphics.moveTo ( x+w,y+h-r);
-			if (r > 0)
-			{
-				a = r - (r*0.707106781186547); //radius - anchor pt;
-				s = r - (r*0.414213562373095); //radius - control pt;
-				mc.graphics.curveTo( x+w,y+h-s,x+w-a,y+h-a);
-				mc.graphics.curveTo( x+w-s,y+h,x+w-r,y+h);
 			}
-	
-			//bottom left corner
-			r = rbl;
-			mc.graphics.lineTo (x+r,y+h);
-			if (r > 0)
-			{
-				a = r - (r*0.707106781186547);
-				s = r - (r*0.414213562373095);
-				mc.graphics.curveTo(x+s,y+h,x+a,y+h-a);
-				mc.graphics.curveTo(x,y+h-s,x,y+h-r);
-			}
-	
-			//top left corner
-			r = rtl;
-			mc.graphics.lineTo (x,y+r);
-			if (r > 0)
-			{
-				a = r - (r*0.707106781186547);
-				s = r - (r*0.414213562373095);
-				mc.graphics.curveTo(x,y+s,x+a,y+a);
-				mc.graphics.curveTo(x+s,y,x+r,y);
-			}
-	
-			//top right
-			r = rtr;
-			mc.graphics.lineTo (x+w-r,y);
-			if (r > 0)
-			{
-				a = r - (r*0.707106781186547);
-				s = r - (r*0.414213562373095);
-				mc.graphics.curveTo(x+w-s,y,x+w-a,y+a);
-				mc.graphics.curveTo(x+w,y+s,x+w,y+r);
-			}
-			mc.graphics.lineTo (x+w,y+h-rbr);
+			mc.graphics.drawRoundRectComplex(x, y, w, h, rtl, rtr, rbl, rbr);
 		}	
 		
 		
