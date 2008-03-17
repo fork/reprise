@@ -273,24 +273,24 @@ package de.fork.data
 			return hsb;		
 		}
 		
-		public function setAlpha(alpha:uint) : void
+		public function setAlpha(alpha : Number) : void
 		{
 			alpha = Math.max(0, alpha);
 			alpha = Math.min(100, alpha);
 			m_alpha = alpha;
 		}
 		
-		public function alpha() : uint
+		public function alpha() : Number
 		{
 			return m_alpha;
 		}
 		
-		public function setOpacity(opacity:uint) : void
+		public function setOpacity(opacity : Number) : void
 		{
 			m_alpha = opacity * 100;
 		}
 		
-		public function opacity() : uint
+		public function opacity() : Number
 		{
 			return m_alpha / 100;
 		}
