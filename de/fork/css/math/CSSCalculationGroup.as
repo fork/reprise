@@ -62,7 +62,8 @@ package de.fork.css.math
 				AbstractCSSCalculation(m_operand1).resolve(reference));
 			var operand2 : Number = (m_operand2 is Number ? m_operand2 as Number : 
 				AbstractCSSCalculation(m_operand2).resolve(reference));
-			return m_operation(operand1, operand2);
+			var result: Number = m_operation(operand1, operand2);
+			return result;
 		}
 		public function toString() : String
 		{
@@ -124,6 +125,7 @@ package de.fork.css.math
 		{
 			var tokens : Array = tokenize(expression);
 			var numeric : String = '0123456789x.';
+			var suffixChars : String = 'ptx';
 			var ops : Array = [];
 			var vals : Array = [];
 			
@@ -173,10 +175,21 @@ package de.fork.css.math
 						}
 						else
 						{
+							while(suffixChars.indexOf(tokens[0]) != -1)
+							{
+								tokens.shift();
+							}
 							vals.push(parseFloat(token));
 						}
 					}
 				}
+			}
+			//TODO: replace this ugly hack by some better means to deal with a 
+			//calculation that doesn't contain more than one operand (and no operation)
+			if (!(vals[0] is CSSCalculationGroup))
+			{
+				return new CSSCalculationGroup(
+					CSSCalculationGroup.OPERATOR_PLUS, vals[0], 0);
 			}
 			return vals[0];
 		}
@@ -210,8 +223,8 @@ package de.fork.css.math
 		
 		protected static function reduce(ops : Array, vals : Array) : void
 		{
-			var val1 : Number = vals[vals.length - 2];
-			var val2 : Number = vals[vals.length - 1];
+			var val1 : Object = vals[vals.length - 2];
+			var val2 : Object = vals[vals.length - 1];
 			vals.length -= 2;
 			vals.push(new CSSCalculationGroup(String(ops.pop()), val1, val2));
 		}
