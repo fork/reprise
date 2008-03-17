@@ -259,7 +259,7 @@ package de.fork.external
 			TimeCommandExecutor.instance().removeCommand(m_controlDelegate);
 			
 			if (!success && ++m_failedTimes < m_retryTimes && 
-				!httpStatus().cancelRetry())
+				!(httpStatus() && httpStatus().cancelRetry()))
 			{
 				doLoad();
 				return;
