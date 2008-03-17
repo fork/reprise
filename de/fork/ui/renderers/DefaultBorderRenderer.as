@@ -1,8 +1,9 @@
 package de.fork.ui.renderers { 
-	import de.fork.utils.GfxUtil;
 	import de.fork.css.propertyparsers.Border;
-	import flash.geom.Point;
 	import de.fork.data.AdvancedColor;
+	import de.fork.utils.GfxUtil;
+	
+	import flash.geom.Point;
 	
 	
 	public class DefaultBorderRenderer extends AbstractCSSRenderer
@@ -74,7 +75,6 @@ package de.fork.ui.renderers {
 				}
 				if (radiusItem != 0)
 				{
-					radiusItem -= borderWidth.top / 2;
 					hasRoundBorder = true;
 				}
 				radii.push(radiusItem);
@@ -82,10 +82,10 @@ package de.fork.ui.renderers {
 	
 			if (hasRoundBorder && borderWidth.top && borderStyle.top == 'solid')
 			{
-				var color : AdvancedColor = borderColor.top;
+				var color : AdvancedColor = borderColor.top || new AdvancedColor(0);
 				var width : Number = borderWidth.top;
 				m_display.graphics.lineStyle(width, color.rgb(), color.opacity(), 
-					false, 'normal', 'square', 'miter', 2);
+					true, 'normal', 'square', 'miter', 2);
 				GfxUtil.drawRoundRect(m_display, width / 2, width / 2, 
 					m_width - width, m_height - width, radii);
 				return;
@@ -137,8 +137,9 @@ package de.fork.ui.renderers {
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
-		protected function drawBorderInRect(color : AdvancedColor, style : String, width : Number, pt1 : Point, 
-			pt2 : Point, pt3 : Point, pt4 : Point, side : Number) : void
+		protected function drawBorderInRect(color : AdvancedColor, style : String, 
+			width : Number, pt1 : Point, pt2 : Point, pt3 : Point, pt4 : Point, 
+			side : Number) : void
 		{
 			switch (style)
 			{
@@ -150,8 +151,8 @@ package de.fork.ui.renderers {
 					{
 						dashLength *= 3;
 					}
-					m_display.graphics.lineStyle(
-						width, color.rgb(), color.opacity(), false, "normal", "none");
+					m_display.graphics.lineStyle(width, color && color.rgb() || 0, 
+						color && color.opacity() || 1, false, "normal", "none");
 					
 					switch (side)
 					{
@@ -184,17 +185,20 @@ package de.fork.ui.renderers {
 					GfxUtil.drawDashedLine(m_display, pt1.x, pt1.y, pt2.x, pt2.y, dashLength, dashLength);
 					break;
 				}
-				default:
+				case Border.BORDER_STYLE_SOLID :
 				{
 					m_display.graphics.lineStyle();
-					m_display.graphics.beginFill(color.rgb(), color.opacity());
+					m_display.graphics.beginFill(color && color.rgb() || 0, 
+						color && color.opacity() || 1);
 					m_display.graphics.moveTo(pt1.x, pt1.y);
 					m_display.graphics.lineTo(pt2.x, pt2.y);
 					m_display.graphics.lineTo(pt3.x, pt3.y);
 					m_display.graphics.lineTo(pt4.x, pt4.y);
 					m_display.graphics.moveTo(pt1.x, pt1.y);
 					m_display.graphics.endFill();
+					break;
 				}
+				default:
 			}
 		}	
 	}

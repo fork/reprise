@@ -13,7 +13,6 @@ package de.fork.ui.renderers
 	
 	import flash.display.BitmapData;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.filters.DropShadowFilter;
@@ -35,7 +34,6 @@ package de.fork.ui.renderers
 		
 		protected var m_lastBackgroundImageType : String;
 		protected var m_lastBackgroundImageURL : String;
-		protected var m_lastBackgroundColor : AdvancedColor;
 		
 		
 		/***************************************************************************
@@ -53,14 +51,13 @@ package de.fork.ui.renderers
 				Background.GRADIENT_TYPE_LINEAR || m_styles.backgroundGradientType == 
 				Background.GRADIENT_TYPE_RADIAL) && m_styles.backgroundGradientColors;
 			
+			//TODO: investigate optimization strategies to prevent unneeded redraws
+			//clear background
+			m_display.graphics.clear();
+			
 			// draw plain background color
 			if (color != null && color.alpha() >= 0 && !hasBackgroundGradient)
 			{
-				if (m_lastBackgroundColor && !m_lastBackgroundColor.equals(color))
-				{
-					m_display.graphics.clear();
-					m_lastBackgroundColor = color;
-				}
 				hasAnyContent = true;
 				m_display.graphics.beginFill(color.rgb(), color.opacity());
 				GfxUtil.drawRect(m_display, 0, 0, m_width, m_height);
@@ -69,7 +66,6 @@ package de.fork.ui.renderers
 			// draw background gradient
 			else if (hasBackgroundGradient)
 			{
-				m_lastBackgroundColor = null;
 				hasAnyContent = true;
 				var grad : Gradient = new Gradient(m_styles.backgroundGradientType);
 				grad.setColors(m_styles.backgroundGradientColors);
@@ -239,12 +235,12 @@ package de.fork.ui.renderers
 		
 		protected function drawBackgroundMask() : void
 		{
-			//GfxUtil.drawRect(m_display, 0, 0, m_width, m_height);
 			var radii : Array = [];
 			var hasRoundBorder : Boolean = false;
 			var order : Array = ['borderTopLeftRadius', 'borderTopRightRadius', 
 				'borderBottomRightRadius', 'borderBottomLeftRadius'];
-	
+			
+			var borderTopWidthHalf : Number = (m_styles['borderTopWidth'] || 0) / 2;
 			var i : Number;
 			var radiusItem : Number;
 			for (i = 0; i < order.length; i++)
@@ -259,6 +255,7 @@ package de.fork.ui.renderers
 				}
 				if (radiusItem != 0)
 				{
+					radiusItem += borderTopWidthHalf;
 					hasRoundBorder = true;
 				}
 				radii.push(radiusItem);
@@ -274,12 +271,16 @@ package de.fork.ui.renderers
 				if (!m_backgroundMask)
 				{
 					m_backgroundMask = new Sprite();
+					m_display.addChild(m_backgroundMask);
 					m_backgroundMask.name = 'mask';
-					m_backgroundMask.visible = false;
+//					m_backgroundMask.visible = false;
 				}
 				m_display.mask = m_backgroundMask;
 				m_backgroundMask.graphics.clear();
-				m_backgroundMask.graphics.beginFill(0x00ff00, 20);
+				m_backgroundMask.graphics.beginFill(0x00ffff, 20);
+//				m_backgroundMask.graphics.lineStyle(
+//					0, 0, 0.5, 
+//					false, 'normal', 'square', 'miter', 2);
 				GfxUtil.drawRoundRect(
 					m_backgroundMask, 0, 0, m_width, m_height, radii);
 			}

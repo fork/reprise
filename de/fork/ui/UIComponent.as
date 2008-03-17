@@ -659,7 +659,7 @@ package de.fork.ui
 		public function getElementsByClassName(className:String) : Array
 		{
 			var i:Number;
-			var len:Number = m_contentDisplay.numChildren;
+			var len:Number = m_children.length;
 			var elements:Array = [];
 			var subElements:Array;
 			var cssClasses:String;
@@ -1313,7 +1313,9 @@ package de.fork.ui
 				'borderBottomLeftRadius',
 				'borderBottomRightRadius'
 			];
-			resolvePropsToValue(styles, propsResolvableToOwnWidth, m_width);
+			//TODO: verify that we should really resolve the border-radii this way
+			resolvePropsToValue(styles, propsResolvableToOwnWidth, 
+				m_width + m_borderTopWidth);
 			
 			if (hProp.specifiedValue() == 'auto')
 			{
@@ -1409,7 +1411,7 @@ package de.fork.ui
 		protected function applyInFlowChildPositions() : void
 		{
 //			trace(getTimer() + this);
-			var childCount:uint = m_contentDisplay.numChildren;
+			var childCount:uint = m_children.length;
 			if (!childCount)
 			{
 				return;
@@ -1492,11 +1494,13 @@ package de.fork.ui
 					else if (child.m_positionInFlow || 
 						(child.m_leftIsAuto && child.m_rightIsAuto))
 					{
-						var childMarginLeft = childStyles.getStyle('marginLeft');
+						var childMarginLeft : CSSProperty = 
+							childStyles.getStyle('marginLeft');
 						if (childMarginLeft && 
 							childMarginLeft.specifiedValue() == autoFlag)
 						{
-							var childMarginRight = childStyles.getStyle('marginRight');
+							var childMarginRight : CSSProperty = 
+								childStyles.getStyle('marginRight');
 							if (childMarginRight && 
 								childMarginRight.specifiedValue() == autoFlag)
 							{
@@ -1743,7 +1747,6 @@ package de.fork.ui
 			for each (var childNode:XML in node.children())
 			{
 				preprocessTextNode(childNode);
-				trace('node: ' + childNode.toXMLString());
 				var child:UIComponent = 
 					m_rootElement.uiRendererFactory().rendererByNode(childNode);
 				if (child)
