@@ -1,7 +1,7 @@
 package de.fork.tweens { 
 	import de.fork.commands.IAsynchronousCommand;
+	import de.fork.core.GlobalMCManager;
 	import de.fork.events.CommandEvent;
-	import de.fork.events.FrameEventBroadcaster;
 	import de.fork.events.TweenEvent;
 	
 	import flash.events.Event;
@@ -58,9 +58,10 @@ package de.fork.tweens {
 		 * TweenedPropertyVO or the various parameters for creating one
 		 */
 		public function addTweenProperty (scope:Object, property:String, 
-			startValue:Number, endValue:Number, tweenFunction:Function, 
-			roundResults:Boolean, propertyIsMethod:Boolean, extraParams:Array) : void
-			{
+			startValue:Number, endValue:Number, tweenFunction:Function = null, 
+			roundResults:Boolean = false, propertyIsMethod:Boolean = false, 
+			extraParams:Array = null) : void
+		{
 			if (scope is TweenedPropertyVO)
 			{
 				m_tweenedProperties.push(scope);
@@ -193,7 +194,7 @@ package de.fork.tweens {
 			m_isCancelled = false;
 			if (!m_isRunning && m_currentTime < m_duration)
 			{
-				FrameEventBroadcaster.instance().addEventListener(
+				GlobalMCManager.instance().stage().addEventListener(
 					Event.ENTER_FRAME, executeTick);
 				m_isRunning = true;
 				m_startTime = getTimer() + m_currentTime;
@@ -236,7 +237,7 @@ package de.fork.tweens {
 		 */
 		public function stopTween () : void
 		{
-			FrameEventBroadcaster.instance().removeEventListener(
+			GlobalMCManager.instance().stage().removeEventListener(
 				Event.ENTER_FRAME, executeTick);
 			m_isRunning = false;
 		}
@@ -282,7 +283,7 @@ package de.fork.tweens {
 		/**
 		 * executes all actions needed in a timerTick
 		 */
-		protected function executeTick() : void
+		protected function executeTick(event : Event = null) : void
 		{
 			m_currentTime = getTimer() - m_startTime - m_delay;
 			if (m_currentTime < 0)

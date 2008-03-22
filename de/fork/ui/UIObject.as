@@ -661,6 +661,18 @@ package de.fork.ui {
 		{
 			m_contentDisplay.filters = null;
 		}
+	
+		public override function toString() : String
+		{
+			if (this == m_rootElement)
+			{
+				return name;
+			}
+			return m_parentElement.toString() + '.' + name;
+			//TODO: check if serializing the full path is needed for inspection
+			refreshSelectorPath();
+			return m_selectorPath.split('@').join('');
+		}
 		
 		
 		/***************************************************************************
@@ -668,6 +680,7 @@ package de.fork.ui {
 		***************************************************************************/
 		protected function initialize() : void
 		{
+			name = m_elementType;
 			m_delayedMethods = [];
 			createDisplayClips();
 			m_firstDraw = true;
@@ -692,14 +705,14 @@ package de.fork.ui {
 		protected function validateElement(
 			forceValidation:Boolean = false, validateStyles:Boolean = false) : void
 		{
-			if (((m_parentElement && m_parentElement.m_isInvalidated) || 
+			if (((m_parentElement && m_parentElement != this && 
+				m_parentElement.m_isInvalidated) || 
 				!m_isInvalidated) && !forceValidation /*|| !m_display._url*/)
 			{
 				//TODO: restore ability to ignore validation after the event has 
 				//been removed, or make sure that validation doesn't occur in that case
 				return;
 			}
-			var t1:Number = getTimer();
 			
 			m_isInvalidated = false;
 			m_isValidating = true;
@@ -721,11 +734,6 @@ package de.fork.ui {
 			draw();
 			
 			m_isValidating = false;
-			
-			if (!m_parentElement || !m_parentElement.m_isValidating)
-			{
-//				trace("i validation took " + (getTimer() - t1) + "ms for " + this);
-			}
 		}
 		protected function validateChildren() : void
 		{
@@ -749,11 +757,11 @@ package de.fork.ui {
 			}
 		}
 		
-		protected function show_complete() : void
+		protected function show_complete(event : Event = null) : void
 		{
 			dispatchEvent(new DisplayEvent(DisplayEvent.SHOW_COMPLETE));
 		}
-		protected function hide_complete() : void
+		protected function hide_complete(event : Event = null) : void
 		{
 			setVisibility(false);
 			dispatchEvent(new DisplayEvent(DisplayEvent.HIDE_COMPLETE));

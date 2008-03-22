@@ -228,7 +228,7 @@ package de.fork.external
 		
 		protected function onData(success : Boolean) : void
 		{
-			if (m_httpStatus.isError() && !success)
+			if (m_httpStatus && m_httpStatus.isError() && !success)
 			{
 				setFailureReason(ResourceEvent.ERROR_HTTP);
 				notifyComplete(false);

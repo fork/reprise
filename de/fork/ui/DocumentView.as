@@ -104,7 +104,7 @@ package de.fork.ui
 		{
 			m_styleSheet = stylesheet;
 			m_stylesInvalidated = true;
-			initialize();
+//			initialize();
 			invalidate();
 		}
 		/**
@@ -256,10 +256,20 @@ package de.fork.ui
 			x = m_marginLeft;
 		}
 		
+		protected override function refreshSelectorPath() : void
+		{
+			var oldPath : String = m_selectorPath;
+			m_selectorPath = '';
+			super.refreshSelectorPath();
+			if (m_selectorPath == oldPath)
+			{
+				m_selectorPathChanged = false;
+			}
+		}
+		
 		protected function validateElements() : void
 		{
 			//TODO: verify this validation scheme
-			var t1 : Number = getTimer();
 			if (m_invalidChildren.length == 0)
 			{
 				return;
@@ -281,7 +291,6 @@ package de.fork.ui
 				var element : UIObject = UIObject(sortedElements[i].element);
 				element.validation_execute();
 			}
-			trace("validation took " + (getTimer() - t1) + "ms");
 		}
 		
 		protected function stage_resize(event : Event) : void

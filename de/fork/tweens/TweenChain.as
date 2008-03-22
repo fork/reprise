@@ -32,12 +32,12 @@ package de.fork.tweens {
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function TweenChain(
-			tween1:SimpleTween, tween2:SimpleTween, tweenN:SimpleTween)
+		public function TweenChain(...rest)
 		{
 	 		m_tweens = [];
-	 		for (var i : Number = 0; i < arguments.length; i++) {
-	 			m_tweens.push(arguments[i]);
+	 		for (var i : Number = 0; i < rest.length; i++)
+	 		{
+	 			m_tweens.push(rest[i]);
 	 		}
 	 	}
 		

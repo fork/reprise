@@ -62,6 +62,10 @@ package de.fork.commands {
 		public function removeCommand(cmd:ICommand):void
 		{
 			var wrapper : Object = wrapperForCommand(cmd);
+			if (!wrapper)
+			{
+				return;
+			}
 			clearInterval(wrapper.interval);
 			m_commands.removeObject(wrapper);
 		}

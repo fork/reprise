@@ -1,12 +1,8 @@
 package de.fork.external
 { 
-	import de.fork.core.ApplicationRegistry;
 	import de.fork.data.collection.IndexedArray;
-	import de.fork.events.ResourceEvent;
+	import de.fork.events.CommandEvent;
 	
-	import flash.display.DisplayObjectContainer;
-	import flash.display.MovieClip;
-	import flash.display.Sprite;
 	import flash.events.Event;
 	public class BitmapResourceCache
 	{
@@ -19,7 +15,7 @@ package de.fork.external
 		protected var m_cacheList : IndexedArray;
 		protected var m_temporaryList : IndexedArray;
 		protected var m_resourceLoader : ResourceLoader;
-		protected var m_maxParallelExecutionCount : Number;
+		protected var m_maxParallelExecutionCount : Number = 3;
 	
 	
 		/***************************************************************************
@@ -97,7 +93,7 @@ package de.fork.external
 		
 		public function setMaxParallelExecutionCount(count : Number) : void
 		{
-			m_maxParallelExecutionCount = count || 3;
+			m_maxParallelExecutionCount = isNaN(count) ? 3 : count;
 			if (m_resourceLoader)
 			{
 				m_resourceLoader.setMaxParallelExecutionCount(
@@ -182,7 +178,7 @@ package de.fork.external
 			}
 		}
 		
-		protected function cleanupCachingItem(e:ResourceEvent) : void
+		protected function cleanupCachingItem(e:CommandEvent) : void
 		{
 			var cacheItem : BitmapResourceCacheItem = 
 				BitmapResourceCacheItem(e.target);		
@@ -202,7 +198,7 @@ package de.fork.external
 			}
 		}
 		
-		protected function cleanupLoader(e:ResourceEvent) : void
+		protected function cleanupLoader(event : CommandEvent) : void
 		{
 			m_resourceLoader.removeEventListener(Event.COMPLETE, cleanupLoader);
 			m_resourceLoader = null;

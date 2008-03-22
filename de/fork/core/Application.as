@@ -47,7 +47,9 @@ package de.fork.core
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			m_baseView = new DocumentView();
+			GlobalMCManager.instance(this);
 			addChild(m_baseView);
+			m_baseView.setParent(m_baseView);
 //			EventMonitor.instance(m_stage.stage).trackMouseEvents();
 //			EventMonitor.instance().trackKeyEvents();
 		}

@@ -1,7 +1,6 @@
 package de.fork.core
 { 
 	import flash.display.DisplayObjectContainer;
-	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	
 	public class GlobalMCManager
@@ -14,8 +13,10 @@ package de.fork.core
 		protected static const g_highLevelContainerName:String = 'HIGH_LEVEL_CONTAINER';
 		
 		protected static var g_instance : GlobalMCManager;
-		protected var m_lowLevelContainer : DisplayObjectContainer;
-		protected var m_highLevelContainer : DisplayObjectContainer;
+		
+		protected var m_stage : DisplayObjectContainer;
+		protected var m_lowLevelContainer : Sprite;
+		protected var m_highLevelContainer : Sprite;
 		
 		
 		/***************************************************************************
@@ -29,6 +30,11 @@ package de.fork.core
 				g_instance = new GlobalMCManager(stage);
 			}
 			return g_instance;
+		}
+		
+		public function stage() : DisplayObjectContainer
+		{
+			return m_stage;
 		}
 		
 		public function addHighLevelMc(name : String = null) : Sprite
@@ -59,6 +65,7 @@ package de.fork.core
 		***************************************************************************/
 		public function GlobalMCManager(stage : DisplayObjectContainer)
 		{
+			m_stage = stage;
 			createLowLevelContainer(stage);
 			createHighLevelContainer(stage);
 		}
@@ -67,7 +74,7 @@ package de.fork.core
 		{
 			//TODO: check if the changes in the AS2 version that happened in 622:15.3.08
 			//are relevant to the as3 version
-			m_lowLevelContainer = new DisplayObjectContainer();
+			m_lowLevelContainer = new Sprite();
 			stage.addChildAt(m_lowLevelContainer, 0);
 		}
 		
@@ -75,7 +82,7 @@ package de.fork.core
 		{
 			//TODO: check if the changes in the AS2 version that happened in 622:15.3.08
 			//are relevant to the as3 version
-			m_highLevelContainer = new DisplayObjectContainer();
+			m_highLevelContainer = new Sprite();
 			stage.addChild(m_highLevelContainer);
 		}
 	}

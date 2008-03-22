@@ -1,7 +1,7 @@
 package de.fork.commands
 {
+	import de.fork.core.ApplicationRegistry;
 	import de.fork.data.collection.HashMap;
-	import de.fork.events.FrameEventBroadcaster;
 	
 	import flash.events.Event;
 	public class FrameCommandExecutor
@@ -42,8 +42,8 @@ package de.fork.commands
 			
 			if (!m_commands.size())
 			{
-				FrameEventBroadcaster.instance().addEventListener(
-					Event.ENTER_FRAME, enterFrame);
+				ApplicationRegistry.instance().applicationForURL('').stage.
+					addEventListener(Event.ENTER_FRAME, enterFrame);
 			}
 			
 			var wrapper : Object =
@@ -58,8 +58,8 @@ package de.fork.commands
 			m_commands.removeObject(wrapperForCommand(cmd));
 			if (!m_commands.size())
 			{
-				FrameEventBroadcaster.instance().removeEventListener(
-					Event.ENTER_FRAME, enterFrame);
+				ApplicationRegistry.instance().applicationForURL('').stage.
+					removeEventListener(Event.ENTER_FRAME, enterFrame);
 			}
 		}
 		
@@ -68,8 +68,8 @@ package de.fork.commands
 			m_commands.removeObject(wrapperForName(key));
 			if (!m_commands.size())
 			{
-				FrameEventBroadcaster.instance().removeEventListener(
-					Event.ENTER_FRAME, enterFrame);
+				ApplicationRegistry.instance().applicationForURL('').stage.
+					removeEventListener(Event.ENTER_FRAME, enterFrame);
 			}
 		}
 		
@@ -82,8 +82,8 @@ package de.fork.commands
 			
 			if (!m_commands.size())
 			{
-				FrameEventBroadcaster.instance().addEventListener(
-					Event.ENTER_FRAME, enterFrame);
+				ApplicationRegistry.instance().applicationForURL('').stage.
+					addEventListener(Event.ENTER_FRAME, enterFrame);
 			}
 			
 			var wrapper : Object =

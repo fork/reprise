@@ -44,8 +44,8 @@ package de.fork.external
 		
 		public override function addCommand(cmd:ICommand):void
 		{
-			super.addCommand(cmd);
 			cmd.setId(m_nextResourceId++);
+			super.addCommand(cmd);
 			calculateResourcesToLoad();
 		}
 		

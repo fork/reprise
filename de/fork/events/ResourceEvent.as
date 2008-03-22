@@ -39,7 +39,8 @@ package de.fork.events
 		
 		public override function clone() : Event
 		{
-			return new ResourceEvent(type, success, reason, httpStatus.clone());
+			return new ResourceEvent(
+				type, success, reason, httpStatus ? httpStatus.clone() : null);
 		}
 	}
 }

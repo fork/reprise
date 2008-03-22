@@ -161,6 +161,7 @@ package de.fork.controls {
 		{
 			super.initialize();
 			
+			m_xmlDefinition = new XML('<p/>');
 			m_textLinkHrefs = [];
 		}
 		protected override function createChildren() : void

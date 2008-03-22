@@ -47,6 +47,10 @@ package de.fork.commands {
 		public function addCommand(cmd:ICommand):void
 		{
 			m_pendingCommands.push(cmd);
+			if (m_isExecuting)
+			{
+				executeNext();
+			}
 		}
 		
 		public function removeCommand(cmd:ICommand):void
@@ -78,10 +82,7 @@ package de.fork.commands {
 			m_maxParallelExecutionCount = value;
 			if (m_isExecuting)
 			{
-				while (m_currentCommands.length < m_maxParallelExecutionCount)
-				{
-					executeNext();
-				}
+				refillExecutionSlots();
 			}
 		}
 		
@@ -139,6 +140,14 @@ package de.fork.commands {
 			// cancel makes no difference to us to a unsuccessful command
 			var completeEvent : CommandEvent = new CommandEvent(Event.COMPLETE, false);
 			command_complete(completeEvent);
+		}
+		
+		protected function refillExecutionSlots() : void
+		{
+			while (m_currentCommands.length < m_maxParallelExecutionCount)
+			{
+				executeNext();
+			}
 		}
 		
 		protected function executeNext() : void

@@ -697,13 +697,6 @@ package de.fork.ui
 			return m_selectorPath;
 		}
 	
-	
-		public override function toString() : String
-		{
-			//TODO: check if serializing the full path is needed for inspection
-			refreshSelectorPath();
-			return m_selectorPath.split('@').join('');
-		}
 		
 		/***************************************************************************
 		*							protected methods								   *
@@ -855,7 +848,7 @@ package de.fork.ui
 				applyOverflowProperty();
 			}
 			
-			if (!(m_parentElement is UIComponent && 
+			if (!(m_parentElement is UIComponent && m_parentElement != this && 
 				UIComponent(m_parentElement).m_isValidating))
 			{
 				if ((m_oldInFlowStatus == -1 || m_dimensionsChanged) && 
@@ -878,7 +871,7 @@ package de.fork.ui
 					parentReflowNeeded = true;
 	//				trace("f reason for parentReflow: flowPos changed");
 				}
-				if (m_parentElement)
+				if (m_parentElement && m_parentElement != this)
 				{
 					if (parentReflowNeeded)
 					{
@@ -925,7 +918,7 @@ package de.fork.ui
 			var path : String;
 			if (m_parentElement)
 			{
-				path = UIComponent(m_parentElement).m_selectorPath + " ";
+				path = (m_parentElement as UIComponent).selectorPath + " ";
 			}
 			else 
 			{
@@ -981,14 +974,17 @@ package de.fork.ui
 			var oldStyles:CSSDeclaration = m_complexStyles;
 			styles = m_basicStyles.clone();
 			
-			if (m_parentElement is UIComponent)
+			if (m_parentElement != this && m_parentElement is UIComponent)
 			{
 				styles.inheritCSSDeclaration(
 					UIComponent(m_parentElement).m_complexStyles);
 			}
 			
-			styles.mergeCSSDeclaration(m_rootElement.styleSheet.
-				getStyleForEscapedSelectorPath(m_selectorPath));
+			if (m_rootElement.styleSheet)
+			{
+				styles.mergeCSSDeclaration(m_rootElement.styleSheet.
+					getStyleForEscapedSelectorPath(m_selectorPath));
+			}
 			
 			styles.mergeCSSDeclaration(
 				CSSDeclaration.CSSDeclarationFromObject(m_instanceStyles));

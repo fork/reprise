@@ -627,7 +627,8 @@ package de.fork.css
 				split(" :").join(":").						// remove spaces before colons
 				split(" ,").join(",").						// remove spaces before commas
 				split(", ").join(",").						// remove spaces after commas
-				split(" ;").join(";");						// remove spaces before semicolons
+				split(" ;").join(";").						// remove spaces before semicolons
+				split("{\n}").join("{}");					// clean empty declarations, because the parser returns nothing otherwise
 	
 			cssStr = StringUtil.lTrim( cssStr );		
 			m_cleanupTime += getTimer() - timestamp;		

@@ -45,12 +45,12 @@ package de.fork.external {
 		
 		public override function getBytesLoaded() : Number
 		{
-			return m_loader.loaderInfo.bytesLoaded;
+			return m_loader.contentLoaderInfo.bytesLoaded;
 		}
 		
 		public override function getBytesTotal() : Number
 		{
-			return m_loader.loaderInfo.bytesTotal;
+			return m_loader.contentLoaderInfo.bytesTotal;
 		}
 		
 		
@@ -61,11 +61,11 @@ package de.fork.external {
 		protected override function doLoad() : void
 		{
 			m_loader = new Loader();
-			m_loader.addEventListener(Event.COMPLETE, loader_complete);
-			m_loader.addEventListener(Event.COMPLETE, loader_complete);
-			m_loader.addEventListener(HTTPStatusEvent.HTTP_STATUS, loader_httpStatus);
-			m_loader.addEventListener(Event.INIT, loader_init);
-			m_loader.addEventListener(IOErrorEvent.IO_ERROR, loader_error);
+			m_loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loader_complete);
+			m_loader.contentLoaderInfo.addEventListener(
+				HTTPStatusEvent.HTTP_STATUS, loader_httpStatus);
+			m_loader.contentLoaderInfo.addEventListener(Event.INIT, loader_init);
+			m_loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, loader_error);
 			m_loader.load(m_request);
 			
 			//TODO: find a way to support attaching assets here

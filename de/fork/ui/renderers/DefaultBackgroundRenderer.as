@@ -151,17 +151,18 @@ package de.fork.ui.renderers
 			if (m_styles.backgroundImageType != 'animation')
 			{
 				// cancel background animation loader since we don't need it
-				if (m_backgroundImageLoader.isExecuting() && 
-					m_backgroundImageLoader is ImageResource)
+				if (m_backgroundImageLoader && m_backgroundImageLoader is ImageResource && 
+					m_backgroundImageLoader.isExecuting())
 				{
 					m_backgroundImageLoader.cancel();
 				}
 				
 				// if we're already loading the right bitmap, do nothing			
-				if (m_backgroundImageLoader.url() == m_styles.backgroundImage && 
-					m_backgroundImageLoader is BitmapResource)
+				if (m_backgroundImageLoader && 
+					m_backgroundImageLoader is BitmapResource && 
+					m_backgroundImageLoader.url() == m_styles.backgroundImage)
 				{
-					if (!BitmapResource(m_backgroundImageLoader.isExecuting()))
+					if (!m_backgroundImageLoader.isExecuting())
 					{
 						// we force redrawing here, due to the fact that our size or 
 						// the image position could have changed
@@ -172,7 +173,7 @@ package de.fork.ui.renderers
 					return;
 				}
 				
-				if (m_backgroundImageLoader.isExecuting())
+				if (m_backgroundImageLoader && m_backgroundImageLoader.isExecuting())
 				{
 					m_backgroundImageLoader.cancel();
 				}
