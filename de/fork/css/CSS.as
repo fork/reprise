@@ -15,9 +15,7 @@ package de.fork.css
 	import flash.text.StyleSheet;
 	import flash.utils.getTimer;
 	
-	public class CSS 
-		extends EventDispatcher
-		implements IResource
+	public class CSS extends EventDispatcher implements IResource
 	{
 		/***************************************************************************
 		*							public properties							   *
@@ -149,6 +147,25 @@ package de.fork.css
 		{
 			return m_declarationList.getStyleForSelectorsPath(sp);
 		}
+		
+//		public function getStyleForStylableElement(
+//			element : ICSSStylable) : CSSDeclaration
+//		{
+//			var styles : CSSDeclaration = element.cssDefaultStyles.clone();
+//			
+//			if (element.cssParent)
+//			{
+//				styles.inheritCSSDeclaration(element.cssParent.activeStyles);
+//			}
+//			
+//			styles.mergeCSSDeclaration(
+//				m_declarationList.getStyleForStylableElement(element));
+//			
+//			styles.mergeCSSDeclaration(
+//				CSSDeclaration.CSSDeclarationFromObject(element.instanceStyles));
+//			
+//			return styles;
+//		}
 		
 		/**
 		 * Escapes a selectorPath and thus prepares it for being processed by the 

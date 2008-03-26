@@ -16,7 +16,8 @@ package de.fork.ui
 	import flash.filters.DropShadowFilter;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	public class UIComponent extends UIObject
+	
+	public class UIComponent extends UIObject //implements ICSSStylable
 	{
 		/***************************************************************************
 		*							public properties							   *
@@ -27,7 +28,7 @@ package de.fork.ui
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		protected static var DEFAULT_SCROLLBAR_WIDTH : uint = 16;
+		protected static var DEFAULT_SCROLLBAR_WIDTH : int = 16;
 		
 		
 		protected var m_containingBlock : UIComponent;
@@ -100,7 +101,7 @@ package de.fork.ui
 	
 		protected var m_nodeAttributes : Object;
 	
-		protected var m_positionInFlow : uint = 1;
+		protected var m_positionInFlow : int = 1;
 		protected var m_oldInFlowStatus : int = -1;
 		protected var m_oldOuterBoxDimension : Point;
 	
@@ -695,6 +696,11 @@ package de.fork.ui
 		public function get selectorPath() : String
 		{
 			return m_selectorPath;
+		}
+		
+		public function get cssTag() : String
+		{
+			return m_elementType;
 		}
 	
 		
@@ -1407,7 +1413,7 @@ package de.fork.ui
 		protected function applyInFlowChildPositions() : void
 		{
 //			trace(getTimer() + this);
-			var childCount:uint = m_children.length;
+			var childCount : int = m_children.length;
 			if (!childCount)
 			{
 				return;
@@ -1415,8 +1421,8 @@ package de.fork.ui
 			
 			var autoFlag:String = CSSProperty.AUTO_FLAG;
 			
-			var inFlowDepth : uint = 0;
-			var outOfFlowDepth : uint = 0;
+			var inFlowDepth : int = 0;
+			var outOfFlowDepth : int = 0;
 			
 			var widestChildWidth:Number = 0;
 			var collapsibleMargin:Number = 0;
@@ -1433,9 +1439,9 @@ package de.fork.ui
 			var currentLineBoxRightBoundary:Number = totalAvailableWidth;
 			var currentLineBoxChildren : Array = [];
 			
-			for (var i:Number = 0; i < childCount; i++)
+			for (var i : int = 0; i < childCount; i++)
 			{
-				var child:UIComponent = m_children[i] as UIComponent;
+				var child:UIComponent = m_children[int(i)] as UIComponent;
 				//only deal with children that derive from UIComponent
 				if (child)
 				{
@@ -1553,8 +1559,6 @@ package de.fork.ui
 							topMarginCollapsible = false;
 						}
 						child.y = currentLineBoxTop + collapsedMargin;
-//						trace(child + (currentLineBoxTop + collapsedMargin));
-//						trace(child.m_borderBoxHeight);
 						
 						//collapse margins through empty elements 
 						if (!child.m_borderBoxHeight)
@@ -1625,7 +1629,7 @@ package de.fork.ui
 		
 		protected function applyOutOfFlowChildPositions() : void
 		{
-			var childCount : uint = m_children.length;
+			var childCount : int = m_children.length;
 			for (var i:Number = 0; i < childCount; i++)
 			{
 				var child:UIComponent = m_children[i] as UIComponent;
@@ -1770,7 +1774,7 @@ package de.fork.ui
 					return;
 				}
 				//TODO: find a cleaner way to combine text nodes
-				for (var i : uint = node.childIndex() + 1; 
+				for (var i : int = node.childIndex() + 1; 
 					i < XMLList(parentNode.*).length();)
 				{
 					var sibling : XML = XMLList(parentNode.*)[i];

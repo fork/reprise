@@ -33,12 +33,9 @@ package de.fork.external {
 		public function BitmapResourceCacheItem(loader : ImageResource)
 		{
 			m_loader = loader;
-			m_loader.addEventListener(Event.COMPLETE, 
-			 loader_complete);
-			m_loader.addEventListener(ResourceEvent.PROGRESS, 
-			 loader_progress);
-			m_loader.addEventListener(Event.CANCEL, 
-			 loader_cancel);
+			m_loader.addEventListener(Event.COMPLETE, loader_complete);
+			m_loader.addEventListener(ResourceEvent.PROGRESS, loader_progress);
+			m_loader.addEventListener(Event.CANCEL, loader_cancel);
 		}
 		
 		public function loader() : ImageResource
@@ -159,21 +156,21 @@ package de.fork.external {
 			m_bytesLoaded = m_loader.getBytesLoaded();
 			m_bytesTotal = m_loader.getBytesTotal();
 			m_success = e.success;
-			m_bitmapDataReference = new BitmapData(
-				m_loader.content().width, m_loader.content().height, true, 0);
-			m_bitmapDataReference.draw(m_loader.content());
-	
-			var target : BitmapResource;
-			var i : Number = m_targets.length;
-			while (i--)
+			
+			if (m_success)
 			{
-				target = BitmapResource(m_targets[i]);
+				m_bitmapDataReference = new BitmapData(
+					m_loader.content().width, m_loader.content().height, true, 0);
+				m_bitmapDataReference.draw(m_loader.content());
+			}
+			
+			for each (var target : BitmapResource in m_targets)
+			{
 				applyDataToTarget(target);
 			}
 			m_targets = null;
 			
-			var event : ResourceEvent = ResourceEvent(e.clone());
-			dispatchEvent(event);		
+			dispatchEvent(e);		
 		}
 		
 		protected function loader_progress(e:ResourceEvent) : void

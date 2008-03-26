@@ -1,18 +1,13 @@
-package de.fork.css { 
-	
-	
-	
+package de.fork.css
+{
 	public class CSSDeclarationList
 	{
-		
-		
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
 		protected var m_items : Array;
 		protected	var m_declarationIndex : Number = 0;
 		protected	var m_declarationCache : Array;	
-			
 		
 		
 		/***************************************************************************
@@ -41,7 +36,7 @@ package de.fork.css {
 			}
 			
 			var matches : Array = [];
-			var i : Number = m_items.length;
+			var i : int = m_items.length;
 			var item : CSSDeclarationListItem;
 	 		decl = new CSSDeclaration();
 			
@@ -68,5 +63,48 @@ package de.fork.css {
 			
 			return decl;
 		}
+		
+//		public function getStyleForStylableElement(
+//			element : ICSSStylable) : CSSDeclaration
+//		{
+//			// prefer cached results
+//			var cachedResult : CSSDeclaration = 
+//				CSSDeclaration(m_declarationCache[element.selectorPath]);
+//			if (cachedResult)
+//			{
+//				return cachedResult;
+//			}
+//			
+//			var declaration : CSSDeclaration = new CSSDeclaration();
+//			
+//			var path : String = element.selectorPath;
+//			var i : Number = m_items.length;
+//			var item : CSSDeclarationListItem;
+//			var matches : Array = [];
+//			
+//			while (i--)
+//			{
+//				item = m_items[i];
+//				if (item.matchesElement(element))
+//				{
+//					matches.push(item);
+//				}
+//			}
+//	
+//			matches.sortOn(['m_declarationSpecificity', 'm_declarationIndex'], 
+//				Array.NUMERIC);
+//			i = matches.length;
+//			
+//			while (i--)
+//			{
+//				declaration.
+//					mergeCSSDeclaration(CSSDeclarationListItem(matches[i]).declaration());
+//			}
+//			
+//			// cache result
+//			m_declarationCache[element.selectorPath] = declaration;
+//			
+//			return declaration;
+//		}
 	}
 }
