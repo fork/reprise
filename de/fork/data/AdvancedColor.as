@@ -30,57 +30,57 @@ package de.fork.data
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		protected var m_value : uint;
-		protected var m_alpha : uint;
+		protected var m_value : int;
+		protected var m_opacity : Number;
 		
 		
 		
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function AdvancedColor(rgb : uint = 0)
+		public function AdvancedColor(rgb : int = 0)
 		{
 			setRGB(rgb);
 		}
 		
 		
-		public function setRGB(rgb:uint) : void
+		public function setRGB(rgb : int) : void
 		{
 			m_value = rgb;
-			m_alpha = 100;
+			m_opacity = 1;
 		}
 		
-		public function rgb() : uint
+		public function rgb() : int
 		{
 			return m_value;
 		}
 		
-		public function setRGBA(rgba:uint) : void
+		public function setRGBA(rgba : uint) : void
 		{
-	 		m_alpha = (rgba & 0xFF) / 0xFF * 100;
+	 		m_opacity = (rgba & 0xFF) / 0xFF;
 			m_value = rgba >>> 8;
 		}
 		
 		public function rgba() : uint
 		{
-			return uint(m_value << 8) | uint(m_alpha / 100 * 0xFF);
+			return uint(m_value << 8) | uint(m_opacity * 0xFF);
 		}
 		
-		public function setARGB(argb:uint) : void
+		public function setARGB(argb : uint) : void
 		{
-			m_alpha = (argb >> 32 & 0xFF) / 0xFF * 100;
+			m_opacity = (argb >> 32 & 0xFF) / 0xFF;
 			m_value = argb & ~(0xFF << 32);
 		}
 		
 		public function argb() : uint
 		{
-			return m_value | ((m_alpha / 100 * 0xFF) << 32);
+			return m_value | ((m_opacity * 0xFF) << 32);
 		}
 		
-		public function setRGBComponents(r:uint, g:uint, b:uint) : void
+		public function setRGBComponents(r : int, g : int, b : int) : void
 		{
 			m_value = (r << 16) | (g << 8) | b;
-			m_alpha = 100;
+			m_opacity = 1;
 		}
 		
 		public function rgbComponents() : Object
@@ -94,26 +94,26 @@ package de.fork.data
 			return rgb;
 		}
 		
-		public function setRGBAComponents(r:uint, g:uint, b:uint, a:uint) : void
+		public function setRGBAComponents(r : int, g : int, b : int, a : Number) : void
 		{
 			setRGBComponents(r, g, b);
-			m_alpha = a / 255 * 100;
+			m_opacity = a;
 		}
 		
 		public function rgbaComponents() : void
 		{
 			var rgba : Object = rgbComponents();
-			rgba.a = m_alpha / 100;
+			rgba.a = m_opacity;
 		}
 		
-		public function setColorString(colorString:String) : void
+		public function setColorString(colorString : String) : void
 		{
 			if (colorString.charAt(0) == '#')
 			{
-				var r : uint;
-				var g : uint;
-				var b : uint;
-				var a : uint;
+				var r : int;
+				var g : int;
+				var b : int;
+				var a : Number;
 				var char : String;
 				switch (colorString.length)
 				{
@@ -132,7 +132,7 @@ package de.fork.data
 						char = colorString.charAt(3);
 						b = parseInt(char + char, 16);
 						char = colorString.charAt(4);
-						a = parseInt(char + char, 16);
+						a = parseInt(char + char, 16) / 0xFF;
 						break;
 					}
 					// #RRGGBB
@@ -146,7 +146,7 @@ package de.fork.data
 						r = parseInt(colorString.substr(1, 2), 16);
 						g = parseInt(colorString.substr(3, 2), 16);
 						b = parseInt(colorString.substr(5, 2), 16);
-						a = parseInt(colorString.substr(7, 2), 16);
+						a = parseInt(colorString.substr(7, 2), 16) / 0xFF;
 					}
 				}
 				setRGBAComponents(r, g, b, a);
@@ -157,7 +157,7 @@ package de.fork.data
 			if (colorString == 'transparent')
 			{
 				m_value = 0;
-				m_alpha = 0;
+				m_opacity = 0;
 				return;
 			}
 			
@@ -179,7 +179,7 @@ package de.fork.data
 			
 	
 		
-			m_alpha = 100;
+			m_opacity = 1;
 			m_value = g_htmlColors[colorString];
 			if (isNaN(m_value))
 			{
@@ -236,7 +236,7 @@ package de.fork.data
 			}
 			
 			m_value = b | (g << 8) | (r << 16);
-			m_alpha = 100;
+			m_opacity = 1;
 		}
 		
 		public function hsb() : Object
@@ -277,22 +277,22 @@ package de.fork.data
 		{
 			alpha = Math.max(0, alpha);
 			alpha = Math.min(100, alpha);
-			m_alpha = alpha;
+			m_opacity = alpha / 100;
 		}
 		
 		public function alpha() : Number
 		{
-			return m_alpha;
+			return m_opacity * 100;
 		}
 		
 		public function setOpacity(opacity : Number) : void
 		{
-			m_alpha = opacity * 100;
+			m_opacity = opacity;
 		}
 		
 		public function opacity() : Number
 		{
-			return m_alpha / 100;
+			return m_opacity;
 		}
 		
 	
