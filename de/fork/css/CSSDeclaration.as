@@ -1,4 +1,5 @@
-package de.fork.css { 
+package de.fork.css
+{ 
 	import de.fork.controls.csspropertyparsers.ScrollbarProperties;
 	import de.fork.css.propertyparsers.Background;
 	import de.fork.css.propertyparsers.Border;
@@ -9,20 +10,51 @@ package de.fork.css {
 	import de.fork.css.propertyparsers.Margin;
 	import de.fork.css.propertyparsers.Padding;
 	import de.fork.utils.StringUtil;
+	
+	import flash.text.StyleSheet;
 	public class CSSDeclaration
 	{
+		/***************************************************************************
+		*							public properties							   *
+		***************************************************************************/
+		public static const TEXT_STYLESHEET : StyleSheet = new StyleSheet();
 		
 		
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
+		protected static const TEXT_PROPERTIES : Object = 
+		{
+			'textAlign' : true,
+			'blockIndent' : true,
+			'fontWeight' : true,
+			'bullet' : true,
+			'color' : true,
+			'fontFamily' : true,
+			'textIndent' : true,
+			'fontStyle' : true,
+			'kerning' : true,
+			'leading' : true,
+			'marginLeft' : true,
+			'letterSpacing' : true,
+			'marginRight' : true,
+			'fontSize' : true,
+			'tabStops' : true,
+			'target' : true,
+			'textDecoration' : true,
+			'url' : true
+		};
+		
 		protected static var m_inheritableProperties : Object = {};
 		protected static var m_defaultValues : Object	= {};
 		protected static var m_propertyToParserTable : Object	= {};
 		
+		protected static const g_textStyleNames : Object = {};
+		
 		protected static var g_defaultPropertiesRegistered : Boolean;	
 		
-		// this property only exist to reduce the display of errors, if there are missing parsers
+		// this property only exist to reduce the display of errors, 
+		// if there are missing parsers
 		protected static var m_thrownErrors : Object	= {};
 		
 		public var m_properties : Object;
@@ -238,7 +270,14 @@ package de.fork.css {
 		
 		public function toTextFormatObject() : Object
 		{
-			var tfObject:Object = toObject();
+			var tfObject : Object = {};
+			for (var key:String in m_properties)
+			{
+				if (TEXT_PROPERTIES[key])
+				{
+					tfObject[key] = CSSProperty(m_properties[key]).valueOf();
+				}
+			}
 			if (tfObject.color != null)
 			{
 				var colorStr:String = tfObject.color.rgb().toString(16);
@@ -249,6 +288,37 @@ package de.fork.css {
 				tfObject.color = '#' + colorStr;
 			}
 			return tfObject;
+		}
+		
+		public function textStyleName(applyToRootNode : Boolean) : String
+		{
+			//build hash key
+			var hash : String = '';
+			for (var key:String in m_properties)
+			{
+				if (TEXT_PROPERTIES[key])
+				{
+					hash += key + "_" + CSSProperty(m_properties[key]).valueOf() + ",";
+				}
+			}
+			hash += applyToRootNode;
+			
+			//check for existing class in stylesheet
+			if (!g_textStyleNames[hash])
+			{
+				//prime cache for this declaration
+				var styleName : String = 'style_' + TEXT_STYLESHEET.styleNames.length;
+				var stylesObject : Object = toTextFormatObject();
+				if (applyToRootNode)
+				{
+					delete stylesObject.marginLeft;
+					delete stylesObject.marginRight;
+				}
+				TEXT_STYLESHEET.setStyle('.' + styleName, stylesObject);
+				g_textStyleNames[hash] = styleName;
+			}
+			
+			return g_textStyleNames[hash];
 		}
 		
 		public function toString() : String
@@ -269,7 +339,8 @@ package de.fork.css {
 		*							protected methods								   *
 		***************************************************************************/
 		// internal handling of getting and setting properties
-		protected function setValueForKeyDefinedInFile(val:String, key:String, file:String) : void
+		protected function setValueForKeyDefinedInFile(
+			val:String, key:String, file:String) : void
 		{
 			var res : Object;
 	//		if (!file)

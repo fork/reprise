@@ -2,6 +2,7 @@ package de.fork.controls {
 	import de.fork.core.ccInternal;
 	import de.fork.css.CSS;
 	import de.fork.css.CSSDeclaration;
+	import de.fork.css.CSSProperty;
 	import de.fork.events.LabelEvent;
 	import de.fork.ui.UIComponent;
 	
@@ -38,7 +39,6 @@ package de.fork.controls {
 		
 		protected var m_textLinkHrefs : Array;
 		
-		protected var m_internalTextStylesheet : StyleSheet;
 		protected var m_internalStyleIndex : Number;
 	
 		protected var m_labelXML : XML;
@@ -173,6 +173,7 @@ package de.fork.controls {
 			m_labelDisplay.y = -2;
 			m_labelDisplay.width = 20;
 			m_labelDisplay.height = 20;
+			m_labelDisplay.styleSheet = CSSDeclaration.TEXT_STYLESHEET;
 		}
 		protected override function initDefaultStyles() : void
 		{
@@ -255,8 +256,6 @@ package de.fork.controls {
 					m_labelDisplay.autoSize = 'left';
 				}
 				
-				m_internalTextStylesheet = new StyleSheet();
-				m_labelDisplay.styleSheet = m_internalTextStylesheet;
 				m_internalStyleIndex = 0;
 				m_textAlignment = null;
 				m_containsImages = false;
@@ -269,10 +268,11 @@ package de.fork.controls {
 				m_labelDisplay.condenseWhite = true;
 				var text:String = m_labelXML.toXMLString();
 //				XML.prettyPrinting = originalPrettyPrinting;
-				if (m_currentStyles.fixLineEndings)
-				{
-					text = text.split('\r\n').join('\n').split('\r').join('\n');
-				}
+				//TODO: check if fixLineEndings is still needed
+//				if (m_currentStyles.fixLineEndings)
+//				{
+//					text = text.split('\r\n').join('\n').split('\r').join('\n');
+//				}
 				m_labelDisplay.htmlText = text.substr(0, text.length - 3);
 				if (m_labelDisplay.wordWrap)
 				{
@@ -348,10 +348,8 @@ package de.fork.controls {
 			if (node == m_labelXML)
 			{
 				nodeStyle = m_complexStyles.clone();
-				if (nodeStyle.getStyle('transform'))
-				{
-					transform = nodeStyle.getStyle('transform').valueOf() as String;
-				}
+				var transformStyle : CSSProperty = nodeStyle.getStyle('textTransform');
+				transformStyle && (transform = String(transformStyle.valueOf()));
 			}
 			else
 			{
@@ -364,6 +362,7 @@ package de.fork.controls {
 				if (id.length)
 				{
 					id = "@#" + id + "@";
+					delete node.@id;
 				}
 				selectorPath += " @" + node.nodeName + "@" + classesStr + id;
 				nodeStyle = stylesheet.getStyleForEscapedSelectorPath(selectorPath);
@@ -371,12 +370,11 @@ package de.fork.controls {
 			//the player doesn't understand the "style" attribute, so we need to
 			//copy all information into a class
 			var stylesStr:String = node.@style.toString();
-			var stylesStyle:Object;
 			if (stylesStr.length)
 			{
 				var styleParser:StyleSheet = new StyleSheet();
 				styleParser.parseCSS("stylesClass {" + stylesStr + "}");
-				stylesStyle = styleParser.getStyle("stylesClass");
+				var stylesStyle : Object = styleParser.getStyle("stylesClass");
 				nodeStyle.mergeCSSDeclaration(
 					CSSDeclaration.CSSDeclarationFromObject(stylesStyle));
 				delete node.@style;
@@ -384,27 +382,21 @@ package de.fork.controls {
 			
 			if (nodeStyle)
 			{
-				var convertedNodeStyle:Object = nodeStyle.toTextFormatObject();
-				if (convertedNodeStyle.textTransform != null)
-				{
-					transform = convertedNodeStyle.textTransform;
-				}
-				if (m_internalStyleIndex == 0)
-				{
-					delete convertedNodeStyle.marginLeft;
-					delete convertedNodeStyle.marginRight;
-				}
-				var styleName:String = "style_" + m_internalStyleIndex++;
-				m_internalTextStylesheet.setStyle("." + styleName, convertedNodeStyle);
+				var styleName : String = 
+					nodeStyle.textStyleName(m_internalStyleIndex++ == 0);
 				node.@['class'] = styleName;
-				delete node.@id;
 				
 				// check if the label has mixed textAlign properties.
 				// If it does its TextField can't be shrinked horizontally
 				if (m_textAlignment != 'mixed')
 				{
-					var textAlign:String = convertedNodeStyle.textAlign;
-					if (!textAlign)
+					var textAlignProperty : CSSProperty = nodeStyle.getStyle('textAlign');
+					var textAlign : String;
+					if (textAlignProperty)
+					{
+						textAlign = textAlignProperty.valueOf() as String;
+					}
+					else
 					{
 						textAlign = 'left';
 					}

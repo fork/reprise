@@ -59,8 +59,6 @@ package de.fork.css
 		protected var m_importsLoaded : Number;
 		protected var m_importsTotal : Number;
 		
-		protected var _css : Object;
-		
 		
 		/***************************************************************************
 		*							public methods								   *
@@ -68,7 +66,6 @@ package de.fork.css
 		public function CSS(url:String = null)
 		{
 			m_id = g_idSource++;
-			_css = {};
 			
 			m_cssSegments = new IndexedArray();
 			m_loader = new ResourceLoader();
@@ -564,8 +561,6 @@ package de.fork.css
 //				return false;
 //			}
 			
-			var parsedStyles:Object = parser["_css"];
-			
 			var classNamesArrLen:Number = classNamesArr.length;
 			for (i = 0; i < classNamesArrLen; i++)
 			{
@@ -581,8 +576,6 @@ package de.fork.css
 					// --- adding parsed style to declarationlist ---
 					m_declarationList.addDeclarationWithSelectorFromFile(
 						style, className, segment.url());
-					
-					_css[className] = style;
 				}
 			}		
 			m_parseTime += getTimer() - timestamp;		
