@@ -198,7 +198,7 @@ package de.fork.ui
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
-		protected override function initialize () : void
+		protected override function initialize() : void
 		{
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			m_rootElement = this;
