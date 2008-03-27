@@ -296,7 +296,12 @@ package de.fork.ui
 				var element : UIObject = UIObject(sortedElements[i].element);
 				element.validation_execute();
 			}
-			trace((getTimer() - t1) + 'ms');
+			trace('validation took ' + (getTimer() - t1) + 'ms');
+			//validate elements that have been marked as invalid during validation
+			if (m_invalidChildren.length)
+			{
+				validateElements();
+			}
 		}
 		
 		protected function stage_resize(event : Event) : void
