@@ -6,7 +6,6 @@ package de.fork.ui {
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.geom.Point;
-	import flash.utils.getTimer;
 	public class UIObject extends Sprite
 	{
 		/***************************************************************************
@@ -18,7 +17,7 @@ package de.fork.ui {
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		protected static var CONTENT_DEPTH : Number = 10;
+		protected static var g_elementIDCounter : int = 0;
 		
 		protected var m_elementType : String = className;	
 		
@@ -419,7 +418,8 @@ package de.fork.ui {
 			validatableElement.validateElement(true);
 			*/
 			var validatableElement : UIObject = this;
-			while(validatableElement.m_parentElement)
+			while(validatableElement.m_parentElement && 
+				validatableElement.m_parentElement != validatableElement)
 			{
 				validatableElement = validatableElement.m_parentElement;
 				if (validatableElement.m_isInvalidated)
@@ -680,7 +680,7 @@ package de.fork.ui {
 		***************************************************************************/
 		protected function initialize() : void
 		{
-			name = m_elementType;
+			name = m_elementType + '_' + g_elementIDCounter++;
 			m_delayedMethods = [];
 			createDisplayClips();
 			m_firstDraw = true;
