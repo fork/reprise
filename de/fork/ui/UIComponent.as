@@ -17,7 +17,7 @@ package de.fork.ui
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
-	public class UIComponent extends UIObject //implements ICSSStylable
+	public class UIComponent extends UIObject
 	{
 		/***************************************************************************
 		*							public properties							   *
@@ -1847,6 +1847,7 @@ package de.fork.ui
 			m_borderRenderer.setComplexStyles(m_complexStyles);
 			m_borderRenderer.draw();
 			
+			//TODO: move into renderer
 			if (m_currentStyles.backgroundBlendMode != null)
 			{
 				m_backgroundDisplay.blendMode = m_currentStyles.backgroundBlendMode;

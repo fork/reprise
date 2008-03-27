@@ -1,5 +1,5 @@
-package de.fork.controls { 
-	import de.fork.core.ccInternal;
+package de.fork.controls
+{ 
 	import de.fork.css.CSS;
 	import de.fork.css.CSSDeclaration;
 	import de.fork.css.CSSProperty;
@@ -16,8 +16,6 @@ package de.fork.controls {
 	import flash.text.StyleSheet;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
-	
-	use namespace ccInternal;
 	
 	public class Label extends UIComponent
 	{
