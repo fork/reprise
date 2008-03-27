@@ -175,6 +175,10 @@ package de.fork.external {
 		
 		protected function loader_progress(e:ResourceEvent) : void
 		{
+			if (!m_targets)
+			{
+				return;
+			}
 			var i : Number = m_targets.length;
 			var target : BitmapResource;		
 			while (i--)
