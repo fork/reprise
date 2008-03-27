@@ -63,7 +63,7 @@ package de.fork.css
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function CSS(url:String = null)
+		public function CSS(url : String = null)
 		{
 			m_id = g_idSource++;
 			
@@ -73,10 +73,10 @@ package de.fork.css
 			m_importQueue = [];
 			m_cssVariables = {};
 			
-			m_url = url;
-			m_cssFile = cssImportWithURL(url);
-			m_cssSegments[0] = m_cssFile;
-			m_loader.addResource(m_cssFile);
+			if (url)
+			{
+				setURL(url);
+			}
 			m_loader.addEventListener(Event.COMPLETE, loader_complete);
 		}
 		
@@ -229,6 +229,9 @@ package de.fork.css
 		public function setURL(src : String) : void
 		{
 			m_url = src;
+			m_cssFile = cssImportWithURL(src);
+			m_cssSegments[0] = m_cssFile;
+			m_loader.addResource(m_cssFile);
 		}	
 		public function url() : String
 		{
