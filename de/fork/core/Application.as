@@ -42,16 +42,18 @@ package de.fork.core
 			initialize();
 		}
 		
-		protected function initialize () : void
+		protected function initialize() : void
 		{
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
-			m_baseView = new DocumentView();
 			GlobalMCManager.instance(this);
+			createBaseView();
+		}
+		protected function createBaseView() : void
+		{
+			m_baseView = new DocumentView();
 			addChild(m_baseView);
 			m_baseView.setParent(m_baseView);
-//			EventMonitor.instance(m_stage.stage).trackMouseEvents();
-//			EventMonitor.instance().trackKeyEvents();
 		}
 		
 		/**
