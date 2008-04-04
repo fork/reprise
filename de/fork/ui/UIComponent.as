@@ -1349,7 +1349,7 @@ package de.fork.ui
 			{
 				if (hProp.isRelativeValue())
 				{
-					m_height = Math.round(parentH / 100 * Number(hProp));
+					m_height = hProp.resolveRelativeValueTo(parentH);
 				}
 				else
 				{
