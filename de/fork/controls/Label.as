@@ -158,6 +158,7 @@ package de.fork.controls
 		{
 			super.initialize();
 			
+			mouseChildren = false;
 			m_xmlDefinition = new XML('<p/>');
 			m_textLinkHrefs = [];
 		}

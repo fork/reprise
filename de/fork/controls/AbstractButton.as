@@ -1,4 +1,5 @@
-package de.fork.controls { 
+package de.fork.controls
+{ 
 	import de.fork.ui.UIComponent;
 	
 	import flash.display.DisplayObject;
@@ -112,6 +113,8 @@ package de.fork.controls {
 		protected override function initialize () : void
 		{
 			super.initialize();
+			
+			mouseChildren = false;
 			createButtonDisplay();
 			initializeButtonHandlers();
 		}
