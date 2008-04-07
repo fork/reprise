@@ -65,5 +65,19 @@ package de.fork.controls
 			}
 			return super.calculateContentWidth();
 		}
+		
+		protected override calculateStyles() : void
+		{
+			var oldStyles : Object = m_currentStyles || {};
+			super.calculateStyles();
+			if (m_currentStyles.selectable != oldStyles.selectable)
+			{
+				m_labelDisplay.setStyle('selectable', m_currentStyles.selectable);
+			}
+			if (m_currentStyles.cursor != oldStyles.cursor)
+			{
+				m_labelDisplay.setStyle('cursor', m_currentStyles.cursor);
+			}
+		}
 	}
 }
