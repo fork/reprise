@@ -15,6 +15,7 @@ package de.fork.controls
 		*							protected properties							   *
 		***************************************************************************/
 		protected var m_labelDisplay : Label;
+		protected var m_label : String = '';
 	
 		
 		/***************************************************************************
@@ -30,24 +31,13 @@ package de.fork.controls
 		 */
 		public function setLabel(label:String) : void
 		{
+			if (!m_labelDisplay)
+			{
+				m_label = label;
+				return;
+			}
 			m_labelDisplay.setLabel(label);
 			invalidate();
-		}
-		
-		/**
-		 * sets whether the label should be displayed with html formatting or not
-		 */
-		public function set html(value:Boolean) : void
-		{
-			m_labelDisplay.html = value;
-			invalidate();
-		}
-		/**
-		 * sets whether the label should be displayed with html formatting or not
-		 */
-		public function get html() : Boolean
-		{
-			return m_labelDisplay.html;
 		}
 		
 		
@@ -57,6 +47,8 @@ package de.fork.controls
 		protected override function createChildren() : void
 		{
 			m_labelDisplay = Label(addComponent('label', null, Label));
+			m_labelDisplay.label = m_label;
+			m_label = '';
 		}
 		protected override function createButtonDisplay() : void
 		{
