@@ -27,7 +27,7 @@ package de.fork.controls
 		}
 		
 		/**
-		 * sets the labelto display
+		 * sets the label to display
 		 */
 		public function setLabel(label:String) : void
 		{
@@ -40,7 +40,13 @@ package de.fork.controls
 			invalidate();
 		}
 		
-		
+		public function getLabel() : String
+		{
+			var labelStr : String = m_labelDisplay.getLabel();
+			return labelStr.substring(
+				labelStr.indexOf(">") + 1, labelStr.lastIndexOf("<"));	
+		}
+
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
