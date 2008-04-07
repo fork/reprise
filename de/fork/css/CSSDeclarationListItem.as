@@ -21,8 +21,12 @@ package de.fork.css
 			var selectorStr : String = (("@" + selector.split(" ").join("@ @").
 				split("#").join("|#").split(":").join("|:").split(".").
 				join("|.")).split("||").join("|").split("|").join("@|@").
-				split(">@").join("@>").split('>').join('|>') + "@").split("@@").join("@");
-			
+				split(">@").join("@>").split('>').join('|>') + "@").split("@@").join("@").
+				split(' @|@').join(' @');
+			if (selectorStr.substr(0, 3) == '@|@')
+			{
+				selectorStr = selectorStr.substr(2);
+			}
 			m_selectorPattern = selectorStr.split(' ');
 			var i : int = m_selectorPattern.length;
 			while (i--)
@@ -99,8 +103,7 @@ package de.fork.css
 				//between the current and the next part and allow matches 
 				//in the next part only if true.
 				var nextPattern : Array = m_selectorPattern[i - 1];
-				if (nextPattern && nextPattern[nextPattern.length - 1].
-					charAt(nextPattern.length - 1) == ">")
+				if (nextPattern && nextPattern[nextPattern.length - 1] == ">")
 				{
 					minSubjectIndex = 
 						subjectPath.lastIndexOf(" ", subjectPartBegin - 1) + 1;
