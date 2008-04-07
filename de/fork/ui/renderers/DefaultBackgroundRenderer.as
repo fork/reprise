@@ -246,7 +246,7 @@ package de.fork.ui.renderers
 			var radiusItem : Number;
 			for (i = 0; i < order.length; i++)
 			{
-				if (!m_styles[order[i]] is Number)
+				if (!(m_styles[order[i]] is Number))
 				{
 					radiusItem = 0;
 				}

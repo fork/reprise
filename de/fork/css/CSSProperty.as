@@ -2,7 +2,8 @@ package de.fork.css
 {
 	import de.fork.css.math.AbstractCSSCalculation;
 	import de.fork.css.math.CSSCalculationGroup;
-	import de.fork.css.math.CSSCalculationRelativeValue;
+	import de.fork.css.math.CSSCalculationPercentage;
+	import de.fork.css.math.ICSSCalculationContext;
 	 
 	// @see http://www.w3.org/TR/REC-CSS2/cascade.html
 	public class CSSProperty
@@ -149,7 +150,7 @@ package de.fork.css
 				}
 				else
 				{
-					m_calculation = new CSSCalculationRelativeValue(value.toString());
+					m_calculation = new CSSCalculationPercentage(value.toString());
 				}
 			}
 		}
@@ -183,14 +184,15 @@ package de.fork.css
 			return m_specifiedValue;
 		}
 		
-		public function resolveRelativeValueTo(reference : Number) : Number
+		public function resolveRelativeValueTo(
+			reference : Number, context : ICSSCalculationContext = null) : Number
 		{
 			if (m_calculationResultsCache[reference])
 			{
 				return m_calculationResultsCache[reference];
 			}
 			return m_calculationResultsCache[reference] = 
-				resolveCalculation(reference);
+				resolveCalculation(reference, context);
 		}
 		
 		public function clone() : CSSProperty
@@ -216,9 +218,10 @@ package de.fork.css
 				PrepareCalculation(String(expression));
 		}
 		
-		protected function resolveCalculation(reference : Number) : Number
+		protected function resolveCalculation(
+			reference : Number, context : ICSSCalculationContext = null) : Number
 		{
-			return m_calculation.resolve(reference);
+			return m_calculation.resolve(reference, context);
 		}
 	}
 	

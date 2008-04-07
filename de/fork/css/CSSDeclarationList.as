@@ -17,13 +17,13 @@ package de.fork.css
 		{
 			m_items = [];
 			m_declarationCache = [];		
-		}	
+		}
 		
-		public function addDeclarationWithSelectorFromFile(
-			decl : Object, path : String, file : String) : void
+		public function addDeclaration(
+			declaration : CSSDeclaration, selector : String) : void
 		{
-			m_items.push(new CSSDeclarationListItem(
-				path, decl, m_declarationIndex++, file));
+			m_items.push(
+				new CSSDeclarationListItem(selector, declaration, m_declarationIndex++));
 		}
 		
 		public function getStyleForSelectorsPath(sp:String) : CSSDeclaration

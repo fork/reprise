@@ -37,7 +37,6 @@ package de.fork.controls.html
 		***************************************************************************/
 		public function Image()
 		{
-			m_elementType = className;
 		}
 		
 		
@@ -77,7 +76,7 @@ package de.fork.controls.html
 		***************************************************************************/
 		protected override function initDefaultStyles() : void
 		{
-			m_elementDefaultStyles.display = 'inline';
+			m_elementDefaultStyles.setStyle('display', 'inline');
 		}
 		protected override function parseXMLDefinition(xmlDefinition:XML) : void
 		{

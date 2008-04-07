@@ -27,7 +27,6 @@ package de.fork.ui.renderers {
 		***************************************************************************/	
 		public function DefaultTooltipRenderer()
 		{
-			m_elementType = className;
 		}
 	
 		

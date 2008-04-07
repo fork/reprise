@@ -1,16 +1,13 @@
 package de.fork.css
 { 
 	import de.fork.data.AdvancedColor;
-	import de.fork.utils.StringUtil;
-	import de.fork.utils.PathUtil;
 	import de.fork.data.URL;
+	import de.fork.utils.PathUtil;
+	import de.fork.utils.StringUtil;
 	
 	public class CSSParsingHelper
 	{
-			
-		
 		public function CSSParsingHelper() {}
-		
 		
 		
 		public static function parseColor(str:String) : AdvancedColor
@@ -58,51 +55,51 @@ package de.fork.css
 			}
 			return false;
 		}
-	
-	public static function resolvePathAgainstPath(targetPath:String, sourcePath:String) : String
-	{
-		var targetURL : URL = new URL(targetPath);
-		if (!targetURL.isFileURL())
+		
+		public static function resolvePathAgainstPath(targetPath:String, sourcePath:String) : String
 		{
-			// sourcePath is an absolute URL
-			if (targetURL.scheme() != null)
+			var targetURL : URL = new URL(targetPath);
+			if (!targetURL.isFileURL())
 			{
-				return targetPath;
+				// sourcePath is an absolute URL
+				if (targetURL.scheme() != null)
+				{
+					return targetPath;
+				}
+				else if (PathUtil.isAbsolutePath(targetPath))
+				{
+					return targetPath;
+				}
 			}
-			else if (PathUtil.isAbsolutePath(targetPath))
+			else
 			{
-				return targetPath;
+				targetPath = targetURL.path();
 			}
-		}
-		else
-		{
-			targetPath = targetURL.path();
-		}
-		
-		var sourceURL : URL = new URL(sourcePath);
-		var sourceIsURL : Boolean = sourceURL.scheme() != null || sourceURL.isFileURL();
-
-		if (sourceIsURL)
-		{
-			sourcePath = sourceURL.path();
-		}
-		
-		if (PathUtil.pathExtension(sourcePath) != '')
-		{
-			sourcePath = PathUtil.stringByDeletingLastPathComponent(sourcePath);
-		}
-		
-		var absolutePath : String = PathUtil.absolutePathToBase(targetPath, sourcePath);
-
-		if (!sourceIsURL)
-		{
-			return absolutePath;
-		}
-
-		var host : String = sourceURL.host() || '';
-		return (sourceURL.scheme() || '') + host + absolutePath;
-	}
+			
+			var sourceURL : URL = new URL(sourcePath);
+			var sourceIsURL : Boolean = sourceURL.scheme() != null || sourceURL.isFileURL();
 	
+			if (sourceIsURL)
+			{
+				sourcePath = sourceURL.path();
+			}
+			
+			if (PathUtil.pathExtension(sourcePath) != '')
+			{
+				sourcePath = PathUtil.stringByDeletingLastPathComponent(sourcePath);
+			}
+			
+			var absolutePath : String = PathUtil.absolutePathToBase(targetPath, sourcePath);
+	
+			if (!sourceIsURL)
+			{
+				return absolutePath;
+			}
+	
+			var host : String = sourceURL.host() || '';
+			return (sourceURL.scheme() || '') + host + absolutePath;
+		}
+		
 		public static function extractUnitFromString(str:String) : String
 		{
 			var unit : String;
@@ -120,6 +117,37 @@ package de.fork.css
 		public static function valueShouldInherit(str:String) : Boolean
 		{
 			return str.indexOf( CSSProperty.INHERIT_FLAG ) > -1;
+		}
+		
+		public static function parseDeclarationString(
+			declarationString : String, url : String) : CSSDeclaration
+		{
+			var declaration : CSSDeclaration = new CSSDeclaration();
+			
+			var splitter : RegExp = /([\w\-]+)\s*[:]\s*(.+)[;]/g;
+			while (true)
+			{
+				var result : Array = splitter.exec(declarationString);
+				if (!result)
+				{
+					break;
+				}
+				var name : String = camelCaseCSSValueName(result[1]);
+				var value : String = result[2];
+				declaration.setValueForKeyDefinedInFile(value, name, url);
+			}
+			return declaration;
+		}
+		
+		public static function camelCaseCSSValueName(name : String) : String
+		{
+			var nameParts : Array = name.split('-');
+			for (var i : int = nameParts.length; i-- > 1;)
+			{
+				var part : String = nameParts[i];
+				nameParts[i] = part.charAt(0).toUpperCase() + part.substr(1);
+			}
+			return nameParts.join('');
 		}
 	}
 }

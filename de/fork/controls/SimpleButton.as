@@ -22,7 +22,6 @@ package de.fork.controls {
 		***************************************************************************/
 		public function SimpleButton ()
 		{
-			m_elementType = className;
 		}
 		
 		

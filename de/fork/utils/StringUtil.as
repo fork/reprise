@@ -4,9 +4,8 @@ package de.fork.utils
 
 	public class StringUtil
 	{
-		
-		public static const CASEINSENSITIVE_SEARCH : Number = 1;
-		public static const BACKWARDS_SEARCH : Number = 2;
+		public static const CASEINSENSITIVE_SEARCH : int = 1;
+		public static const BACKWARDS_SEARCH : int = 2;
 		
 		public static const CHAR_WHITESPACE : Array = [" ", "\t", "\n", "\r"];
 		
@@ -19,7 +18,7 @@ package de.fork.utils
 		**/
 		public static function lTrim(val : String) : String
 		{
-			var i:Number;
+			var i : int;
 			for (i = 0; i < val.length; i++)
 			{
 				if (!isWhitespace(val.charAt(i)))
@@ -35,7 +34,7 @@ package de.fork.utils
 		**/
 		public static function rTrim(val : String) : String
 		{
-			var i:Number;
+			var i : int;
 			for (i = val.length - 1; i >= 0; i--)
 			{
 				if (!isWhitespace(val.charAt(i)))
@@ -60,7 +59,7 @@ package de.fork.utils
 		**/
 		public static function isWhitespace(val : String) : Boolean
 		{
-			for (var i:Number = val.length; i--;)
+			for (var i : int = val.length; i--;)
 			{
 				if (" \t\n\r".indexOf(val.charAt(i)) == -1)
 				{
@@ -78,7 +77,8 @@ package de.fork.utils
 			return input.charAt(0).toUpperCase() + input.substr(1);
 		}
 		
-		public static function stringByDeletingCharactersInRange(input:String, range:Range) : String
+		public static function stringByDeletingCharactersInRange(
+			input : String, range : Range) : String
 		{
 			var leftPart:String = input.substring(0, range.location);
 			var rightPart:String = input.substring(range.location + range.length);
@@ -86,7 +86,7 @@ package de.fork.utils
 		}
 		
 		public static function indexOfStringInRange(
-			input:String, search:String, range:Range = null, options:Number = 0) : Number
+			input : String, search : String, range:Range = null, options : int = 0) : int
 		{
 			if (options & CASEINSENSITIVE_SEARCH)
 			{
@@ -94,8 +94,8 @@ package de.fork.utils
 				search = search.toLowerCase();
 			}
 			
-			var stringRange:String = input.substr(range.location, range.length);
-			var index:Number = options & BACKWARDS_SEARCH ? 
+			var stringRange : String = input.substr(range.location, range.length);
+			var index : int = options & BACKWARDS_SEARCH ? 
 				stringRange.lastIndexOf(search) : stringRange.indexOf(search);
 				
 			if (index == -1)
@@ -110,8 +110,9 @@ package de.fork.utils
 		public static function stringBetweenMarkers(
 			input:String, leftMarker:String, rightMarker:String, greedy:Boolean) : String
 		{
-			var leftIndex : Number = input.indexOf(leftMarker);
-			var rightIndex : Number = greedy ? input.lastIndexOf(rightMarker) : input.indexOf(rightMarker);
+			var leftIndex : int = input.indexOf(leftMarker);
+			var rightIndex : int = greedy ? 
+				input.lastIndexOf(rightMarker) : input.indexOf(rightMarker);
 			
 			if (leftIndex != -1 && rightIndex != -1)
 			{
@@ -123,8 +124,9 @@ package de.fork.utils
 		public static function sliceStringBetweenMarkers(input:String, leftMarker:String, 
 			rightMarker:String, greedy:Boolean, removeMarkers:Boolean) : Object
 		{
-			var leftIndex : Number = input.indexOf(leftMarker);
-			var rightIndex : Number = greedy ? input.lastIndexOf(rightMarker) : input.indexOf(rightMarker);
+			var leftIndex : int = input.indexOf(leftMarker);
+			var rightIndex : int = greedy ? 
+				input.lastIndexOf(rightMarker) : input.indexOf(rightMarker);
 		
 			if (leftIndex != -1 && rightIndex != -1)
 			{
@@ -132,7 +134,8 @@ package de.fork.utils
 					(removeMarkers ? 0 : leftMarker.length));
 				var rightSlice : String = input.substring(rightIndex + 
 					(removeMarkers ? 1 : rightMarker.length), input.length);
-				var slice : String = input.substring(leftIndex + leftMarker.length, rightIndex);
+				var slice : String = 
+					input.substring(leftIndex + leftMarker.length, rightIndex);
 				
 				return {result : leftSlice + rightSlice, slice : slice};
 			}
@@ -147,7 +150,7 @@ package de.fork.utils
 				return str;
 			}
 			var list : Array = str.split(delimiter);
-			for (var i:Number = list.length; i--;)
+			for (var i:int = list.length; i--;)
 			{
 				if (list[i] == substr)
 				{
@@ -165,7 +168,7 @@ package de.fork.utils
 				return false;
 			}
 			var list : Array = str.split(delimiter);
-			for (var i:Number = list.length; i--;)
+			for (var i:int = list.length; i--;)
 			{
 				if (list[i] == substr)
 				{

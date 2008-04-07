@@ -3,31 +3,31 @@
  */
 package de.fork.css.math
 {
-	public class CSSCalculationRelativeValue 
+	public class CSSCalculationVariable 
 		extends AbstractCSSCalculation 
 	{
 		/***************************************************************************
 		*							private properties							   *
 		***************************************************************************/
-		private var m_value : Number;
+		private var m_selector : String;
 		
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function CSSCalculationRelativeValue(valueString : String)
+		public function CSSCalculationVariable(selector : String)
 		{
-			//TODO: check if we have to use parseFloat or parseInt
-			m_value = parseFloat(valueString) / 100;
+			m_selector = selector.substr(1, -2);
 		}
 		
-		public override function resolve(reference : Number) : Number
+		public override function resolve(
+			reference : Number, context : ICSSCalculationContext = null) : Number
 		{
-			return reference * m_value;
+			return context.valueBySelector(m_selector);
 		}
 		
 		public function toString() : String
 		{
-			return "relative value: " + (m_value * 100) + "%";
+			return "CSSCalculationVariable, selector: " + m_selector;
 		}
 	}
 }

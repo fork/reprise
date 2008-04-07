@@ -12,7 +12,6 @@ package de.fork.css
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	import flash.text.StyleSheet;
 	import flash.utils.getTimer;
 	
 	public class CSS extends EventDispatcher implements IResource
@@ -144,25 +143,6 @@ package de.fork.css
 		{
 			return m_declarationList.getStyleForSelectorsPath(sp);
 		}
-		
-//		public function getStyleForStylableElement(
-//			element : ICSSStylable) : CSSDeclaration
-//		{
-//			var styles : CSSDeclaration = element.cssDefaultStyles.clone();
-//			
-//			if (element.cssParent)
-//			{
-//				styles.inheritCSSDeclaration(element.cssParent.activeStyles);
-//			}
-//			
-//			styles.mergeCSSDeclaration(
-//				m_declarationList.getStyleForStylableElement(element));
-//			
-//			styles.mergeCSSDeclaration(
-//				CSSDeclaration.CSSDeclarationFromObject(element.instanceStyles));
-//			
-//			return styles;
-//		}
 		
 		/**
 		 * Escapes a selectorPath and thus prepares it for being processed by the 
@@ -531,56 +511,34 @@ package de.fork.css
 			dispatchEvent(new CommandEvent(Event.COMPLETE, success));
 		}
 		
-		protected function parseCSSSegment(segment:CSSSegment) : Boolean
+		protected function parseCSSSegment(segment : CSSSegment) : Boolean
 		{
-			var timestamp : Number = getTimer();		
+			var timestamp : Number = getTimer();
+			var url : String = segment.url();		
 			//split string into class definitions
 			var classesArr:Array = segment.content().split("}");
-			var classNamesArr:Array = new Array();
+			classesArr.pop();
 			
-			var i : uint;
-			
-			for (i = classesArr.length; i--;)
+			for (var i : int = classesArr.length; i--;)
 			{
 				var cssClassDefArr:Array = classesArr[i].split("{");
 				if (cssClassDefArr.length == 2)
 				{
-					classNamesArr[i] = cssClassDefArr[0];
-					cssClassDefArr[0] = "class"+i;
-					classesArr[i] = cssClassDefArr.join("{");
+					var declaration : CSSDeclaration = 
+						CSSParsingHelper.parseDeclarationString(cssClassDefArr[1], url);
+					
+					var classNames:Array = cssClassDefArr[0].split("\n").join(" ").
+						split("  ").join(" ").split(", ").join(",").split(",");			
+					
+					var classNamesLen:Number = classNames.length;
+					for (var j : int = 0; j < classNamesLen; j++)
+					{
+						var className:String = classNames[j];
+						// --- adding parsed style to declarationlist ---
+						m_declarationList.addDeclaration(declaration, className);
+					}
 				}
 			}
-			var cleanCSSStr:String = classesArr.join("}\n");
-	
-			var parser:StyleSheet = new StyleSheet();
-			
-			parser.parseCSS(cleanCSSStr);
-			
-			//TODO: find a way to enable parser error handling
-//			if ( !parser.parseCSS( cleanCSSStr ) )
-//			{
-//				trace(8);
-//				m_parseTime += getTimer() - timestamp;
-//				return false;
-//			}
-			
-			var classNamesArrLen:Number = classNamesArr.length;
-			for (i = 0; i < classNamesArrLen; i++)
-			{
-				var classNames:Array = classNamesArr[i].split("\n").join(" ").
-					split("  ").join(" ").split(", ").join(",").split(",");			
-				
-				var style:Object = parser.getStyle("class"+i);
-				var classNamesLen:Number = classNames.length;
-				for (var j : Number = 0; j < classNamesLen; j++)
-				{
-					var className:String = classNames[j];
-					
-					// --- adding parsed style to declarationlist ---
-					m_declarationList.addDeclarationWithSelectorFromFile(
-						style, className, segment.url());
-				}
-			}		
 			m_parseTime += getTimer() - timestamp;		
 			return true;
 		}

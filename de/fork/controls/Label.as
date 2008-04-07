@@ -55,7 +55,6 @@ package de.fork.controls
 		***************************************************************************/
 		public function Label ()
 		{
-			m_elementType = className;
 		}
 		
 		/**
@@ -106,7 +105,7 @@ package de.fork.controls
 		
 		public function set enabled(value:Boolean) : void
 		{
-			m_instanceStyles.selectable = value ? 'true' : 'false';
+			m_instanceStyles.setStyle('selectable', value ? 'true' : 'false');
 			m_labelDisplay.selectable = enabled;
 		}
 		
@@ -175,10 +174,10 @@ package de.fork.controls
 		}
 		protected override function initDefaultStyles() : void
 		{
-			m_elementDefaultStyles.selectable = 'true';
-			m_elementDefaultStyles.display = 'inline';
-			m_elementDefaultStyles.wordWrap = 'wrap';
-			m_elementDefaultStyles.multiline = 'true';
+			m_elementDefaultStyles.setStyle('selectable', 'true');
+			m_elementDefaultStyles.setStyle('display', 'inline');
+			m_elementDefaultStyles.setStyle('wordWrap', 'wrap');
+			m_elementDefaultStyles.setStyle('multiline', 'true');
 		}
 		
 		protected override function calculateStyles() : void

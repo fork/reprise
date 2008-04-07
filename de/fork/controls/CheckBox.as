@@ -29,7 +29,6 @@ package de.fork.controls
 		***************************************************************************/
 		public function Checkbox()
 		{
-			m_elementType = className;
 		}
 		public function get checked () : Boolean
 		{

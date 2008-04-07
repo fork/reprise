@@ -46,7 +46,6 @@ package de.fork.ui
 		***************************************************************************/
 		public function DocumentView()
 		{
-			m_elementType = className;
 			m_rendererFactory = new UIRendererFactory();
 			m_elementsById = new HashMap();
 		}
@@ -211,13 +210,13 @@ package de.fork.ui
 		
 		protected override function initDefaultStyles() : void
 		{
-			m_elementDefaultStyles.width = "100%";
-			m_elementDefaultStyles.height = "100%";
-			m_elementDefaultStyles.padding = "0";
-			m_elementDefaultStyles.margin = "0";
-			m_elementDefaultStyles.position = "absolute";
-			m_elementDefaultStyles.fontFamily = "_sans";
-			m_elementDefaultStyles.fontSize = "12px";
+			m_elementDefaultStyles.setStyle('width', '100%');
+			m_elementDefaultStyles.setStyle('height', '100%');
+			m_elementDefaultStyles.setStyle('padding', '0');
+			m_elementDefaultStyles.setStyle('margin', '0');
+			m_elementDefaultStyles.setStyle('position', 'absolute');
+			m_elementDefaultStyles.setStyle('fontFamily', '_sans');
+			m_elementDefaultStyles.setStyle('fontSize', '12px');
 		}
 		protected override function validateElement(
 			forceValidation:Boolean = false, validateStyles:Boolean = false) : void

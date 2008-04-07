@@ -6,6 +6,8 @@ package de.fork.ui {
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.geom.Point;
+	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 	public class UIObject extends Sprite
 	{
 		/***************************************************************************
@@ -19,7 +21,8 @@ package de.fork.ui {
 		***************************************************************************/
 		protected static var g_elementIDCounter : int = 0;
 		
-		protected var m_elementType : String = className;	
+		protected var m_class : Class;
+		protected var m_elementType : String;	
 		
 		protected var m_parentElement : UIObject;
 		protected var m_children : Array = [];
@@ -55,7 +58,8 @@ package de.fork.ui {
 		***************************************************************************/
 		public function UIObject()
 		{
-			
+			m_class = Class(getDefinitionByName(getQualifiedClassName(this)));
+			m_elementType = m_class.className;
 		}
 		
 		/**

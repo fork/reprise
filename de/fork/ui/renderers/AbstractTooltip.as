@@ -32,7 +32,6 @@ package de.fork.ui.renderers
 		***************************************************************************/	
 		public function AbstractTooltip()
 		{
-			m_elementType = className;
 		}
 	
 		
@@ -109,9 +108,9 @@ package de.fork.ui.renderers
 		protected override function initDefaultStyles() : void
 		{
 			super.initDefaultStyles();
-			m_instanceStyles.position = 'absolute';
-			m_elementDefaultStyles.left = 0;
-			m_elementDefaultStyles.top = 0;
+			m_elementDefaultStyles.setStyle('position', 'absolute');
+			m_elementDefaultStyles.setStyle('top', '0');
+			m_elementDefaultStyles.setStyle('left', '0');
 		}
 		
 		protected override function refreshSelectorPath() : void

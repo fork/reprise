@@ -143,7 +143,7 @@ package de.fork.controls {
 		public function set autoHide(hide:Boolean) : void
 		{
 			m_currentStyles.autoHide = hide;
-			instanceStyles.autoHide = hide.toString();
+			m_instanceStyles.setStyle('autoHide', hide.toString());
 		}
 		/**
 		 * returns the current state of the autoHide property
@@ -156,7 +156,7 @@ package de.fork.controls {
 		public function set pageScrollSize(value:Number) : void
 		{
 			m_currentStyles.pageScrollSize = value;
-			instanceStyles.pageScrollSize = value.toString();
+			m_instanceStyles.setStyle('pageScrollSize', value.toString());
 		}
 		public function get pageScrollSize() : Number
 		{
@@ -165,7 +165,7 @@ package de.fork.controls {
 		public function set lineScrollSize(value:Number) : void
 		{
 			m_currentStyles.lineScrollSize = value;
-			instanceStyles.lineScrollSize = value.toString();
+			m_instanceStyles.setStyle('lineScrollSize', value.toString());
 		}
 		public function get lineScrollSize() : Number
 		{
@@ -184,7 +184,7 @@ package de.fork.controls {
 		 */
 		public function set scaleScrollThumb(scaleScrollThumb:Boolean) : void
 		{
-			instanceStyles.scaleScrollThumb = scaleScrollThumb.toString();
+			m_instanceStyles.setStyle('scaleScrollThumb', scaleScrollThumb.toString());
 		}
 		
 		/**
@@ -216,7 +216,6 @@ package de.fork.controls {
 		***************************************************************************/
 		protected override function initialize() : void
 		{
-			m_elementType = className;
 			super.initialize();
 			
 			m_scrollPosition = 0;
@@ -229,10 +228,10 @@ package de.fork.controls {
 		}
 		protected override function initDefaultStyles() : void
 		{
-			m_elementDefaultStyles.lineScrollSize = '1';
-			m_elementDefaultStyles.pageScrollSize = '5';
-			m_elementDefaultStyles.outerWidth = '16px';
-			m_elementDefaultStyles.outerHeight = '50px';
+			m_elementDefaultStyles.setStyle('lineScrollSize', '1');
+			m_elementDefaultStyles.setStyle('pageScrollSize', '5');
+			m_elementDefaultStyles.setStyle('outerWidth', '16px');
+			m_elementDefaultStyles.setStyle('outerHeight', '50px');
 		}
 		
 		protected override function createChildren() : void
@@ -283,7 +282,7 @@ package de.fork.controls {
 			var specHeight:Number = m_currentStyles.height;
 			var trackHeight:Number = 
 				specHeight - m_scrollUpBtn.outerHeight - m_scrollDownBtn.outerHeight;
-			m_scrollTrack.instanceStyles.outerHeight = trackHeight;
+			m_scrollTrack.setStyle('outerHeight', trackHeight + 'px');
 			m_scrollTrack.forceRedraw();
 			applyInFlowChildPositions();
 				
@@ -313,7 +312,7 @@ package de.fork.controls {
 				m_thumbMinPos = scrollTrackBox.top;
 				if (m_currentStyles.scaleScrollThumb)
 				{
-					m_scrollThumb.instanceStyles.height = 'auto';
+					m_scrollThumb.setStyle('height', 'auto');
 					m_scrollThumb.outerHeight = Math.ceil(
 						m_scrollTrack.outerHeight * pageScrollSize / 
 						(pageScrollSize + m_maxPos - m_minPos));

@@ -3,6 +3,8 @@
  */
 package de.fork.css.math
 {
+	import de.fork.css.CSS;
+	
 	public class CSSCalculationGroup extends AbstractCSSCalculation
 	{
 		/***************************************************************************
@@ -18,6 +20,9 @@ package de.fork.css.math
 		*							protected properties							   *
 		***************************************************************************/
 		protected static var g_operations : Object = initializeOperations();
+		//note that we ignore absolute value suffixes (ie, pt and px) for now
+		protected static var g_tokenizer : RegExp = 
+			/([()]|mod|[+\-*\/]|[0-9.][0-9.exEX]*|%|[$]|[\[][\w.#:\-? ]+[\]])|[ptx]{2}/g;
 		
 		protected var m_operand1 : Object;
 		protected var m_operand2 : Object;
@@ -55,13 +60,14 @@ package de.fork.css.math
 			m_operation = g_operations[operator];
 		}
 	
-		public override function resolve(reference : Number) : Number
+		public override function resolve(
+			reference : Number, context : ICSSCalculationContext = null) : Number
 		{
 			//TODO: we should probably profile this to see if it is efficent enough
 			var operand1 : Number = (m_operand1 is Number ? m_operand1 as Number : 
-				AbstractCSSCalculation(m_operand1).resolve(reference));
+				AbstractCSSCalculation(m_operand1).resolve(reference, context));
 			var operand2 : Number = (m_operand2 is Number ? m_operand2 as Number : 
-				AbstractCSSCalculation(m_operand2).resolve(reference));
+				AbstractCSSCalculation(m_operand2).resolve(reference, context));
 			var result: Number = m_operation(operand1, operand2);
 			return result;
 		}
@@ -124,8 +130,6 @@ package de.fork.css.math
 		protected static function parse(expression : String) : CSSCalculationGroup
 		{
 			var tokens : Array = tokenize(expression);
-			var numeric : String = '0123456789x.';
-			var suffixChars : String = 'ptx';
 			var ops : Array = [];
 			var vals : Array = [];
 			
@@ -151,7 +155,7 @@ package de.fork.css.math
 					case '^':
 					case '*':
 					case '/':
-					case 'm':
+					case 'mod':
 					case '+':
 					case '-':
 					{
@@ -162,23 +166,21 @@ package de.fork.css.math
 						ops.push(token);
 						break;
 					}
+					case '$':
+					{
+						token = tokens.shift();
+						vals.push(new CSSCalculationVariable(token));
+						break;
+					}
 					default :
 					{
-						while(numeric.indexOf(tokens[0]) != -1)
-						{
-							token += String(tokens.shift());
-						}
 						if (tokens[0] == '%')
 						{
-							vals.push(new CSSCalculationRelativeValue(token));
+							vals.push(new CSSCalculationPercentage(token));
 							tokens.shift();
 						}
 						else
 						{
-							while(suffixChars.indexOf(tokens[0]) != -1)
-							{
-								tokens.shift();
-							}
 							vals.push(parseFloat(token));
 						}
 					}
@@ -195,30 +197,47 @@ package de.fork.css.math
 		}
 		protected static function tokenize(expression : String) : Array
 		{
-			expression = addPrecedenceBraces(expression.split(' ').join(''));
-			return expression.split('');
-		}
-		protected static function addPrecedenceBraces(exp : String) : String
-		{
-			exp = exp.split('(').join('((').split(')').join('))');
-			//replace 'mod' operator with one-char-placeholder
-			exp = exp.split('mod').join('m');
-			var result : String = '(((';
-			for (var i : Number = 0; i < exp.length; i++)
+			expression = 
+				'(((' + expression.split('(').join('((').split(')').join('))') + ')))';
+			var count : int = 100;
+			var tokens : Array = [];
+			var result : Array;
+			while ((result = g_tokenizer.exec(expression)) && count--)
 			{
-				switch(exp.charAt(i))
+				var token : String = result[1];
+				switch(token)
 				{
-					case '^' : result += '^'; break;
-					case '*' : result += ')*('; break;
-					case '/' : result += ')/('; break;
-					case 'm' : result += ')m('; break;
-					case '+' : result += '))+(('; break;
-					case '-' : result += '))-(('; break;
-					default: result += exp.charAt(i);
+					case '^' : 
+					case '*' : 
+					case '/' : 
+					case 'mod' : 
+					{
+						tokens.push(')');
+						tokens.push(token);
+						tokens.push('(');
+						break;
+					}
+					case '+' : 
+					case '-' :
+					{
+						tokens.push(')');
+						tokens.push(')');
+						tokens.push(token);
+						tokens.push('(');
+						tokens.push('(');
+						break;
+					}
+					case null:
+					{
+						break;
+					}
+					default:
+					{
+						tokens.push(token);
+					};
 				}
 			}
-			result += ')))';
-			return result;
+			return tokens;
 		}
 		
 		protected static function reduce(ops : Array, vals : Array) : void

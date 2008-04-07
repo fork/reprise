@@ -4,6 +4,7 @@ package de.fork.ui
 	import de.fork.core.UIRendererFactory;
 	import de.fork.css.CSSDeclaration;
 	import de.fork.css.CSSProperty;
+	import de.fork.css.math.ICSSCalculationContext;
 	import de.fork.css.propertyparsers.Filters;
 	import de.fork.ui.renderers.ICSSRenderer;
 	import de.fork.utils.GfxUtil;
@@ -17,7 +18,7 @@ package de.fork.ui
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
-	public class UIComponent extends UIObject
+	public class UIComponent extends UIObject implements ICSSCalculationContext
 	{
 		/***************************************************************************
 		*							public properties							   *
@@ -42,9 +43,8 @@ package de.fork.ui
 		protected var m_selectorPath : String;
 		protected var m_currentStyles : Object;
 		protected var m_complexStyles : CSSDeclaration;
-		protected var m_elementDefaultStyles : Object;
-		protected var m_instanceStyles : Object;
-		protected var m_basicStyles : CSSDeclaration;
+		protected var m_elementDefaultStyles : CSSDeclaration;
+		protected var m_instanceStyles : CSSDeclaration;
 	
 		protected var m_left : Number = 0;
 		protected var m_top : Number = 0;
@@ -89,8 +89,6 @@ package de.fork.ui
 		
 		protected var m_backgroundDisplay : Sprite;
 		protected var m_bordersDisplay : Sprite;
-		protected var m_inFlowContentDisplay : Sprite;
-		protected var m_outOfFlowContentDisplay : Sprite;
 		protected var m_contentMask : Sprite;
 		protected var m_scrollbarsDisplay : Sprite;
 		
@@ -124,7 +122,6 @@ package de.fork.ui
 		***************************************************************************/
 		public function UIComponent()
 		{
-			m_elementType = className;
 		}
 		
 		/**
@@ -189,12 +186,12 @@ package de.fork.ui
 	
 		public override function set width(value : Number) : void
 		{
-			instanceStyles.width = value + "px";
+			m_instanceStyles.setStyle('width', value + "px");
 		}
 		
 		public function set outerWidth(value : Number) : void
 		{
-			instanceStyles.outerWidth = value;
+			m_instanceStyles.setStyle('outerWidth', value + 'px');
 		}
 		public function get outerWidth() : Number
 		{
@@ -203,7 +200,7 @@ package de.fork.ui
 		
 		public override function set height(value:Number) : void
 		{
-			instanceStyles.height = value + "px";
+			m_instanceStyles.setStyle('height', value + "px");
 		}
 		
 		public function get outerHeight() : Number
@@ -212,7 +209,7 @@ package de.fork.ui
 		}
 		public function set outerHeight(value : Number) : void
 		{
-			instanceStyles.outerHeight = value + 'px';
+			m_instanceStyles.setStyle('outerHeight', value + 'px');
 		}
 		
 		public override function get top() : Number
@@ -231,7 +228,7 @@ package de.fork.ui
 				value = 0;
 			}
 			m_currentStyles.top = value;
-			m_instanceStyles.top = value + "px";
+			m_instanceStyles.setStyle('top', value + "px");
 			m_topIsAuto = false;
 			if (!m_positionInFlow)
 			{
@@ -255,7 +252,7 @@ package de.fork.ui
 				value = 0;
 			}
 			m_currentStyles.left = value;
-			m_instanceStyles.left = value + "px";
+			m_instanceStyles.setStyle('left', value + "px");
 			m_leftIsAuto = false;
 			if (!m_positionInFlow)
 			{
@@ -279,7 +276,7 @@ package de.fork.ui
 				value = 0;
 			}
 			m_currentStyles.right = value;
-			m_instanceStyles.right = value + "px";
+			m_instanceStyles.setStyle('right', value + "px");
 			m_rightIsAuto = false;
 			if (!m_positionInFlow)
 			{
@@ -307,7 +304,7 @@ package de.fork.ui
 				value = 0;
 			}
 			m_currentStyles.bottom = value;
-			m_instanceStyles.bottom = value + "px";
+			m_instanceStyles.setStyle('bottom', value + "px");
 			m_bottomIsAuto = false;
 			if (!m_positionInFlow)
 			{
@@ -439,34 +436,37 @@ package de.fork.ui
 			return m_cssPseudoClasses;
 		}
 		
-		/**
-		* getter for the instanceStyles property
-		*/
-		public function get instanceStyles() : Object
+		public function hasClass(className : String) : Boolean
 		{
-			m_stylesInvalidated = true;
+			return StringUtil.delimitedStringContainsSubstring(
+				m_cssClasses, name, ' ');
+		}
+		
+		public function setStyle(name : String, value : String = null) : void
+		{
+			m_instanceStyles.setStyle(name, value);
 			invalidate();
-			return m_instanceStyles;
+			m_stylesInvalidated = true;
 		}
 		
 		public override function tooltipDelay() : Number
 		{
 			return m_currentStyles.tooltipDelay | 0;
 		}
-		public override function setTooltipDelay(delay:Number) : void
+		public override function setTooltipDelay(delay : Number) : void
 		{
 			// we don't need no invalidation
-			m_instanceStyles.tooltipDelay = delay.toString();
+			m_instanceStyles.setStyle('tooltipDelay', delay.toString());
 			m_currentStyles.tooltipDelay = delay;
 		}
 		public override function tooltipRenderer() : String
 		{
 			return m_tooltipRenderer;
 		}
-		public override function setTooltipRenderer(renderer:String) : void
+		public override function setTooltipRenderer(renderer : String) : void
 		{
 			// we don't need no invalidation
-			m_instanceStyles.tooltipRenderer = renderer;
+			m_instanceStyles.setStyle('tooltipRenderer', renderer);
 			m_currentStyles.tooltipRenderer = renderer;
 		}
 		
@@ -583,8 +583,8 @@ package de.fork.ui
 		public override function setVisibility(visible : Boolean) : void
 		{
 			var visibilityProperty:String = (visible ? 'visible' : 'hidden');
-			m_currentStyles.visibility = m_instanceStyles.visibility = 
-				visibilityProperty;
+			m_instanceStyles.setStyle('visibility', visibilityProperty);
+			m_currentStyles.visibility = visibilityProperty;
 			super.setVisibility(visible);
 		}
 		
@@ -613,7 +613,7 @@ package de.fork.ui
 		{
 			super.alpha = value;
 			m_currentStyles.opacity = value;
-			m_instanceStyles.opacity = value.toString();
+			m_instanceStyles.setStyle('opacity', value.toString());
 		}
 		/**
 		* getter for the opacity property
@@ -634,7 +634,7 @@ package de.fork.ui
 		{
 			super.rotation = value;
 			m_currentStyles.rotation = value;
-			m_instanceStyles.rotation = value.toString();
+			m_instanceStyles.setStyle('rotation', value.toString());
 		}
 		/**
 		* getter for the rotation property
@@ -659,13 +659,10 @@ package de.fork.ui
 		
 		public function getElementsByClassName(className:String) : Array
 		{
-			var i:Number;
-			var len:Number = m_children.length;
 			var elements:Array = [];
-			var subElements:Array;
-			var cssClasses:String;
 			
-			for (i = 0; i < len; i++)
+			var len : int = m_children.length;
+			for (var i : int = 0; i < len; i++)
 			{
 				var child : DisplayObject = m_children[i];
 				if (!child is UIComponent)
@@ -673,7 +670,7 @@ package de.fork.ui
 					continue;
 				}
 				var childView : UIComponent = child as UIComponent;
-				cssClasses = childView.cssClasses;
+				var cssClasses : String = childView.cssClasses;
 	
 				if (cssClasses.indexOf(className) != -1 &&
 					(cssClasses == className || 
@@ -684,13 +681,101 @@ package de.fork.ui
 				{
 					elements.push(childView);
 				}
-				subElements = childView.getElementsByClassName(className);
+				var subElements : Array = childView.getElementsByClassName(className);
 				if (subElements.length)
 				{
 					elements = elements.concat(subElements);
 				}
 			}		
 			return elements;		
+		}
+		
+		public function getElementsBySelector(selector : String) : Array
+		{
+			var matches : Array = [];
+			var selectorParts : Array;
+			var element : UIComponent;
+			var candidates : Array = [];
+			//find last ID in the selector and discard everything before that
+			var lastIDIndex : int = selector.lastIndexOf('#');
+			if (lastIDIndex != -1)
+			{
+				//find element for ID and make it the root candidate
+				selector = selector.substr(lastIDIndex + 1);
+				selectorParts = selector.split(' ');
+				var id : String = selectorParts.shift();
+				//discard every other information in the ID selector
+				id = (id.split('.')[0] as String).split('[')[0] as String;
+				element = m_rootElement.getElementById(id);
+				if (!element)
+				{
+					//if there's no element for the ID, there's nothing to return
+					return matches;
+				}
+				candidates.push(element);
+			}
+			else
+			{
+				//no ID found, make current element the root candidate
+				candidates.push(this);
+				selectorParts = selector.split(' ');
+			}
+			
+			while (candidates.length && selectorParts.length)
+			{
+				var index : int;
+				var currentSelectorPart : String = selectorParts.shift();
+				//extract index suffix from path
+				var fragments : Array = currentSelectorPart.split('[');
+				var currentPath : String = fragments[0];
+				if (fragments[1])
+				{
+					index = parseInt(fragments[1]);
+				}
+				
+				var oldCandidates : Array = candidates;
+				candidates = [];
+				var children : Array;
+				
+				//split into tag and classes
+				var classes : Array = currentPath.split('.');
+				var className : String;
+				var tag : String = classes.shift();
+				//find first
+				if (tag.length)
+				{
+					while (oldCandidates.length)
+					{
+						element = candidates.shift();
+						children = element.getElementsByTagName(tag);
+						if (children.length)
+						{
+							candidates.concat(children);
+						}
+					}
+				}
+				else
+				{
+					className = classes.shift();
+					while (oldCandidates.length)
+					{
+						element = candidates.shift();
+						children = element.getElementsByClassName(className);
+						if (children.length)
+						{
+							candidates.concat(children);
+						}
+					}
+				}
+				
+			}
+			
+			matches = candidates;
+			return matches;
+		}
+		public function getElementBySelector(selector : String) : UIComponent
+		{
+			return getElementsBySelector(selector)[0];
 		}
 		
 		public function get selectorPath() : String
@@ -702,17 +787,52 @@ package de.fork.ui
 		{
 			return m_elementType;
 		}
-	
+		
+		public function valueBySelector(selector : String) : Number
+		{
+			var target : Object;
+			var property : String;
+			
+			//split path and property
+			var split : Array = selector.split(':');
+			//the property has to be the last element in the selector.
+			//Note that if you forget to add a property, the whole selector is treated 
+			//as the property, causing an Exception to be thrown below.
+			property = split.pop();
+			//If there's no path, this element has to be the target
+			if (!split.length || !split[0].length)
+			{
+				target = this;
+			}
+			else
+			{
+				var path : String = split.pop();
+				target = getElementBySelector(path);
+			}
+			
+			var value : Number = Number(target[property]);
+			return value;
+		}
+		
 		
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
 		protected override function initialize() : void
 		{
-			m_elementDefaultStyles = {};
-			m_instanceStyles = {};
+			if (!m_class.basicStyles)
+			{
+				m_class.basicStyles = new CSSDeclaration();
+				m_class.basicStyles.addDefaultValues();
+				m_elementDefaultStyles = m_class.basicStyles;
+				initDefaultStyles();
+			}
+			else
+			{
+				m_elementDefaultStyles = m_class.basicStyles;
+			}
+			m_instanceStyles = new CSSDeclaration();
 			m_currentStyles = {};
-			initDefaultStyles();
 			m_stylesInvalidated = true;
 			super.initialize();
 		}
@@ -723,12 +843,6 @@ package de.fork.ui
 		protected override function createDisplayClips() : void
 		{
 			super.createDisplayClips();
-			m_inFlowContentDisplay = new Sprite();
-			m_inFlowContentDisplay.name = 'inFlowContent';
-			m_contentDisplay.addChild(m_inFlowContentDisplay);
-			m_outOfFlowContentDisplay = new Sprite();
-			m_outOfFlowContentDisplay.name = 'outOfFlowContent';
-			m_contentDisplay.addChild(m_outOfFlowContentDisplay);
 		}
 		
 		protected override function validateElement(
@@ -968,17 +1082,8 @@ package de.fork.ui
 		{
 			refreshSelectorPath();
 			
-			var styles:CSSDeclaration;
-			
-			if (!m_basicStyles)
-			{
-				m_basicStyles = new CSSDeclaration();
-				m_basicStyles.addDefaultValues();
-				m_basicStyles.mergeCSSDeclaration(CSSDeclaration.
-					CSSDeclarationFromObject(m_elementDefaultStyles));
-			}
+			var styles:CSSDeclaration = m_elementDefaultStyles.clone();
 			var oldStyles:CSSDeclaration = m_complexStyles;
-			styles = m_basicStyles.clone();
 			
 			if (m_parentElement != this && m_parentElement is UIComponent)
 			{
@@ -992,8 +1097,7 @@ package de.fork.ui
 					getStyleForEscapedSelectorPath(m_selectorPath));
 			}
 			
-			styles.mergeCSSDeclaration(
-				CSSDeclaration.CSSDeclarationFromObject(m_instanceStyles));
+			styles.mergeCSSDeclaration(m_instanceStyles);
 			
 			if (!(m_containingBlock && m_containingBlock.m_specifiedDimensionsChanged) && 
 				styles.compare(oldStyles) && 
@@ -1405,9 +1509,9 @@ package de.fork.ui
 		{
 			//apply final relative position/paddings/borderWidths to displays
 			m_contentDisplay.y = m_positionOffset.y + 
-				m_borderTopWidth + m_paddingTop;
+				m_borderTopWidth;
 			m_contentDisplay.x = m_positionOffset.x + 
-				m_borderLeftWidth + m_paddingLeft;
+				m_borderLeftWidth;
 		}
 	
 		protected function applyInFlowChildPositions() : void
@@ -1421,8 +1525,7 @@ package de.fork.ui
 			
 			var autoFlag:String = CSSProperty.AUTO_FLAG;
 			
-			var inFlowDepth : int = 0;
-			var outOfFlowDepth : int = 0;
+			var displayStack : Array = [];
 			
 			var widestChildWidth:Number = 0;
 			var collapsibleMargin:Number = 0;
@@ -1439,153 +1542,166 @@ package de.fork.ui
 			var currentLineBoxRightBoundary:Number = totalAvailableWidth;
 			var currentLineBoxChildren : Array = [];
 			
-			for (var i : int = 0; i < childCount; i++)
+			var i : int;
+			for (i = 0; i < childCount; i++)
 			{
-				var child:UIComponent = m_children[int(i)] as UIComponent;
+				var child:UIComponent = m_children[i] as UIComponent;
 				//only deal with children that derive from UIComponent
-				if (child)
+				if (!child)
 				{
-					var childStyles:CSSDeclaration = child.m_complexStyles;
-					
-					//apply horizontal position
-					if (child.m_float)
+					continue;
+				}
+				var childStyles:CSSDeclaration = child.m_complexStyles;
+				
+				//apply horizontal position
+				if (child.m_float)
+				{
+					var childWidth:Number = child.m_borderBoxWidth + 
+						child.m_marginLeft + child.m_marginRight;
+					if (childWidth > currentLineBoxRightBoundary - 
+						currentLineBoxLeftBoundary)
 					{
-						var childWidth:Number = child.m_borderBoxWidth + 
-							child.m_marginLeft + child.m_marginRight;
-						if (childWidth > currentLineBoxRightBoundary - 
-							currentLineBoxLeftBoundary)
+						if (currentLineBoxChildren.length)
 						{
-							if (currentLineBoxChildren.length)
-							{
-								applyVerticalPositionsInLineBox(
-									currentLineBoxTop, currentLineBoxHeight, 
-									currentLineBoxChildren);
-							}
-							currentLineBoxTop += 
-								currentLineBoxHeight + collapsibleMargin;
-							collapsibleMargin = 0;
-							currentLineBoxHeight = 0;
-							currentLineBoxLeftBoundary = 0;
-							currentLineBoxRightBoundary = totalAvailableWidth;
-							currentLineBoxChildren = [];
+							applyVerticalPositionsInLineBox(
+								currentLineBoxTop, currentLineBoxHeight, 
+								currentLineBoxChildren);
 						}
-						if (child.m_float == 'left')
-						{
-							child.x = 
-								currentLineBoxLeftBoundary + child.m_marginLeft;
-							currentLineBoxLeftBoundary = child.x + 
-								child.m_borderBoxWidth + child.m_marginRight;
-						}
-						else if (child.m_float == 'right')
-						{
-							child.x = currentLineBoxRightBoundary - 
-								child.m_borderBoxWidth - child.m_marginRight;
-							currentLineBoxRightBoundary = 
-								child.x - child.m_marginLeft;
-						}
-						currentLineBoxHeight = Math.max(currentLineBoxHeight, 
-							child.m_borderBoxHeight + 
-							child.m_marginTop + child.m_marginBottom);
-						var childVAlign : String = 
-							child.m_currentStyles.verticalAlign || 'top';
-						if (childVAlign != 'top')
-						{
-							currentLineBoxChildren.push(child);
-						}
+						currentLineBoxTop += 
+							currentLineBoxHeight + collapsibleMargin;
+						collapsibleMargin = 0;
+						currentLineBoxHeight = 0;
+						currentLineBoxLeftBoundary = 0;
+						currentLineBoxRightBoundary = totalAvailableWidth;
+						currentLineBoxChildren = [];
 					}
-					else if (child.m_positionInFlow || 
-						(child.m_leftIsAuto && child.m_rightIsAuto))
+					if (child.m_float == 'left')
 					{
-						var childMarginLeft : CSSProperty = 
-							childStyles.getStyle('marginLeft');
-						if (childMarginLeft && 
-							childMarginLeft.specifiedValue() == autoFlag)
-						{
-							var childMarginRight : CSSProperty = 
-								childStyles.getStyle('marginRight');
-							if (childMarginRight && 
-								childMarginRight.specifiedValue() == autoFlag)
-							{
-								//center horizontally
-								child.x = Math.round(totalAvailableWidth / 2 - 
-									child.m_borderBoxWidth / 2);
-							}
-							else
-							{
-								//align right
-								child.x = totalAvailableWidth - 
-									child.m_borderBoxWidth - 
-									child.m_marginRight;
-							}
-						}
-						else
-						{
-							//align left
-							child.x = child.m_marginLeft;
-						}
+						child.x = 
+							currentLineBoxLeftBoundary + child.m_marginLeft;
+						currentLineBoxLeftBoundary = child.x + 
+							child.m_borderBoxWidth + child.m_marginRight;
 					}
-					widestChildWidth = Math.max(child.x + 
-						child.m_borderBoxWidth + child.m_marginRight, 
-						widestChildWidth);
-					
-					//apply vertical position including margin collapsing
-					if (child.m_positionInFlow)
+					else if (child.m_float == 'right')
 					{
-						var childMarginTop:Number = child.m_marginTop;
-						var collapsedMargin:Number;
-						if (collapsibleMargin >= 0 && childMarginTop >= 0)
+						child.x = currentLineBoxRightBoundary - 
+							child.m_borderBoxWidth - child.m_marginRight;
+						currentLineBoxRightBoundary = 
+							child.x - child.m_marginLeft;
+					}
+					currentLineBoxHeight = Math.max(currentLineBoxHeight, 
+						child.m_borderBoxHeight + 
+						child.m_marginTop + child.m_marginBottom);
+					var childVAlign : String = 
+						child.m_currentStyles.verticalAlign || 'top';
+					if (childVAlign != 'top')
+					{
+						currentLineBoxChildren.push(child);
+					}
+				}
+				else if (child.m_positionInFlow || 
+					(child.m_leftIsAuto && child.m_rightIsAuto))
+				{
+					var childMarginLeft : CSSProperty = 
+						childStyles.getStyle('marginLeft');
+					if (childMarginLeft && 
+						childMarginLeft.specifiedValue() == autoFlag)
+					{
+						var childMarginRight : CSSProperty = 
+							childStyles.getStyle('marginRight');
+						if (childMarginRight && 
+							childMarginRight.specifiedValue() == autoFlag)
 						{
-							collapsedMargin = 
-								Math.max(collapsibleMargin, childMarginTop);
-						}
-						else if (collapsibleMargin >= 0 && childMarginTop < 0)
-						{
-							collapsedMargin = collapsibleMargin + childMarginTop;
-						}
-						else if (collapsibleMargin < 0 && childMarginTop >= 0)
-						{
-							collapsedMargin = collapsibleMargin + childMarginTop;
-						}
-						else
-						{
-							collapsedMargin = 
-								Math.min(collapsibleMargin, childMarginTop);
-						}
-						
-						if (topMarginCollapsible)
-						{
-							m_marginTop = collapsedMargin;
-							collapsedMargin = 0;
-							topMarginCollapsible = false;
-						}
-						child.y = currentLineBoxTop + collapsedMargin;
-						
-						//collapse margins through empty elements 
-						if (!child.m_borderBoxHeight)
-						{
-							collapsibleMargin = 
-								Math.max(collapsedMargin, child.m_marginBottom);
+							//center horizontally
+							child.x = Math.round(totalAvailableWidth / 2 - 
+								child.m_borderBoxWidth / 2);
 						}
 						else
 						{
-							collapsibleMargin = child.m_marginBottom;
-							topMarginCollapsible = false;
+							//align right
+							child.x = totalAvailableWidth - 
+								child.m_borderBoxWidth - 
+								child.m_marginRight;
 						}
-						currentLineBoxTop = child.y + child.m_borderBoxHeight;
-						m_inFlowContentDisplay.addChild(child);
-						m_inFlowContentDisplay.setChildIndex(child, inFlowDepth++);
 					}
 					else
 					{
-						m_outOfFlowContentDisplay.addChild(child);
-						m_outOfFlowContentDisplay.setChildIndex(child, outOfFlowDepth++);
-						if (child.m_float || 
-							(child.m_topIsAuto && child.m_bottomIsAuto))
-						{
-							child.y = currentLineBoxTop + child.m_marginTop;
-						}
+						//align left
+						child.x = child.m_marginLeft;
 					}
 				}
+				widestChildWidth = Math.max(child.x + 
+					child.m_borderBoxWidth + child.m_marginRight, 
+					widestChildWidth);
+				
+				//apply vertical position including margin collapsing
+				if (child.m_positionInFlow)
+				{
+					var childMarginTop:Number = child.m_marginTop;
+					var collapsedMargin:Number;
+					if (collapsibleMargin >= 0 && childMarginTop >= 0)
+					{
+						collapsedMargin = 
+							Math.max(collapsibleMargin, childMarginTop);
+					}
+					else if (collapsibleMargin >= 0 && childMarginTop < 0)
+					{
+						collapsedMargin = collapsibleMargin + childMarginTop;
+					}
+					else if (collapsibleMargin < 0 && childMarginTop >= 0)
+					{
+						collapsedMargin = collapsibleMargin + childMarginTop;
+					}
+					else
+					{
+						collapsedMargin = 
+							Math.min(collapsibleMargin, childMarginTop);
+					}
+					
+					if (topMarginCollapsible)
+					{
+						m_marginTop = collapsedMargin;
+						collapsedMargin = 0;
+						topMarginCollapsible = false;
+					}
+					child.y = currentLineBoxTop + collapsedMargin;
+					
+					//collapse margins through empty elements 
+					if (!child.m_borderBoxHeight)
+					{
+						collapsibleMargin = 
+							Math.max(collapsedMargin, child.m_marginBottom);
+					}
+					else
+					{
+						collapsibleMargin = child.m_marginBottom;
+						topMarginCollapsible = false;
+					}
+					currentLineBoxTop = child.y + child.m_borderBoxHeight;
+				}
+				else
+				{
+					if (child.m_float || 
+						(child.m_topIsAuto && child.m_bottomIsAuto))
+					{
+						child.y = currentLineBoxTop + child.m_marginTop;
+					}
+				}
+				//add to displaystack for later sorting
+				displayStack.push(
+				{
+					element : child, 
+					index : i + 2, 
+					zIndex : child.m_currentStyles.zIndex || 0
+				});
+			}
+			
+			//sort children by zIndex and declaration index
+			displayStack.sortOn(['zIndex', 'index'], Array.NUMERIC);
+			for (i = 0; i < displayStack.length; i++)
+			{
+				var element : UIComponent = displayStack[i].element;
+				m_contentDisplay.setChildIndex(element, i);
 			}
 			
 			if (currentLineBoxChildren.length)
@@ -2037,10 +2153,10 @@ package de.fork.ui
 			scrollbar.overrideContainingBlock(this);
 			m_scrollbarsDisplay.addChild(scrollbar);
 			scrollbar.cssClasses = orientation + "Scrollbar";
-			scrollbar.instanceStyles.position = 'absolute';
-			scrollbar.instanceStyles.autoHide = 'false';
-			scrollbar.instanceStyles.width = 
-				m_currentStyles.scrollbarWidth || DEFAULT_SCROLLBAR_WIDTH;
+			scrollbar.setStyle('position', 'absolute');
+			scrollbar.setStyle('autoHide', 'false');
+			scrollbar.setStyle('width', 
+				(m_currentStyles.scrollbarWidth || DEFAULT_SCROLLBAR_WIDTH) + 'px');
 			if (orientation == Scrollbar.ORIENTATION_HORIZONTAL)
 			{
 				scrollbar.rotation = -90;

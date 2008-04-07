@@ -12,6 +12,7 @@ package de.fork.css
 	import de.fork.utils.StringUtil;
 	
 	import flash.text.StyleSheet;
+	import flash.utils.describeType;
 	public class CSSDeclaration
 	{
 		/***************************************************************************
@@ -82,22 +83,12 @@ package de.fork.css
 			for (var key:String in obj)
 			{
 				decl.setStyle(key, obj[key]);
-			}		
+			}
 			return decl;
 		}
-		
-		public static function CSSDeclarationFromObjectDefinedInFile(
-			obj:Object, file:String) : CSSDeclaration
-		{
-			var decl : CSSDeclaration = new CSSDeclaration();		
-			for (var key:String in obj)
-			{
-				decl.setValueForKeyDefinedInFile(obj[key], key, file);
-			}		
-			return decl;		
-		}	
 	
-		public static function registerPropertyCollection(cPropCol : Object /*CSSPropertyParser*/) : void
+		public static function registerPropertyCollection(
+			cPropCol : Object /*CSSPropertyParser*/) : void
 		{
 			var i : Number = cPropCol.KNOWN_PROPERTIES.length;
 			var prop : String;
@@ -122,9 +113,14 @@ package de.fork.css
 		}
 		
 		// Alias for setPropertyForKey
-		public function setStyle(key : String, value : String) : void
+		public function setStyle(key : String, value : String = null) : void
 		{
-			setValueForKeyDefinedInFile(value, key, null);
+			if (!value)
+			{
+				m_properties[key] && delete m_properties[key];
+				return;
+			}
+			setValueForKeyDefinedInFile(value, key);
 		}
 		// Alias for getPropertyForKey
 		public function getStyle(key : String) : CSSProperty
@@ -339,13 +335,13 @@ package de.fork.css
 		*							protected methods								   *
 		***************************************************************************/
 		// internal handling of getting and setting properties
-		protected function setValueForKeyDefinedInFile(
-			val:String, key:String, file:String) : void
+		public function setValueForKeyDefinedInFile(
+			val:String, key:String, file:String = '') : void
 		{
 			var res : Object;
 	//		if (!file)
 	//		{
-				res = CSSPropertyCache.propertyForKeyValue(key, val+(file || ""));
+				res = CSSPropertyCache.propertyForKeyValue(key, val + file);
 	//		}
 			if (!res)
 			{
@@ -366,27 +362,28 @@ package de.fork.css
 			}
 			
 			if (res is CSSProperty)
+			{
 				m_properties[key] = res;
-			else if (res is CSSParsingResult)
+				return;
+			}
+			if (res is CSSParsingResult)
 			{
 				var props : Object = res.properties();
 				for (key in props)
 					m_properties[key] = props[key];
+				return;
 			}
-			else
-			{
-				var msg : String = 'c Parser for key "' + key + '" returned ';
-				msg += res == null ? 'null. Perhaps you didn\'t define the ' +
-				'parser method as static? Or you probably gave the parser method ' +
-				'a wrong name. Or you even forgot to implement it. Double-check ' +
-				'and retry!' : 'value of wrong type.';
-				msg += 'Parsing property via DefaultParser (probably as String).';
-				
-				res = DefaultParser.parseAnything(val, file);
-				m_properties[key] = res;
-				
-				trace(msg);
-			}
+			var msg : String = 'c Parser for key "' + key + '" returned ';
+			msg += res == null ? 'null. Perhaps you didn\'t define the ' +
+			'parser method as static? Or you probably gave the parser method ' +
+			'a wrong name. Or you even forgot to implement it. Double-check ' +
+			'and retry!' : 'value of wrong type.';
+			msg += 'Parsing property via DefaultParser (probably as String).';
+			
+			res = DefaultParser.parseAnything(val, file);
+			m_properties[key] = res;
+			
+			trace(msg);
 		}	
 		
 		protected function parserForProperty(key : String) : Class
@@ -397,7 +394,8 @@ package de.fork.css
 			{
 				if (!m_thrownErrors[key])
 				{
-					trace('n No parser registered for css property "' + key + '". Parsing property via DefaultParser (probably as string).');
+					trace('n No parser registered for css property "' + key + 
+						'". Parsing property via DefaultParser (probably as string).');
 					m_thrownErrors[key] = true;
 				}
 				return null;

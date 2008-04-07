@@ -23,7 +23,8 @@ package de.fork.data
 			navy: 0x000080,
 			blue: 0x0000ff,
 			teal: 0x008080,
-			aqua: 0x00ffff
+			aqua: 0x00ffff,
+			magenta: 0xff00ff
 		};	
 		
 		

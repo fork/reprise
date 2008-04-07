@@ -8,17 +8,15 @@ package de.fork.css
 		public var m_declarationSpecificity : Number;
 		public var m_declarationIndex : Number;
 		
-//		protected var m_selectorStr : String;
 		protected var m_selectorPattern : Array;
-//		protected var m_selectorRegexp : RegExp;
 		public var m_declaration : CSSDeclaration;
 		
 		
 		/***************************************************************************
 		*							public methods								   *
 		***************************************************************************/
-		public function CSSDeclarationListItem(
-			selector:String, declaration:Object, index:Number, file:String) 
+		public function CSSDeclarationListItem(selector : String, 
+			declaration : CSSDeclaration, index : Number, file : String = null) 
 		{
 			var selectorStr : String = (("@" + selector.split(" ").join("@ @").
 				split("#").join("|#").split(":").join("|:").split(".").
@@ -33,10 +31,8 @@ package de.fork.css
 			}
 			
 			m_declarationSpecificity = specificityForSelector(selector);
-			m_declaration = CSSDeclaration.
-				CSSDeclarationFromObjectDefinedInFile(declaration, file);
 			m_declarationIndex = index;
-//			m_selectorRegexp = createRegExp(selector);
+			m_declaration = CSSDeclaration(declaration);
 		}
 		
 		public function declaration() : CSSDeclaration

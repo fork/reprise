@@ -107,7 +107,6 @@ package de.fork.controls {
 		***************************************************************************/
 		public function AbstractButton()
 		{
-			m_elementType = className;
 		}
 		
 		protected override function initialize () : void
