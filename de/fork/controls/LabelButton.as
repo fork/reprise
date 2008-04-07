@@ -66,7 +66,7 @@ package de.fork.controls
 			return super.calculateContentWidth();
 		}
 		
-		protected override calculateStyles() : void
+		protected override function calculateStyles() : void
 		{
 			var oldStyles : Object = m_currentStyles || {};
 			super.calculateStyles();
