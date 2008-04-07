@@ -112,6 +112,7 @@ package de.fork.ui
 	
 		protected var m_positioningType : String;
 		protected var m_float : String;
+		protected var m_displayStack : Array;
 	
 		protected var m_dimensionsChanged : Boolean;
 		protected var m_specifiedDimensionsChanged : Boolean;
@@ -900,6 +901,8 @@ package de.fork.ui
 		 */
 		protected override function validateAfterChildren() : void
 		{
+			m_displayStack = [];
+			
 			applyInFlowChildPositions();
 			
 			var autoFlag:String = CSSProperty.AUTO_FLAG;
@@ -1013,6 +1016,19 @@ package de.fork.ui
 					applyOutOfFlowChildPositions();
 				}
 			}
+			applyDepthSorting();
+		}
+		
+		protected function applyDepthSorting() : void
+		{
+			//sort children by zIndex and declaration index
+			m_displayStack.sortOn(['zIndex', 'index'], Array.NUMERIC);
+			for (var i : int = 0; i < m_displayStack.length; i++)
+			{
+				var element : DisplayObject = m_displayStack[i].element;
+				m_contentDisplay.setChildIndex(element, i);
+			}
+			m_displayStack = null;
 		}
 		
 		protected override function validateChild(child:UIObject) : void
@@ -1516,7 +1532,6 @@ package de.fork.ui
 	
 		protected function applyInFlowChildPositions() : void
 		{
-//			trace(getTimer() + this);
 			var childCount : int = m_children.length;
 			if (!childCount)
 			{
@@ -1524,8 +1539,6 @@ package de.fork.ui
 			}
 			
 			var autoFlag:String = CSSProperty.AUTO_FLAG;
-			
-			var displayStack : Array = [];
 			
 			var widestChildWidth:Number = 0;
 			var collapsibleMargin:Number = 0;
@@ -1688,20 +1701,14 @@ package de.fork.ui
 					}
 				}
 				//add to displaystack for later sorting
-				displayStack.push(
+				var depthStackEntry : Object = 
 				{
 					element : child, 
-					index : i + 2, 
+					index : i, 
 					zIndex : child.m_currentStyles.zIndex || 0
-				});
-			}
-			
-			//sort children by zIndex and declaration index
-			displayStack.sortOn(['zIndex', 'index'], Array.NUMERIC);
-			for (i = 0; i < displayStack.length; i++)
-			{
-				var element : UIComponent = displayStack[i].element;
-				m_contentDisplay.setChildIndex(element, i);
+				};
+				depthStackEntry.zIndex > 0 && depthStackEntry.zIndex++;
+				m_displayStack.push(depthStackEntry);
 			}
 			
 			if (currentLineBoxChildren.length)
@@ -1926,10 +1933,17 @@ package de.fork.ui
 				}
 				m_backgroundDisplay = new Sprite();
 				m_backgroundDisplay.name = "background_" + backgroundRendererId;
-				addChildAt(m_backgroundDisplay, 0);
+				m_contentDisplay.addChild(m_backgroundDisplay);
 				m_backgroundRenderer = m_rootElement.uiRendererFactory().
 					backgroundRendererById(backgroundRendererId);
 				m_backgroundRenderer.setDisplay(m_backgroundDisplay);
+				//add to displaystack for later sorting
+				m_displayStack.push(
+				{
+					element : m_backgroundDisplay, 
+					index : -2, 
+					zIndex : 0
+				});
 			}
 			
 			var borderRendererId:String = m_currentStyles.borderRenderer || "";
@@ -1942,16 +1956,21 @@ package de.fork.ui
 				}
 				m_bordersDisplay = new Sprite();
 				m_bordersDisplay.name = "border_" + borderRendererId;
-				addChild(m_bordersDisplay);
+				m_contentDisplay.addChild(m_bordersDisplay);
 				m_borderRenderer = m_rootElement.uiRendererFactory().
 					borderRendererById(borderRendererId);
 				m_borderRenderer.setDisplay(m_bordersDisplay);
+				//add to displaystack for later sorting
+				m_displayStack.push(
+				{
+					element : m_bordersDisplay, 
+					index : -1, 
+					zIndex : 1
+				});
 			}
 			
-			m_bordersDisplay.x = m_positionOffset.x;
-			m_bordersDisplay.y = m_positionOffset.y;
-			m_backgroundDisplay.y = m_positionOffset.y;
-			m_backgroundDisplay.x = m_positionOffset.x;
+			m_backgroundDisplay.x = m_bordersDisplay.x = 0 - m_borderLeftWidth;
+			m_backgroundDisplay.y = m_bordersDisplay.y = 0 - m_borderTopWidth;
 			
 			m_backgroundRenderer.setSize(m_borderBoxWidth, m_borderBoxHeight);
 			m_backgroundRenderer.setStyles(m_currentStyles);
