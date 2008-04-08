@@ -1378,8 +1378,7 @@ package de.fork.ui
 				'paddingTop',
 				'paddingBottom',
 				'paddingLeft',
-				'paddingRight',
-				'width'
+				'paddingRight'
 			];
 			resolvePropsToValue(styles, propsResolvableToContainingWidth, parentW);
 			
@@ -1422,6 +1421,18 @@ package de.fork.ui
 						m_paddingLeft - m_paddingRight - 
 						m_borderLeftWidth - m_borderRightWidth;
 				}
+			}
+			else if (wProp.isRelativeValue())
+			{
+				var relevantWidth : Number = parentW;
+				if (m_positioningType == 'absolute')
+				{
+					relevantWidth = m_containingBlock.calculateContentWidth() + 
+						m_containingBlock.m_paddingLeft + 
+						m_containingBlock.m_paddingRight;
+				}
+				m_width = m_currentStyles.width = 
+					wProp.resolveRelativeValueTo(relevantWidth);
 			}
 			else
 			{
@@ -1549,7 +1560,7 @@ package de.fork.ui
 				collapsibleMargin = m_marginTop;
 			}
 			var totalAvailableWidth:Number = calculateContentWidth();
-			var currentLineBoxTop:Number = 0;
+			var currentLineBoxTop:Number = m_paddingTop;
 			var currentLineBoxHeight:Number = 0;
 			var currentLineBoxLeftBoundary:Number = 0;
 			var currentLineBoxRightBoundary:Number = totalAvailableWidth;
@@ -1632,15 +1643,14 @@ package de.fork.ui
 						else
 						{
 							//align right
-							child.x = totalAvailableWidth - 
-								child.m_borderBoxWidth - 
-								child.m_marginRight;
+							child.x = totalAvailableWidth - child.m_borderBoxWidth - 
+								child.m_marginRight - m_paddingRight;
 						}
 					}
 					else
 					{
 						//align left
-						child.x = child.m_marginLeft;
+						child.x = child.m_marginLeft + m_paddingLeft;
 					}
 				}
 				widestChildWidth = Math.max(child.x + 
@@ -1937,13 +1947,6 @@ package de.fork.ui
 				m_backgroundRenderer = m_rootElement.uiRendererFactory().
 					backgroundRendererById(backgroundRendererId);
 				m_backgroundRenderer.setDisplay(m_backgroundDisplay);
-				//add to displaystack for later sorting
-				m_displayStack.push(
-				{
-					element : m_backgroundDisplay, 
-					index : -2, 
-					zIndex : 0
-				});
 			}
 			
 			var borderRendererId:String = m_currentStyles.borderRenderer || "";
@@ -1960,14 +1963,22 @@ package de.fork.ui
 				m_borderRenderer = m_rootElement.uiRendererFactory().
 					borderRendererById(borderRendererId);
 				m_borderRenderer.setDisplay(m_bordersDisplay);
-				//add to displaystack for later sorting
-				m_displayStack.push(
-				{
-					element : m_bordersDisplay, 
-					index : -1, 
-					zIndex : 1
-				});
 			}
+			
+			//add to displaystack for later sorting
+			m_displayStack.push(
+			{
+				element : m_backgroundDisplay, 
+				index : -2, 
+				zIndex : 0
+			});
+			//add to displaystack for later sorting
+			m_displayStack.push(
+			{
+				element : m_bordersDisplay, 
+				index : -1, 
+				zIndex : 1
+			});
 			
 			m_backgroundDisplay.x = m_bordersDisplay.x = 0 - m_borderLeftWidth;
 			m_backgroundDisplay.y = m_bordersDisplay.y = 0 - m_borderTopWidth;
