@@ -187,12 +187,12 @@ package de.fork.ui
 	
 		public override function set width(value : Number) : void
 		{
-			m_instanceStyles.setStyle('width', value + "px");
+			setStyle('width', value + "px");
 		}
 		
 		public function set outerWidth(value : Number) : void
 		{
-			m_instanceStyles.setStyle('outerWidth', value + 'px');
+			setStyle('outerWidth', value + 'px');
 		}
 		public function get outerWidth() : Number
 		{
@@ -201,7 +201,7 @@ package de.fork.ui
 		
 		public override function set height(value:Number) : void
 		{
-			m_instanceStyles.setStyle('height', value + "px");
+			setStyle('height', value + "px");
 		}
 		
 		public function get outerHeight() : Number
@@ -210,7 +210,7 @@ package de.fork.ui
 		}
 		public function set outerHeight(value : Number) : void
 		{
-			m_instanceStyles.setStyle('outerHeight', value + 'px');
+			setStyle('outerHeight', value + 'px');
 		}
 		
 		public override function get top() : Number
