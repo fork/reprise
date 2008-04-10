@@ -53,9 +53,9 @@ package de.fork.ui
 		
 		protected var m_width : Number = 0;
 		protected var m_height : Number = 0;
-	
+		
 		protected var m_positionOffset : Point;
-	
+		
 		protected var m_leftIsAuto : Boolean;
 		protected var m_rightIsAuto : Boolean;
 		protected var m_topIsAuto : Boolean;
@@ -77,12 +77,14 @@ package de.fork.ui
 		protected var m_borderBottomLeftRadius : Number = 0;
 		protected var m_borderTopRightRadius : Number = 0;
 		protected var m_borderTopLeftRadius : Number = 0;
-	
+		
 		protected var m_stylesInvalidated : Boolean;
 		protected var m_skipNextValidation : Boolean;
-	
+		
 		protected var m_borderBoxHeight : Number = 0;
 		protected var m_borderBoxWidth : Number = 0;
+		protected var m_paddingBoxHeight : Number = 0;
+		protected var m_paddingBoxWidth : Number = 0;
 		
 		protected var m_borderRenderer : ICSSRenderer;
 		protected var m_backgroundRenderer : ICSSRenderer;
@@ -96,24 +98,24 @@ package de.fork.ui
 		protected var m_hScrollbar : Scrollbar;
 		
 		protected var m_dropShadowFilter : DropShadowFilter;
-	
+		
 		protected var m_nodeAttributes : Object;
-	
+		
 		protected var m_positionInFlow : int = 1;
 		protected var m_oldInFlowStatus : int = -1;
 		protected var m_oldOuterBoxDimension : Point;
-	
+		
 		protected var m_intrinsicWidth : Number = -1;
 		protected var m_intrinsicHeight : Number = -1;
-	
+		
 		protected var m_verticalFlowPosition : Number = 0;
-	
+		
 		protected var m_selectorPathChanged : Boolean;
-	
+		
 		protected var m_positioningType : String;
 		protected var m_float : String;
 		protected var m_displayStack : Array;
-	
+		
 		protected var m_dimensionsChanged : Boolean;
 		protected var m_specifiedDimensionsChanged : Boolean;
 		
@@ -1361,25 +1363,22 @@ package de.fork.ui
 			}
 			
 			rotation = m_currentStyles.rotation || 0;
-			
-			if (m_currentStyles.opacity == null)
-			{
-				m_currentStyles.opacity = 1;
-			}
-			alpha = 100 * (m_currentStyles.opacity);
+			opacity = m_currentStyles.opacity || 1;
 			
 			if (!m_currentStyles.outerWidth)
 			{
-				m_currentStyles.outerWidth = m_currentStyles.width + 
-					m_currentStyles.borderleftWidth + m_currentStyles.paddingLeft + 
-					m_currentStyles.borderRightWidth + m_currentStyles.paddingRight;
+				m_currentStyles.outerWidth = m_width + 
+					m_borderLeftWidth + m_paddingLeft + 
+					m_borderRightWidth + m_paddingRight;
 			}
 			if (!m_currentStyles.outerHeight)
 			{
-				m_currentStyles.outerHeight = m_currentStyles.height + 
-					m_currentStyles.borderTopWidth + m_currentStyles.paddingTop + 
-					m_currentStyles.borderBottomWidth + m_currentStyles.paddingBottom;
+				m_currentStyles.outerHeight = m_height + 
+					m_borderTopWidth + m_paddingTop + 
+					m_borderBottomWidth + m_paddingBottom;
 			}
+			m_paddingBoxWidth = m_paddingLeft + m_width + m_paddingRight;
+			m_paddingBoxHeight = m_paddingTop + m_height + m_paddingBottom;
 //			trace(m_selectorPath);
 //			trace(m_complexStyles);
 		}
@@ -1805,7 +1804,7 @@ package de.fork.ui
 					}
 					else if (!child.m_rightIsAuto)
 					{
-						child.x = child.m_containingBlock.calculateContentWidth() - 
+						child.x = child.m_containingBlock.m_paddingBoxWidth - 
 							child.m_borderBoxWidth - 
 							child.m_right - child.m_marginRight - absolutePosition.x;
 					}
@@ -1835,7 +1834,7 @@ package de.fork.ui
 					}
 					else if (!child.m_bottomIsAuto)
 					{
-						child.y = child.m_containingBlock.calculateContentHeight() - 
+						child.y = child.m_containingBlock.m_paddingBoxHeight - 
 							child.m_borderBoxHeight - child.m_bottom - 
 							child.m_marginBottom - absolutePosition.y;
 					}
