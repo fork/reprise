@@ -1021,6 +1021,26 @@ package de.fork.ui
 		
 		protected function applyDepthSorting() : void
 		{
+			//add to displaystack for later sorting
+			if (m_backgroundDisplay)
+			{
+				m_displayStack.push(
+				{
+					element : m_backgroundDisplay, 
+					index : -20, 
+					zIndex : 0
+				});
+			}
+			//add to displaystack for later sorting
+			if (m_bordersDisplay)
+			{
+				m_displayStack.push(
+				{
+					element : m_bordersDisplay, 
+					index : -10, 
+					zIndex : 1
+				});
+			}
 			//sort children by zIndex and declaration index
 			m_displayStack.sortOn(['zIndex', 'index'], Array.NUMERIC);
 			for (var i : int = 0; i < m_displayStack.length; i++)
@@ -1166,7 +1186,7 @@ package de.fork.ui
 			else
 			{
 				m_leftIsAuto = false;
-				m_left = Number(prop);
+				m_left = prop.valueOf() as Number;
 			}
 			prop = styles.getStyle('right');
 			if (!prop || prop.specifiedValue() == autoFlag)
@@ -1177,7 +1197,7 @@ package de.fork.ui
 			else
 			{
 				m_rightIsAuto = false;
-				m_right = Number(prop);
+				m_right = prop.valueOf() as Number;
 			}
 			prop = styles.getStyle('top');
 			if (!prop || prop.specifiedValue() == autoFlag)
@@ -1188,7 +1208,7 @@ package de.fork.ui
 			else
 			{
 				m_topIsAuto = false;
-				m_top = Number(prop);
+				m_top = prop.valueOf() as Number;
 			}
 			prop = styles.getStyle('bottom');
 			if (!prop || prop.specifiedValue() == autoFlag)
@@ -1199,7 +1219,7 @@ package de.fork.ui
 			else
 			{
 				m_bottomIsAuto = false;
-				m_bottom = Number(prop);
+				m_bottom = prop.valueOf() as Number;
 			}
 			
 			
@@ -1399,7 +1419,7 @@ package de.fork.ui
 					}
 					else
 					{
-						specOuterWidth = Number(outerWidthProp);
+						specOuterWidth = outerWidthProp.valueOf() as Number;
 					}
 					m_width = m_currentStyles.width = specOuterWidth - 
 						m_marginLeft - m_marginRight - 
@@ -1964,21 +1984,6 @@ package de.fork.ui
 				m_borderRenderer.setDisplay(m_bordersDisplay);
 			}
 			
-			//add to displaystack for later sorting
-			m_displayStack.push(
-			{
-				element : m_backgroundDisplay, 
-				index : -2, 
-				zIndex : 0
-			});
-			//add to displaystack for later sorting
-			m_displayStack.push(
-			{
-				element : m_bordersDisplay, 
-				index : -1, 
-				zIndex : 1
-			});
-			
 			m_backgroundDisplay.x = m_bordersDisplay.x = 0 - m_borderLeftWidth;
 			m_backgroundDisplay.y = m_bordersDisplay.y = 0 - m_borderTopWidth;
 			
@@ -2197,7 +2202,7 @@ package de.fork.ui
 			}
 			scrollbar.addEventListener(MouseEvent.CLICK, scrollbar_event);
 			return scrollbar;
-		}	
+		}
 		
 		protected function scrollbar_event(event : Event) : void
 		{
