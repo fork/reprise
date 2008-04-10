@@ -519,7 +519,7 @@ package de.fork.css
 			var classesArr:Array = segment.content().split("}");
 			classesArr.pop();
 			
-			for (var i : int = classesArr.length; i--;)
+			for (var i : int = 0; i < classesArr.length; i++)
 			{
 				var cssClassDefArr:Array = classesArr[i].split("{");
 				if (cssClassDefArr.length == 2)
