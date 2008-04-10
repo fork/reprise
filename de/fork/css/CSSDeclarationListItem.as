@@ -8,6 +8,7 @@ package de.fork.css
 		public var m_declarationSpecificity : Number;
 		public var m_declarationIndex : Number;
 		
+		protected var m_selector : String;
 		protected var m_selectorPattern : Array;
 		public var m_declaration : CSSDeclaration;
 		
@@ -18,6 +19,7 @@ package de.fork.css
 		public function CSSDeclarationListItem(selector : String, 
 			declaration : CSSDeclaration, index : Number, file : String = null) 
 		{
+			m_selector = selector;
 			var selectorStr : String = (("@" + selector.split(" ").join("@ @").
 				split("#").join("|#").split(":").join("|:").split(".").
 				join("|.")).split("||").join("|").split("|").join("@|@").
