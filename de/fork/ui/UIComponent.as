@@ -1459,12 +1459,11 @@ package de.fork.ui
 					var specOuterHeight : Number;
 					if (outerHeightProp.isRelativeValue())
 					{
-						specOuterHeight = 
-							Math.round(parentH / 100 * Number(outerHeightProp));
+						specOuterHeight = outerHeightProp.resolveRelativeValueTo(parentH);
 					}
 					else
 					{
-						specOuterHeight = Number(outerHeightProp);
+						specOuterHeight = outerHeightProp.valueOf() as Number;
 					}
 					m_height = m_currentStyles.height = specOuterHeight - 
 						m_marginTop - m_marginBottom - 
