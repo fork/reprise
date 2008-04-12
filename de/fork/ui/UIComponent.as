@@ -236,7 +236,10 @@ package de.fork.ui
 			if (!m_positionInFlow)
 			{
 				m_top = value;
-				y = value + m_marginTop;
+				var absolutePosition:Point = 
+					getPositionRelativeToContext(m_containingBlock);
+				absolutePosition.y -= y;
+				y = value + m_marginTop - absolutePosition.y;
 			}
 		}
 		public override function get left() : Number
@@ -260,7 +263,10 @@ package de.fork.ui
 			if (!m_positionInFlow)
 			{
 				m_left = value;
-				x = value + m_marginLeft;
+				var absolutePosition:Point = 
+					getPositionRelativeToContext(m_containingBlock);
+				absolutePosition.x -= x;
+				x = value + m_marginLeft - absolutePosition.x;
 			}
 		}
 		
@@ -1789,18 +1795,35 @@ package de.fork.ui
 					//only deal with children that derive from UIComponent
 					continue;
 				}
-				var absolutePosition:Point;
 				if (!child.m_positionInFlow && !child.m_float)
 				{
-					absolutePosition = 
+					var absolutePosition:Point = 
 						child.getPositionRelativeToContext(child.m_containingBlock);
 					absolutePosition.x -= child.x;
 					absolutePosition.y -= child.y;
 					
 					if (!child.m_leftIsAuto)
 					{
-						child.x = child.m_left + 
-							child.m_marginLeft - absolutePosition.x;
+						var childMarginLeft : CSSProperty = 
+							child.m_complexStyles.getStyle('marginLeft');
+						var childMarginRight : CSSProperty = 
+							child.m_complexStyles.getStyle('marginRight');
+						if (!child.m_rightIsAuto && 
+							childMarginLeft && childMarginLeft.isAuto() && 
+							childMarginRight && childMarginRight.isAuto())
+						{
+							//center horizontally if margin-left and margin-right 
+							//are both auto and left and right have values.
+							child.x = child.m_left + Math.round((
+								child.m_containingBlock.m_paddingBoxWidth - 
+								child.m_right - child.m_left) / 2 - 
+								child.m_borderBoxWidth /2);
+						}
+						else
+						{
+							child.x = child.m_left + 
+								child.m_marginLeft - absolutePosition.x;
+						}
 					}
 					else if (!child.m_rightIsAuto)
 					{
@@ -1814,7 +1837,7 @@ package de.fork.ui
 						var childMarginTop : CSSProperty = 
 							child.m_complexStyles.getStyle('marginTop');
 						var childMarginBottom : CSSProperty = 
-							child.m_complexStyles.getStyle('marginBotto');
+							child.m_complexStyles.getStyle('marginBottom');
 						if (!child.m_bottomIsAuto && 
 							childMarginTop && childMarginTop.isAuto() && 
 							childMarginBottom && childMarginBottom.isAuto())
