@@ -2267,5 +2267,22 @@ package de.fork.ui
 		protected function measure() : void
 		{
 		}
+		
+		protected override function unregisterChildView(child:UIObject) : void
+		{
+			if (child is UIComponent)
+			{
+				if (child.parent == m_contentDisplay)
+				{
+					m_contentDisplay.removeChild(child);
+					m_children.splice(m_children.indexOf(child), 1);
+					invalidate();
+				}
+			}
+			else
+			{
+				super.unregisterChildView(child);
+			}
+		}
 	}
 }
