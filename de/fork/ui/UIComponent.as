@@ -602,18 +602,14 @@ package de.fork.ui
 		*/
 		public override function set alpha(value:Number) : void
 		{
-			opacity = value / 100;
+			opacity = value;
 		}
 		/**
 		* getter for the alpha property
 		*/
 		public override function get alpha() : Number
 		{
-			if (m_currentStyles.opacity != null)
-			{
-				return m_currentStyles.opacity * 100;
-			}
-			return 100;
+			return opacity;
 		}
 		/**
 		* setter for the opacity property
