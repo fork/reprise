@@ -19,7 +19,7 @@ package de.fork.core
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
-		protected var m_baseView : DocumentView;
+		protected var m_rootElement : DocumentView;
 		protected var m_currentView : UIObject;
 		protected var m_lastView : UIObject;
 		protected var m_stageCheckTimer : Timer;
@@ -31,6 +31,11 @@ package de.fork.core
 		public function applicationURL() : String
 		{
 			return loaderInfo.url;
+		}
+		
+		public function rootElement() : DocumentView
+		{
+			return m_rootElement;
 		}
 		
 		
@@ -64,9 +69,9 @@ package de.fork.core
 		}
 		protected function createBaseView() : void
 		{
-			m_baseView = new DocumentView();
-			addChild(m_baseView);
-			m_baseView.setParent(m_baseView);
+			m_rootElement = new DocumentView();
+			addChild(m_rootElement);
+			m_rootElement.setParent(m_rootElement);
 		}
 		
 		/**
@@ -86,7 +91,7 @@ package de.fork.core
 				 lastView_hide);
 				m_lastView.hide();
 			}
-			m_currentView = m_baseView.addChildView(viewClass);
+			m_currentView = m_rootElement.addChildView(viewClass);
 			if (!m_lastView && !delayShow)
 			{
 				m_currentView.show();

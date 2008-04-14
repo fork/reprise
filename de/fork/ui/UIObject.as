@@ -754,7 +754,7 @@ package de.fork.ui {
 		
 		protected function unregisterChildView(child:UIObject) : void
 		{
-			if (child.parent == this))
+			if (child.parent == this)
 			{
 				removeChild(child);
 				invalidate();
