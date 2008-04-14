@@ -7,6 +7,7 @@ package de.fork.core
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
+	import flash.events.Event;
 	import flash.utils.Timer;
 	public class Application extends Sprite
 	{
@@ -39,6 +40,18 @@ package de.fork.core
 		public function Application()
 		{
 			ApplicationRegistry.instance().registerApplication(this);
+			if (stage)
+			{
+				initialize();
+			}
+			else
+			{
+				addEventListener(Event.ADDED_TO_STAGE, self_addedToStage, false, 0, true);
+			}
+		}
+		protected function self_addedToStage(event : Event) : void
+		{
+			removeEventListener(Event.ADDED_TO_STAGE, self_addedToStage);
 			initialize();
 		}
 		
