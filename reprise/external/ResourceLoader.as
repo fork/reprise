@@ -1,12 +1,12 @@
-package de.fork.external
+package reprise.external
 { 
-	import de.fork.commands.CompositeCommand;
-	import de.fork.commands.IAsynchronousCommand;
-	import de.fork.commands.ICommand;
-	import de.fork.commands.IProgressCommand;
-	import de.fork.data.collection.IndexedArray;
-	import de.fork.events.CommandEvent;
-	import de.fork.events.ResourceEvent;
+	import reprise.commands.CompositeCommand;
+	import reprise.commands.IAsynchronousCommand;
+	import reprise.commands.ICommand;
+	import reprise.commands.IProgressCommand;
+	import reprise.data.collection.IndexedArray;
+	import reprise.events.CommandEvent;
+	import reprise.events.ResourceEvent;
 	
 	public class ResourceLoader extends CompositeCommand
 		implements IProgressCommand

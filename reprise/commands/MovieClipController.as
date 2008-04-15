@@ -1,7 +1,7 @@
-package de.fork.commands
+package reprise.commands
 {
-	import de.fork.data.Range;
-	import de.fork.events.FrameEventBroadcaster;
+	import reprise.data.Range;
+	import reprise.events.FrameEventBroadcaster;
 	
 	
 	public class MovieClipController 

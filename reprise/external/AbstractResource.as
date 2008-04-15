@@ -1,10 +1,10 @@
-package de.fork.external
+package reprise.external
 { 
-	import de.fork.commands.AbstractAsynchronousCommand;
-	import de.fork.commands.TimeCommandExecutor;
-	import de.fork.events.CommandEvent;
-	import de.fork.events.ResourceEvent;
-	import de.fork.utils.Delegate;
+	import reprise.commands.AbstractAsynchronousCommand;
+	import reprise.commands.TimeCommandExecutor;
+	import reprise.events.CommandEvent;
+	import reprise.events.ResourceEvent;
+	import reprise.utils.Delegate;
 	
 	import flash.events.Event;
 	import flash.net.URLRequest;

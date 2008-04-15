@@ -1,7 +1,7 @@
-package de.fork.commands
+package reprise.commands
 {
-	import de.fork.core.ApplicationRegistry;
-	import de.fork.data.collection.HashMap;
+	import reprise.core.ApplicationRegistry;
+	import reprise.data.collection.HashMap;
 	
 	import flash.events.Event;
 	public class FrameCommandExecutor

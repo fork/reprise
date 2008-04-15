@@ -1,6 +1,6 @@
-package de.fork.commands { 
-	import de.fork.data.collection.HashMap;
-	import de.fork.utils.ProxyFunction;
+package reprise.commands { 
+	import reprise.data.collection.HashMap;
+	import reprise.utils.ProxyFunction;
 	
 	
 	import flash.utils.clearInterval;

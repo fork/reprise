@@ -1,8 +1,8 @@
-package de.fork.tweens { 
-	import de.fork.commands.IAsynchronousCommand;
-	import de.fork.core.GlobalMCManager;
-	import de.fork.events.CommandEvent;
-	import de.fork.events.TweenEvent;
+package reprise.tweens { 
+	import reprise.commands.IAsynchronousCommand;
+	import reprise.core.GlobalMCManager;
+	import reprise.events.CommandEvent;
+	import reprise.events.TweenEvent;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -273,7 +273,7 @@ package de.fork.tweens {
 		
 		public override function toString() : String
 		{
-			return "de.fork.tweens.SimpleTween";
+			return "reprise.tweens.SimpleTween";
 		}
 		
 		

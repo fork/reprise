@@ -1,4 +1,4 @@
-package de.fork.external
+package reprise.external
 { 
 	public interface IResourceProxyDelegate
 	{

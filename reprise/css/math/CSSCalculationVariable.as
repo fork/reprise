@@ -1,7 +1,7 @@
 /**
  * @author till
  */
-package de.fork.css.math
+package reprise.css.math
 {
 	public class CSSCalculationVariable 
 		extends AbstractCSSCalculation 

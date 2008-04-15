@@ -1,10 +1,10 @@
-package de.fork.controls
+package reprise.controls
 { 
-	import de.fork.ui.UIComponent;
+	import reprise.ui.UIComponent;
 	
 	import flash.display.DisplayObject;
 	import flash.events.MouseEvent;
-	import de.fork.events.MouseEventConstants;
+	import reprise.events.MouseEventConstants;
 	
 	public class AbstractButton extends UIComponent
 	{

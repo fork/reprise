@@ -1,4 +1,4 @@
-package de.fork.utils { 
+package reprise.utils { 
 	/**
 	 * This is a Delegate class which is similar to mx.utils.Delegate.
 	 * The advantage is compatibility to mtasc and the ability to add parameters

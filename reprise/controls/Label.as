@@ -1,10 +1,10 @@
-package de.fork.controls
+package reprise.controls
 { 
-	import de.fork.css.CSS;
-	import de.fork.css.CSSDeclaration;
-	import de.fork.css.CSSProperty;
-	import de.fork.events.LabelEvent;
-	import de.fork.ui.UIComponent;
+	import reprise.css.CSS;
+	import reprise.css.CSSDeclaration;
+	import reprise.css.CSSProperty;
+	import reprise.events.LabelEvent;
+	import reprise.ui.UIComponent;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;

@@ -1,6 +1,6 @@
-package de.fork.external
+package reprise.external
 { 
-	import de.fork.commands.IProgressCommand;
+	import reprise.commands.IProgressCommand;
 	
 	
 	public interface IResource extends IProgressCommand

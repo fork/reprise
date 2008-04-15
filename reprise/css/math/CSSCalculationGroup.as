@@ -1,9 +1,9 @@
 /**
  * @author till
  */
-package de.fork.css.math
+package reprise.css.math
 {
-	import de.fork.css.CSS;
+	import reprise.css.CSS;
 	
 	public class CSSCalculationGroup extends AbstractCSSCalculation
 	{

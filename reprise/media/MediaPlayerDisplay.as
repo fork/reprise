@@ -1,7 +1,7 @@
-package de.fork.media
+package reprise.media
 { 
-	import de.fork.events.MediaPlayerDisplayEvent;
-	import de.fork.utils.ProxyFunction;
+	import reprise.events.MediaPlayerDisplayEvent;
+	import reprise.utils.ProxyFunction;
 	
 	import flash.display.MovieClip;
 	import flash.events.EventDispatcher;

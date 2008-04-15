@@ -1,11 +1,11 @@
-package de.fork.css.propertyparsers { 
-	import de.fork.css.CSSParsingHelper;
-	import de.fork.css.CSSParsingResult;
-	import de.fork.css.CSSProperty;
-	import de.fork.css.CSSPropertyParser;
-	import de.fork.data.AdvancedColor;
-	import de.fork.geom.Vector;
-	import de.fork.utils.StringUtil;
+package reprise.css.propertyparsers { 
+	import reprise.css.CSSParsingHelper;
+	import reprise.css.CSSParsingResult;
+	import reprise.css.CSSProperty;
+	import reprise.css.CSSPropertyParser;
+	import reprise.data.AdvancedColor;
+	import reprise.geom.Vector;
+	import reprise.utils.StringUtil;
 	
 	import flash.filters.DropShadowFilter;
 	

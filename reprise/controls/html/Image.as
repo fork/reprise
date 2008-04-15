@@ -1,9 +1,9 @@
-package de.fork.controls.html
+package reprise.controls.html
 { 
-	import de.fork.events.DisplayEvent;
-	import de.fork.events.ResourceEvent;
-	import de.fork.external.BitmapResource;
-	import de.fork.ui.UIComponent;
+	import reprise.events.DisplayEvent;
+	import reprise.events.ResourceEvent;
+	import reprise.external.BitmapResource;
+	import reprise.ui.UIComponent;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;

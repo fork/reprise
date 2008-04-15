@@ -1,4 +1,4 @@
-package de.fork.data.collection
+package reprise.data.collection
 { 
 	public class HashMap
 	{

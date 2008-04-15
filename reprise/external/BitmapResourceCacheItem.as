@@ -1,6 +1,6 @@
-package de.fork.external { 
-	import de.fork.events.CommandEvent;
-	import de.fork.events.ResourceEvent;
+package reprise.external { 
+	import reprise.events.CommandEvent;
+	import reprise.events.ResourceEvent;
 	
 	import flash.display.BitmapData;
 	import flash.events.Event;

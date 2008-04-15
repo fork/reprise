@@ -1,5 +1,5 @@
-package de.fork.media { 
-	import de.fork.utils.ProxyFunction;
+package reprise.media { 
+	import reprise.utils.ProxyFunction;
 	
 	import flash.display.MovieClip;
 	import flash.display.Sprite;

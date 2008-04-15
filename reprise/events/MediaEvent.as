@@ -1,6 +1,6 @@
-package de.fork.events
+package reprise.events
 { 
-	import de.fork.media.IMediaPlayer;
+	import reprise.media.IMediaPlayer;
 	import flash.events.Event;
 	
 	/**

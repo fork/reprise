@@ -1,9 +1,9 @@
-package de.fork.css
+package reprise.css
 {
-	import de.fork.css.math.AbstractCSSCalculation;
-	import de.fork.css.math.CSSCalculationGroup;
-	import de.fork.css.math.CSSCalculationPercentage;
-	import de.fork.css.math.ICSSCalculationContext;
+	import reprise.css.math.AbstractCSSCalculation;
+	import reprise.css.math.CSSCalculationGroup;
+	import reprise.css.math.CSSCalculationPercentage;
+	import reprise.css.math.ICSSCalculationContext;
 	 
 	// @see http://www.w3.org/TR/REC-CSS2/cascade.html
 	public class CSSProperty

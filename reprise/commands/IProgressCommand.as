@@ -1,6 +1,6 @@
-package de.fork.commands
+package reprise.commands
 { 
-	import de.fork.commands.IAsynchronousCommand;
+	import reprise.commands.IAsynchronousCommand;
 	
 	public interface IProgressCommand extends IAsynchronousCommand
 	{

@@ -1,9 +1,9 @@
-package de.fork.css.propertyparsers
+package reprise.css.propertyparsers
 {
-	import de.fork.css.CSS;
-	import de.fork.css.CSSPropertyParser;
-	import de.fork.utils.ProxyFunction;
-	import de.fork.utils.StringUtil;
+	import reprise.css.CSS;
+	import reprise.css.CSSPropertyParser;
+	import reprise.utils.ProxyFunction;
+	import reprise.utils.StringUtil;
 	
 	
 	public dynamic class RuntimeParser extends CSSPropertyParser

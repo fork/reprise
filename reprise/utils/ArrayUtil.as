@@ -1,4 +1,4 @@
-﻿package de.fork.utils
+﻿package reprise.utils
 {
 	 /**
 	 * Array related utility functions

@@ -1,4 +1,4 @@
-package de.fork.i18n
+package reprise.i18n
 {
 	/**
 	 * @author till

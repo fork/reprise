@@ -1,6 +1,6 @@
-package de.fork.ui.renderers
+package reprise.ui.renderers
 { 
-	import de.fork.css.CSSDeclaration;
+	import reprise.css.CSSDeclaration;
 	
 	import flash.display.Sprite;
 	

@@ -1,4 +1,4 @@
-package de.fork.css
+package reprise.css
 {
 	public class CSSDeclarationList
 	{

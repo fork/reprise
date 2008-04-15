@@ -1,8 +1,8 @@
-package de.fork.core
+package reprise.core
 { 
-	import de.fork.events.DisplayEvent;
-	import de.fork.ui.DocumentView;
-	import de.fork.ui.UIObject;
+	import reprise.events.DisplayEvent;
+	import reprise.ui.DocumentView;
+	import reprise.ui.UIObject;
 	
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -77,7 +77,7 @@ package de.fork.core
 		/**
 		 * creates a new UIComponent, replacing the current one, by calling the static 
 		 * <code>create</code> method on the given class
-		 * The class <b>has</b> to extend {@link de.fork.ui.UIComponent.UIComponent} and 
+		 * The class <b>has</b> to extend {@link reprise.ui.UIComponent.UIComponent} and 
 		 * implement a static create method returning an instance of the class.
 		 * (Unfortunately, there's no way to enforce any of this in AS.)
 		 */

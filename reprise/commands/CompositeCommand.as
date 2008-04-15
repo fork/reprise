@@ -1,6 +1,6 @@
-package de.fork.commands { 
-	import de.fork.data.collection.IndexedArray;
-	import de.fork.events.CommandEvent;
+package reprise.commands { 
+	import reprise.data.collection.IndexedArray;
+	import reprise.events.CommandEvent;
 	
 	import flash.events.Event;
 	

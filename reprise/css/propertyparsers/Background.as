@@ -1,9 +1,9 @@
-package de.fork.css.propertyparsers { 
-	import de.fork.css.CSSProperty;
-	import de.fork.css.CSSPropertyParser;
-	import de.fork.css.CSSParsingHelper;
-	import de.fork.css.CSSParsingResult;
-	import de.fork.utils.StringUtil;
+package reprise.css.propertyparsers { 
+	import reprise.css.CSSProperty;
+	import reprise.css.CSSPropertyParser;
+	import reprise.css.CSSParsingHelper;
+	import reprise.css.CSSParsingResult;
+	import reprise.utils.StringUtil;
 	
 	
 	public class Background extends CSSPropertyParser

@@ -1,6 +1,6 @@
-package de.fork.utils
+package reprise.utils
 { 
-	import de.fork.commands.ICommand;	
+	import reprise.commands.ICommand;	
 	
 	import flash.events.EventDispatcher;
 	

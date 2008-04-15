@@ -1,4 +1,4 @@
-package de.fork.external
+package reprise.external
 { 
 	import flash.xml.XMLDocument;
 	public class XMLResource extends FileResource

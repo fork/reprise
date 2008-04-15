@@ -1,6 +1,6 @@
-package de.fork.events
+package reprise.events
 { 
-	import de.fork.external.HTTPStatus;
+	import reprise.external.HTTPStatus;
 	
 	import flash.events.Event;
 	

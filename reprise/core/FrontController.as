@@ -1,7 +1,7 @@
-package de.fork.core { 
-	import de.fork.commands.ICommand;
-	import de.fork.events.EventBroadcaster;
-	import de.fork.ui.DocumentView;
+package reprise.core { 
+	import reprise.commands.ICommand;
+	import reprise.events.EventBroadcaster;
+	import reprise.ui.DocumentView;
 	
 	import flash.events.Event;
 	

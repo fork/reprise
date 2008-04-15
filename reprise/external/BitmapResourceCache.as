@@ -1,7 +1,7 @@
-package de.fork.external
+package reprise.external
 { 
-	import de.fork.data.collection.IndexedArray;
-	import de.fork.events.CommandEvent;
+	import reprise.data.collection.IndexedArray;
+	import reprise.events.CommandEvent;
 	
 	import flash.events.Event;
 	public class BitmapResourceCache

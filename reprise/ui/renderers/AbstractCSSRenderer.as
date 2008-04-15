@@ -1,5 +1,5 @@
-package de.fork.ui.renderers { 
-	import de.fork.css.CSSDeclaration;
+package reprise.ui.renderers { 
+	import reprise.css.CSSDeclaration;
 	
 	import flash.display.Sprite;
 	public class AbstractCSSRenderer

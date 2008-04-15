@@ -1,14 +1,14 @@
-package de.fork.css
+package reprise.css
 {	
-	import de.fork.core.Application;
-	import de.fork.core.ApplicationRegistry;
-	import de.fork.css.propertyparsers.RuntimeParser;
-	import de.fork.data.collection.IndexedArray;
-	import de.fork.events.CommandEvent;
-	import de.fork.events.ResourceEvent;
-	import de.fork.external.IResource;
-	import de.fork.external.ResourceLoader;
-	import de.fork.utils.StringUtil;
+	import reprise.core.Application;
+	import reprise.core.ApplicationRegistry;
+	import reprise.css.propertyparsers.RuntimeParser;
+	import reprise.data.collection.IndexedArray;
+	import reprise.events.CommandEvent;
+	import reprise.events.ResourceEvent;
+	import reprise.external.IResource;
+	import reprise.external.ResourceLoader;
+	import reprise.utils.StringUtil;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;

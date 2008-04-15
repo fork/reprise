@@ -1,6 +1,6 @@
-package de.fork.commands
+package reprise.commands
 { 
-	import de.fork.commands.ICommand;
+	import reprise.commands.ICommand;
 	
 	public interface IAsynchronousCommand extends ICommand
 	{

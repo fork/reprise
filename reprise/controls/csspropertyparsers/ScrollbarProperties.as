@@ -1,7 +1,7 @@
-package de.fork.controls.csspropertyparsers
+package reprise.controls.csspropertyparsers
 { 
-	import de.fork.css.CSSProperty;
-	import de.fork.css.CSSPropertyParser;
+	import reprise.css.CSSProperty;
+	import reprise.css.CSSPropertyParser;
 	/**
 	 * @author Till Schneidereit
 	 */

@@ -1,4 +1,4 @@
-package de.fork.core
+package reprise.core
 { 
 	public class ApplicationRegistry
 	{

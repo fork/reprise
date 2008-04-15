@@ -1,5 +1,5 @@
-package de.fork.events { 
-	import de.fork.commands.ICommand;	
+package reprise.events { 
+	import reprise.commands.ICommand;	
 	
 	import flash.events.Event;
 	

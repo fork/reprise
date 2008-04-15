@@ -1,4 +1,4 @@
-package de.fork.events
+package reprise.events
 {
 	public class MouseEventConstants
 	{

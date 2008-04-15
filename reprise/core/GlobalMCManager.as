@@ -1,4 +1,4 @@
-package de.fork.core
+package reprise.core
 { 
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Sprite;

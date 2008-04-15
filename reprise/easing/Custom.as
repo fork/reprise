@@ -1,4 +1,4 @@
-package de.fork.easing
+package reprise.easing
 { 
 	/**
 	 * @author °°*Joachim Fraatz

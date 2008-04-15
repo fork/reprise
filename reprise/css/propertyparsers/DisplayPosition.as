@@ -1,6 +1,6 @@
-package de.fork.css.propertyparsers { 
-	import de.fork.css.CSSProperty;
-	import de.fork.css.CSSPropertyParser;
+package reprise.css.propertyparsers { 
+	import reprise.css.CSSProperty;
+	import reprise.css.CSSPropertyParser;
 	
 	
 	

@@ -1,6 +1,6 @@
-package de.fork.css
+package reprise.css
 { 
-	import de.fork.external.FileResource;
+	import reprise.external.FileResource;
 	
 	public class CSSImport extends FileResource
 	{

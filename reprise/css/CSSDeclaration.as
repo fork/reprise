@@ -1,15 +1,15 @@
-package de.fork.css
+package reprise.css
 { 
-	import de.fork.controls.csspropertyparsers.ScrollbarProperties;
-	import de.fork.css.propertyparsers.Background;
-	import de.fork.css.propertyparsers.Border;
-	import de.fork.css.propertyparsers.DefaultParser;
-	import de.fork.css.propertyparsers.DisplayPosition;
-	import de.fork.css.propertyparsers.Filters;
-	import de.fork.css.propertyparsers.Font;
-	import de.fork.css.propertyparsers.Margin;
-	import de.fork.css.propertyparsers.Padding;
-	import de.fork.utils.StringUtil;
+	import reprise.controls.csspropertyparsers.ScrollbarProperties;
+	import reprise.css.propertyparsers.Background;
+	import reprise.css.propertyparsers.Border;
+	import reprise.css.propertyparsers.DefaultParser;
+	import reprise.css.propertyparsers.DisplayPosition;
+	import reprise.css.propertyparsers.Filters;
+	import reprise.css.propertyparsers.Font;
+	import reprise.css.propertyparsers.Margin;
+	import reprise.css.propertyparsers.Padding;
+	import reprise.utils.StringUtil;
 	
 	import flash.text.StyleSheet;
 	import flash.utils.describeType;

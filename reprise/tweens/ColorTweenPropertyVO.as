@@ -1,6 +1,6 @@
-package de.fork.tweens
+package reprise.tweens
 {
-	import de.fork.utils.ColorUtil;
+	import reprise.utils.ColorUtil;
 	
 	
 	public class ColorTweenPropertyVO extends TweenedPropertyVO

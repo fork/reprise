@@ -1,9 +1,9 @@
-package de.fork.css
+package reprise.css
 { 
-	import de.fork.data.AdvancedColor;
-	import de.fork.data.URL;
-	import de.fork.utils.PathUtil;
-	import de.fork.utils.StringUtil;
+	import reprise.data.AdvancedColor;
+	import reprise.data.URL;
+	import reprise.utils.PathUtil;
+	import reprise.utils.StringUtil;
 	
 	public class CSSParsingHelper
 	{

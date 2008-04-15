@@ -1,5 +1,5 @@
-package de.fork.tweens { 
-	import de.fork.events.TweenEvent;
+package reprise.tweens { 
+	import reprise.events.TweenEvent;
 	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -133,7 +133,7 @@ package de.fork.tweens {
 		
 		public override function toString() : String
 		{
-			return "de.fork.tweens.TweenChain";
+			return "reprise.tweens.TweenChain";
 		}
 		
 		

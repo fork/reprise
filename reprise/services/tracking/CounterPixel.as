@@ -1,4 +1,4 @@
-package de.fork.services.tracking
+package reprise.services.tracking
 { 
 	/**
 	 * @author Till Schneidereit
@@ -23,7 +23,7 @@ package de.fork.services.tracking
 	 * If you enable debugging with {@link CounterPixel#setDebug}, the 
 	 * CounterPixels are traced as well.
 	 */
-	import de.fork.core.ApplicationRegistry;
+	import reprise.core.ApplicationRegistry;
 	
 	import flash.system.System;
 	public class CounterPixel implements ITrackingService

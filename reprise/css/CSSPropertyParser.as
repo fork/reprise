@@ -1,5 +1,5 @@
-package de.fork.css { 
-	import de.fork.utils.StringUtil;
+package reprise.css { 
+	import reprise.utils.StringUtil;
 	
 	
 	public class CSSPropertyParser

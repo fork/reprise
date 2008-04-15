@@ -1,6 +1,6 @@
-package de.fork.ui.renderers { 
-	import de.fork.commands.FrameCommandExecutor;
-	import de.fork.utils.Delegate;
+package reprise.ui.renderers { 
+	import reprise.commands.FrameCommandExecutor;
+	import reprise.utils.Delegate;
 	
 	
 	public class DefaultTooltipRenderer extends AbstractTooltip

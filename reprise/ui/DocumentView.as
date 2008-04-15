@@ -1,13 +1,13 @@
-package de.fork.ui
+package reprise.ui
 { 
-	import de.fork.core.UIRendererFactory;
-	import de.fork.core.ccInternal;
-	import de.fork.css.CSS;
-	import de.fork.css.CSSDeclaration;
-	import de.fork.css.CSSProperty;
-	import de.fork.data.collection.HashMap;
-	import de.fork.i18n.II18NService;
-	import de.fork.services.tracking.ITrackingService;
+	import reprise.core.UIRendererFactory;
+	import reprise.core.ccInternal;
+	import reprise.css.CSS;
+	import reprise.css.CSSDeclaration;
+	import reprise.css.CSSProperty;
+	import reprise.data.collection.HashMap;
+	import reprise.i18n.II18NService;
+	import reprise.services.tracking.ITrackingService;
 	
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
