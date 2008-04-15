@@ -1,5 +1,7 @@
 package reprise.css
 { 
+	import flash.text.StyleSheet;
+	
 	import reprise.controls.csspropertyparsers.ScrollbarProperties;
 	import reprise.css.propertyparsers.Background;
 	import reprise.css.propertyparsers.Border;
@@ -10,9 +12,6 @@ package reprise.css
 	import reprise.css.propertyparsers.Margin;
 	import reprise.css.propertyparsers.Padding;
 	import reprise.utils.StringUtil;
-	
-	import flash.text.StyleSheet;
-	import flash.utils.describeType;
 	public class CSSDeclaration
 	{
 		/***************************************************************************
@@ -86,29 +85,31 @@ package reprise.css
 			}
 			return decl;
 		}
-	
+		
 		public static function registerPropertyCollection(
-			cPropCol : Object /*CSSPropertyParser*/) : void
+			collection : Object /*CSSPropertyParser*/) : void
 		{
-			var i : Number = cPropCol.KNOWN_PROPERTIES.length;
-			var prop : String;
-			var defaultValues : Object;
-			var key : String;
-			
+			var properties : Array = collection.KNOWN_PROPERTIES;
+			var inheritableProperties : Object = collection.INHERITABLE_PROPERTIES || {};
+			var i : int = properties.length;
 			while (i--)
 			{
-				prop = String(cPropCol.KNOWN_PROPERTIES[i]);
-				m_propertyToParserTable[prop] = cPropCol;
-				if (cPropCol.INHERITABLE_PROPERTIES && 
-					cPropCol.INHERITABLE_PROPERTIES[prop])
+				var prop : String = String(properties[i]);
+				m_propertyToParserTable[prop] = 
+					collection["parse" + StringUtil.ucFirst(prop)];
+				if (inheritableProperties[prop])
+				{
 					m_inheritableProperties[prop] = true;
+				}
 			}
 			
-			defaultValues = cPropCol.defaultValues;
+			var defaultValues : Object = collection.defaultValues;
 			if (defaultValues)
 			{
-				for (key in defaultValues)
+				for (var key : String in defaultValues)
+				{
 					m_defaultValues[key] = defaultValues[key];
+				}
 			}
 		}
 		
@@ -338,69 +339,60 @@ package reprise.css
 		public function setValueForKeyDefinedInFile(
 			val:String, key:String, file:String = '') : void
 		{
-			var res : Object;
+			var result : Object;
 	//		if (!file)
 	//		{
-				res = CSSPropertyCache.propertyForKeyValue(key, val + file);
+				result = CSSPropertyCache.propertyForKeyValue(key, val + file);
 	//		}
-			if (!res)
+			if (!result)
 			{
-				var parser : Object = parserForProperty(key);
-				var setFunc : String;
-				
-				
-				if (parser == null)
-				{
-					setFunc = 'parseAnything';
-					parser = DefaultParser;
-				}
-				else
-				 	setFunc = "parse" + StringUtil.ucFirst(key);
-				
-				res = parser[setFunc](val, file);
-				CSSPropertyCache.setPropertyForKeyValue(key, val+(file || ""), res);
+				var parser : Function = parserForProperty(key);
+				result = parser(val, file);
+				CSSPropertyCache.setPropertyForKeyValue(key, val+(file || ""), result);
 			}
 			
-			if (res is CSSProperty)
+			if (result is CSSProperty)
 			{
-				m_properties[key] = res;
+				m_properties[key] = result;
 				return;
 			}
-			if (res is CSSParsingResult)
+			if (result is CSSParsingResult)
 			{
-				var props : Object = res.properties();
+				var props : Object = result.properties();
 				for (key in props)
+				{
 					m_properties[key] = props[key];
+				}
 				return;
 			}
 			var msg : String = 'c Parser for key "' + key + '" returned ';
-			msg += res == null ? 'null. Perhaps you didn\'t define the ' +
+			msg += result == null ? 'null. Perhaps you didn\'t define the ' +
 			'parser method as static? Or you probably gave the parser method ' +
 			'a wrong name. Or you even forgot to implement it. Double-check ' +
 			'and retry!' : 'value of wrong type.';
 			msg += 'Parsing property via DefaultParser (probably as String).';
 			
-			res = DefaultParser.parseAnything(val, file);
-			m_properties[key] = res;
+			result = DefaultParser.parseAnything(val, file);
+			m_properties[key] = result;
 			
 			trace(msg);
 		}	
 		
-		protected function parserForProperty(key : String) : Class
+		protected function parserForProperty(key : String) : Function
 		{
 			// get the name of the associated class
-			var klass : Class = CSSDeclaration.m_propertyToParserTable[key];
-			if (!klass)
+			var parser : Function = CSSDeclaration.m_propertyToParserTable[key];
+			if (parser == null)
 			{
+				parser = DefaultParser.parseAnything;
 				if (!m_thrownErrors[key])
 				{
 					trace('n No parser registered for css property "' + key + 
 						'". Parsing property via DefaultParser (probably as string).');
 					m_thrownErrors[key] = true;
 				}
-				return null;
 			}		
-			return klass;
+			return parser;
 		}
 		
 		protected static function registerDefaultProperties() : Boolean
@@ -414,6 +406,6 @@ package reprise.css
 			CSSDeclaration.registerPropertyCollection(ScrollbarProperties);
 			CSSDeclaration.registerPropertyCollection(Filters);
 			return true;
-		}	
+		}
 	}
 }
