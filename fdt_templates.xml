@@ -37,6 +37,17 @@ package ${enclosing_package}&#13;
 			super.initialize();&#13;
 			${cursor};	
 		}&#13;
+		&#13;
+		override public function toString() :String&#13;
+		{&#13;
+			var str:String = "\n${enclosing_type}:";&#13;
+			for (var i:String in this)&#13;
+			{&#13;
+				str += "\n\t" + i + " = " + this[i];&#13;
+			}&#13;
+			return str;&#13;
+		}&#13;
+	&#13;
 	}&#13;
 }
 </template>
@@ -54,7 +65,7 @@ package ${enclosing_package}&#13;
 	 * @author ${user}&#13;
 	 */&#13;
 	 &#13;
-	class ${enclosing_type} extends UIComponent&#13;
+	public class ${enclosing_type} extends UIComponent&#13;
 	{&#13;
 		/***************************************************************************&#13;
 		*							public properties							   *&#13;
@@ -97,7 +108,7 @@ package ${enclosing_package}&#13;
 	 * @author ${user}&#13;
 	 */&#13;
 	 &#13;
-	class ${enclosing_type} extends UIComponent&#13;
+	public class ${enclosing_type} extends UIComponent&#13;
 	{&#13;
 		/***************************************************************************&#13;
 		*							public properties							   *&#13;
@@ -157,6 +168,37 @@ package ${enclosing_package}&#13;
 			super.draw();&#13;
 			&#13;
 		}&#13;
+	}&#13;
+}
+</template>
+
+
+<template id="com.powerflasher.fdt.ui.editor.template.valueobject" name="value_object" 
+	description="classic vo" 
+	context="com.powerflasher.fdt.ui.editor.template.as3" enabled="true" 
+	deleted="false">
+package ${enclosing_package}&#13; 
+{&#13;
+	&#13;
+	/**&#13;
+	 * @author ${user}&#13;
+	 */&#13;
+	 &#13;
+	public class ${enclosing_type}&#13;
+	{&#13;
+		/***************************************************************************&#13;
+		*							public properties							   *&#13;
+		***************************************************************************/&#13;
+		&#13;
+		&#13;
+		/***************************************************************************&#13;
+		*							public methods								   *&#13;
+		***************************************************************************/&#13;
+		public function ${enclosing_type}()&#13;
+		{&#13;
+		&#13;
+		}&#13;
+		&#13;
 	}&#13;
 }
 </template>
