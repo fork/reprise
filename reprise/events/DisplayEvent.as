@@ -29,7 +29,7 @@ package reprise.events
 		public static const TOOLTIPDATA_CHANGED : String = 'tooltipDataChanged';
 		public static const LOAD_COMPLETE : String = 'loadComplete';
 		public static const LOAD_FAIL : String = 'loadFail';
-		public static const FIRST_DRAW : String = 'firstDraw';
+		public static const VALIDATION_COMPLETE : String = 'validationComplete';
 		
 		
 		/***************************************************************************

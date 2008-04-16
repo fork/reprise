@@ -704,7 +704,6 @@ package reprise.ui {
 			m_keyOrder = [];
 			createChildren();
 			invalidate();
-			dispatchEvent(new DisplayEvent(Event.INIT));
 		}
 		
 		/**
@@ -744,11 +743,12 @@ package reprise.ui {
 				m_firstDraw = false;
 				//call hook method:
 				beforeFirstDraw();
-				dispatchEvent(new DisplayEvent(DisplayEvent.FIRST_DRAW));
 			}
 			draw();
 			
 			m_isValidating = false;
+			
+			dispatchEvent(new DisplayEvent(DisplayEvent.VALIDATION_COMPLETE));
 		}
 		protected function validateChildren() : void
 		{
