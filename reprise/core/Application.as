@@ -10,16 +10,19 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 package reprise.core
-{ 
-	import reprise.events.DisplayEvent;
-	import reprise.ui.DocumentView;
-	import reprise.ui.UIObject;
-	
+{
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.utils.Timer;
+	
+	import reprise.css.CSS;
+	import reprise.events.DisplayEvent;
+	import reprise.external.IResource;
+	import reprise.external.ResourceLoader;
+	import reprise.ui.DocumentView;
+	import reprise.ui.UIObject;
 	public class Application extends Sprite
 	{
 		/***************************************************************************
@@ -30,10 +33,15 @@ package reprise.core
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
+		protected static const CSS_URL : String = 'style/main.css';
+		
 		protected var m_rootElement : DocumentView;
 		protected var m_currentView : UIObject;
 		protected var m_lastView : UIObject;
 		protected var m_stageCheckTimer : Timer;
+		
+		protected var m_resourceLoader : ResourceLoader;
+		protected var m_css : CSS;
 		
 		
 		/***************************************************************************
@@ -76,20 +84,62 @@ package reprise.core
 			stage.align = StageAlign.TOP_LEFT;
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			GlobalMCManager.instance(this);
-			createBaseView();
+			initResourceLoading();
 		}
-		protected function createBaseView() : void
+		
+		protected function initResourceLoading() : void
+		{
+			m_resourceLoader = new ResourceLoader();
+			m_resourceLoader.addEventListener(Event.COMPLETE, resource_complete);
+			loadDefaultResources();
+			loadResources();
+			m_resourceLoader.execute();
+		}
+		protected function loadDefaultResources() : void
+		{
+			var cssURL : String = stage.loaderInfo.parameters.css_url || 
+				(hasOwnProperty('cssURL') && this['cssURL'] !== undefined) || 
+				'flash/style.css';
+			if (cssURL)
+			{
+				m_css = addResource(new CSS(cssURL)) as CSS;
+			}
+		}
+		protected function loadResources() : void
+		{
+		}
+		
+		protected function addResource(resource : IResource) : IResource
+		{
+			m_resourceLoader.addResource(resource);
+			return resource;
+		}
+		protected function resource_complete(event : Event) : void
+		{
+			m_resourceLoader.removeEventListener(Event.COMPLETE, resource_complete);
+			initApplication();
+		}
+		
+		protected function initApplication() : void
+		{
+			createRootElement();
+			m_rootElement.styleSheet = m_css;
+			startApplication();
+		}
+		protected function createRootElement() : void
 		{
 			m_rootElement = new DocumentView();
 			addChild(m_rootElement);
 			m_rootElement.setParent(m_rootElement);
 		}
 		
+		protected function startApplication() : void
+		{
+		}
+		
 		/**
-		 * creates a new UIComponent, replacing the current one, by calling the static 
-		 * <code>create</code> method on the given class
-		 * The class <b>has</b> to extend {@link reprise.ui.UIComponent.UIComponent} and 
-		 * implement a static create method returning an instance of the class.
+		 * creates a new UIComponent, replacing the current one.
+		 * The class <strong>has</strong> to extend {@link reprise.ui.UIComponent}.
 		 * (Unfortunately, there's no way to enforce any of this in AS.)
 		 */
 		protected function showView(viewClass:Class, delayShow:Boolean) : UIObject
