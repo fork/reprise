@@ -1,7 +1,7 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 //
 //  Fork unstable media GmbH
-//  Copyright 2006-2007 Fork unstable media GmbH
+//  Copyright 2006-2008 Fork unstable media GmbH
 //  All Rights Reserved.
 //
 //  NOTICE: Fork unstable media permits you to use, modify, and distribute this
