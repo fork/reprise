@@ -70,7 +70,7 @@ package reprise.css {
 				prop.setUnit(CSSParsingHelper.extractUnitFromString(val));
 			}
 			
-			return {property : prop, filteredString : val};
+			return obj;
 		}
 		
 		
@@ -190,7 +190,7 @@ package reprise.css {
 					isTrue = true;
 					break;
 				}
-			}		
+			}
 			prop.setSpecifiedValue(isTrue);
 			return prop;		
 		}
@@ -263,6 +263,35 @@ package reprise.css {
 			res.addPropertyForKey(rectBottom, name + 'Bottom');
 			res.addPropertyForKey(rectLeft, name + 'Left');		
 			return res;
+		}
+		
+		protected static function strToMillisecondProperty(val:String, 
+			trueFlags:Array = null, file:String = null) : CSSProperty
+		{
+			var obj : Object = strToProperty(val, file);
+			var prop : CSSProperty = obj.property;
+			val = obj.filteredString;
+			
+			if (prop.inheritsValue())
+			{
+				return prop;
+			}
+			
+			var unit : String = CSSParsingHelper.extractUnitFromString(val);
+			var value : Number = parseFloat(val);
+			switch (unit)
+			{
+				case 's':
+				{
+					value *= 1000;
+				}
+				case 'ms' :
+				default :
+			}
+			prop.setUnit('ms');
+			prop.setSpecifiedValue(value);
+			
+			return prop;	
 		}
 	}
 }
