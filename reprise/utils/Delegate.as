@@ -51,6 +51,14 @@ package reprise.utils
 			m_method.apply(m_scope, args);
 		}
 		
+		public function scope() : Object
+		{
+			return m_scope;
+		}
+		public function setScope(scope : Object) : void
+		{
+			m_scope = scope;
+		}
 		public function setPriority(value : Number) : void
 		{
 			m_priority = value;
