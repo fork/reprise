@@ -11,9 +11,7 @@
 
 package reprise.events
 {
-	import flash.events.Event;
-	 
-	public class TweenEvent extends Event
+	public class TweenEvent extends CommandEvent
 	{
 		public static const START : String = 'start';
 		public static const TICK : String = 'tick';
@@ -21,7 +19,7 @@ package reprise.events
 		public var success : Boolean;	
 		
 	
-		public function TweenEvent(type : String, didSucceed:Boolean)
+		public function TweenEvent(type : String, didSucceed:Boolean = true)
 		{
 			super(type);
 			success = didSucceed;
