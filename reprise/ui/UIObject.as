@@ -457,7 +457,7 @@ package reprise.ui {
 		 * This method is mainly here to enable derived classes to implement more 
 		 * complex transitions that can be called using a uniform interface.
 		 */
-		public function show() : void
+		public function show(...args) : void
 		{
 			setVisibility(true);
 			show_complete();
@@ -468,7 +468,7 @@ package reprise.ui {
 		 * This method is mainly here to enable views to implement more complex 
 		 * transitions that can be called using a uniform interface.
 		 */
-		public function hide() : void
+		public function hide(...args) : void
 		{
 			hide_complete();
 		}

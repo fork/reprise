@@ -41,7 +41,7 @@ package reprise.ui.renderers {
 		}
 	
 		
-		public override function show() : void
+		public override function show(...args) : void
 		{
 			if (isFadingIn || (isVisible && !isFadingOut))
 				return;
@@ -52,7 +52,7 @@ package reprise.ui.renderers {
 			FrameCommandExecutor.instance().addCommand(fadeIn);
 		}
 		
-		public override function hide() : void
+		public override function hide(...args) : void
 		{
 			if (isFadingOut || (!isVisible && !isFadingIn))
 				return;
