@@ -16,10 +16,8 @@ package reprise.events
 		public static const START : String = 'start';
 		public static const TICK : String = 'tick';
 		
-		public var success : Boolean;	
-		
 	
-		public function TweenEvent(type : String, didSucceed:Boolean = true)
+		public function TweenEvent(type : String, didSucceed : Boolean = true)
 		{
 			super(type);
 			success = didSucceed;
