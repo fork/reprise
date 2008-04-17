@@ -11,6 +11,7 @@
 
 package reprise.utils
 {
+	import flash.events.Event;	
 	import flash.events.EventDispatcher;
 	
 	import reprise.commands.AbstractAsynchronousCommand;	
@@ -18,12 +19,11 @@ package reprise.utils
 	public class AsynchronousDelegate extends AbstractAsynchronousCommand
 	{
 		/***************************************************************************
-		*							private methods								   *
+		*							protected methods								   *
 		***************************************************************************/
-		private var m_executionDelegate : Delegate;
-		private var m_waitsForEvent : Boolean = false;
-		private var m_commandCompleteEventName : String;
-		
+		protected var m_executionDelegate : Delegate;
+		protected var m_waitsForEvent : Boolean = false;
+		protected var m_commandCompleteEventName : String;
 	
 	
 		/***************************************************************************
@@ -79,11 +79,10 @@ package reprise.utils
 		}
 		
 		
-		
 		/***************************************************************************
-		*							private methods								   *
+		*							protected methods								   *
 		***************************************************************************/
-		private function execution_complete() : void
+		protected function execution_complete(event : Event) : void
 		{
 			EventDispatcher(m_executionDelegate.scope()).removeEventListener(
 				m_commandCompleteEventName, execution_complete);
