@@ -248,7 +248,7 @@ package reprise.ui {
 			
 			if (m_children.length)
 			{
-				m_lastKeyChild.setNextKeyView(nextKeyView);
+				m_lastKeyChild && m_lastKeyChild.setNextKeyView(nextKeyView);
 				prevKeyView = m_lastKeyChild;
 			}
 			
