@@ -91,7 +91,7 @@ package reprise.ui.renderers
 			return m_target;
 		}
 		
-		public override function remove() : void
+		public override function remove(...args) : void
 		{
 			removeEventListenersFromTargets();
 			super.remove();

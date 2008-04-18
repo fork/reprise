@@ -480,7 +480,7 @@ package reprise.ui {
 		 * This is advisable if you use intervals or external resources that should 
 		 * be released once the element gets removed.
 		 */
-		public function remove() : void
+		public function remove(...args) : void
 		{
 			m_parentElement.unregisterChildView(this);
 		}

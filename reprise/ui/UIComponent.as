@@ -663,7 +663,7 @@ package reprise.ui
 		/**
 		 * removes the UIComponent from its' parents' display list
 		 */
-		public override function remove() : void
+		public override function remove(...args) : void
 		{
 			if (m_cssId)
 			{

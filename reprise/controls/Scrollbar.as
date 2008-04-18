@@ -215,7 +215,7 @@ package reprise.controls {
 		/**
 		 * clean up
 		 */
-		public override function remove() : void
+		public override function remove(...args) : void
 		{
 			clearInterval(m_scrollIntervalID);
 			super.remove();
