@@ -105,6 +105,11 @@ package reprise.commands {
 			m_failedCommands = [];
 		}
 		
+		public function length():uint
+		{
+			return m_pendingCommands.length + m_finishedCommands.length + m_currentCommands.length;
+		}
+		
 		public override function cancel() : void
 		{
 			var i : Number = m_currentCommands.length;
@@ -163,6 +168,7 @@ package reprise.commands {
 		
 		protected function executeNext() : void
 		{
+			trace('execute next');
 			if (m_pendingCommands.length == 0)
 			{
 				if (m_isExecutingAsynchronously && m_currentCommands.length == 0)
