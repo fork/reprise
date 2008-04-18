@@ -93,12 +93,23 @@ package reprise.core
 			m_resourceLoader.addEventListener(Event.COMPLETE, resource_complete);
 			loadDefaultResources();
 			loadResources();
-			m_resourceLoader.execute();
+			if (m_resourceLoader.length())
+			{
+				m_resourceLoader.execute();
+			}
+			else
+			{
+				initApplication();
+			}
 		}
 		protected function loadDefaultResources() : void
 		{
+			if (hasOwnProperty('cssURL') && this['cssURL'] == null)
+			{
+				return;
+			}
 			var cssURL : String = stage.loaderInfo.parameters.css_url || 
-				(hasOwnProperty('cssURL') && this['cssURL'] !== undefined) || 
+				(hasOwnProperty('cssURL') && this['cssURL']) || 
 				'flash/style.css';
 			if (cssURL)
 			{
