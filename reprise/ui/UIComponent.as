@@ -197,10 +197,14 @@ package reprise.ui
 		{
 			m_explicitContainingBlock = containingBlock;
 		}
-	
+		
 		public override function set width(value : Number) : void
 		{
 			setStyle('width', value + "px");
+		}
+		public override function get width() : Number
+		{
+			return m_width;
 		}
 		
 		public function set outerWidth(value : Number) : void
@@ -220,6 +224,10 @@ package reprise.ui
 		public override function set height(value:Number) : void
 		{
 			setStyle('height', value + "px");
+		}
+		public override function get height() : Number
+		{
+			return m_height;
 		}
 		
 		public function get outerHeight() : Number
