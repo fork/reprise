@@ -212,6 +212,11 @@ package reprise.ui
 			return m_currentStyles.outerWidth;
 		}
 		
+		public function get intrinsicWidth() : Number
+		{
+			return m_intrinsicWidth;
+		}
+		
 		public override function set height(value:Number) : void
 		{
 			setStyle('height', value + "px");
@@ -224,6 +229,11 @@ package reprise.ui
 		public function set outerHeight(value : Number) : void
 		{
 			setStyle('outerHeight', value + 'px');
+		}
+		
+		public function get intrinsicHeight() : Number
+		{
+			return m_intrinsicHeight;
 		}
 		
 		public override function get top() : Number
