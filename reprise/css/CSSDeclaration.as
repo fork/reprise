@@ -22,6 +22,7 @@ package reprise.css
 	import reprise.css.propertyparsers.Font;
 	import reprise.css.propertyparsers.Margin;
 	import reprise.css.propertyparsers.Padding;
+	import reprise.css.propertyparsers.Transition;
 	import reprise.utils.StringUtil;
 	public class CSSDeclaration
 	{
@@ -350,16 +351,12 @@ package reprise.css
 		public function setValueForKeyDefinedInFile(
 			val:String, key:String, file:String = '') : void
 		{
-			var result : Object;
-	//		if (!file)
-	//		{
-				result = CSSPropertyCache.propertyForKeyValue(key, val + file);
-	//		}
+			var result : Object = CSSPropertyCache.propertyForKeyValue(key, val + file);
 			if (!result)
 			{
 				var parser : Function = parserForProperty(key);
 				result = parser(val, file);
-				CSSPropertyCache.setPropertyForKeyValue(key, val+(file || ""), result);
+				CSSPropertyCache.setPropertyForKeyValue(key, val + file, result);
 			}
 			
 			if (result is CSSProperty)
@@ -416,6 +413,7 @@ package reprise.css
 			CSSDeclaration.registerPropertyCollection(Padding);
 			CSSDeclaration.registerPropertyCollection(ScrollbarProperties);
 			CSSDeclaration.registerPropertyCollection(Filters);
+			CSSDeclaration.registerPropertyCollection(Transition);
 			return true;
 		}
 	}

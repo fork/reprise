@@ -265,25 +265,36 @@ package reprise.css {
 			return res;
 		}
 		
-		protected static function strToMillisecondProperty(val:String, 
-			trueFlags:Array = null, file:String = null) : CSSProperty
+		protected static function strToDurationProperty(
+			str : String, file : String = null) : CSSProperty
 		{
-			var obj : Object = strToProperty(val, file);
+			var obj : Object = strToProperty(str, file);
 			var prop : CSSProperty = obj.property;
-			val = obj.filteredString;
+			str = obj.filteredString;
 			
 			if (prop.inheritsValue())
 			{
 				return prop;
 			}
 			
-			var unit : String = CSSParsingHelper.extractUnitFromString(val);
-			var value : Number = parseFloat(val);
+			var unitOffset : int = str.length;
+			while ('0123456789.'.indexOf(str.charAt(unitOffset - 1)) == -1)
+			{
+				unitOffset--;
+			}
+			var unit : String = 'ms';
+			if (unitOffset < str.length)
+			{
+				unit = str.substr(unitOffset);
+			}
+			
+			var value : Number = parseFloat(str);
 			switch (unit)
 			{
 				case 's':
 				{
 					value *= 1000;
+					break;
 				}
 				case 'ms' :
 				default :
