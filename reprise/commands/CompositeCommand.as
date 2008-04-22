@@ -168,7 +168,6 @@ package reprise.commands {
 		
 		protected function executeNext() : void
 		{
-			trace('execute next');
 			if (m_pendingCommands.length == 0)
 			{
 				if (m_isExecutingAsynchronously && m_currentCommands.length == 0)
