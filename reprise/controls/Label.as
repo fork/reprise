@@ -178,8 +178,6 @@ package reprise.controls
 			m_labelDisplay = new TextField();
 			m_labelDisplay = m_contentDisplay.addChild(m_labelDisplay) as TextField;
 			m_labelDisplay.name = 'labelDisplay';
-			m_labelDisplay.x = -2;
-			m_labelDisplay.y = -2;
 			m_labelDisplay.width = 20;
 			m_labelDisplay.height = 20;
 			m_labelDisplay.styleSheet = CSSDeclaration.TEXT_STYLESHEET;
@@ -255,7 +253,8 @@ package reprise.controls
 			}
 			if (m_stylesInvalidated || m_textSetExternally)
 			{
-				m_labelDisplay.x = -2;
+				m_labelDisplay.x = m_paddingLeft - 2;
+				m_labelDisplay.y = m_paddingTop - 2;
 				if (m_currentStyles.width)
 				{
 					m_labelDisplay.width = m_currentStyles.width + 6;
@@ -302,12 +301,12 @@ package reprise.controls
 						m_labelDisplay.width = m_labelDisplay.textWidth + 10;
 						if (m_textAlignment == 'right')
 						{
-							m_labelDisplay.x = 
-								m_currentStyles.width - m_labelDisplay.width + 2;
+							m_labelDisplay.x = m_paddingLeft + m_currentStyles.width - 
+								m_labelDisplay.width + 2;
 						}
 						else if (m_textAlignment == 'center')
 						{
-							m_labelDisplay.x = Math.round(
+							m_labelDisplay.x = m_paddingLeft + Math.round(
 								m_currentStyles.width / 2 - 
 								m_labelDisplay.width / 2);
 						}
