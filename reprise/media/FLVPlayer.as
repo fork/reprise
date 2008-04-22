@@ -9,279 +9,219 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-package reprise.media { 
-	import reprise.events.MediaEvent;
-	import reprise.utils.ProxyFunction;
+package reprise.media
+{
 	
-	import flash.display.MovieClip;
-	import flash.events.EventDispatcher;
-	import flash.media.Sound;
+	import flash.events.TimerEvent;
 	import flash.media.Video;
-	import flash.net.NetConnection;
 	import flash.net.NetStream;
-	import flash.utils.clearInterval;
-	import flash.utils.getTimer;
-	import flash.utils.setInterval;
+	import flash.media.SoundTransform;
+	import flash.events.NetStatusEvent;
+	import flash.utils.Timer;
+	import reprise.events.MediaEvent;
+	import reprise.external.IResource;
+	import reprise.external.FLVResource;
+	import reprise.media.AbstractPlayer;
 	
-	public class FLVPlayer extends EventDispatcher implements IMediaPlayer
+	
+	public class FLVPlayer extends AbstractPlayer
 	{
+
+		protected var m_stream:NetStream;
+		protected var m_video:Video;
+		protected var m_width:uint;
+		protected var m_framerate:uint;
+		protected var m_height:uint;
+		protected var m_soundTransform:SoundTransform;
+		protected var m_metadata:Object;
+		protected var m_buffered:Boolean = false;
 		
-		protected var m_nConn:NetConnection;
-		protected var m_nStream:NetStream;
 		
-		protected var m_sound:Sound;
-		protected var m_soundTarget:MovieClip;
 		
-		protected var m_videoView:Video;
-		
-		protected var m_loadingStartTime:Number;
-		
-		protected var m_lastPosition:Number;
-		protected var m_isPlaying:Boolean;
-		protected var m_isBuffering:Boolean;
-		
-		protected var m_checkBufferID:Number;
-		
-		protected var m_duration:Number = NaN;
-		protected var m_volume:Number;
-	
-		protected var m_metaData : Object;
-	
-		protected var m_videoWidth : Number;
-	
-		protected var m_videoHeight : Number;
-		
-		public function FLVPlayer (videoView:Video, soundTarget:MovieClip)
+		/***************************************************************************
+		*							public methods								   *
+		***************************************************************************/
+		public function FLVPlayer(resource:IResource, host:Video)
 		{
-			m_soundTarget = soundTarget;
-			m_videoView = videoView;
-			
-			m_nConn = new NetConnection ();
-			m_nConn.connect(null);
-			m_nStream = new NetStream (m_nConn);
-			
-			videoView.attachVideo(m_nStream);
-			soundTarget.attachAudio(m_nStream);
-			m_sound = new Sound (soundTarget);
-			m_volume = 100;
+			super();
+			setResource(resource);
+			setHost(host);
 		}
 		
-		public function load (source:String) : void
+		public override function setResource(resource:IResource):void
 		{
-			m_duration = 0;
-			
-			m_nStream.onMetaData = ProxyFunction.create(this, onMetaData);
-			m_nStream['onCuePoint'] = ProxyFunction.create(this, onCuePoint);
-			m_nStream.onStatus = ProxyFunction.create(this, onStreamStatusChange);
-			
-			m_loadingStartTime = getTimer ();
-			m_nStream.play(source);
-			pause ();
-			clearInterval (m_checkBufferID);
-			m_checkBufferID = setInterval (this, "checkBuffer", 50);
+			super.setResource(resource);
+			m_stream = NetStream(resource.content());
+			m_stream.client = this;
+			m_stream.addEventListener(NetStatusEvent.NET_STATUS, stream_netStatus);
+			m_soundTransform = m_stream.soundTransform = new SoundTransform(1.0, 0.0);
 		}
 		
-		public function play (offset:Number) : void
+		public function setHost(video:Video):void
 		{
-			if (offset === null)
+			m_video = video;
+		}
+		
+		public override function position():Number
+		{
+			if (state() == AbstractPlayer.STATE_PLAYING)
+				return m_stream.time;
+			else
+				return m_recentPosition;
+		}
+
+		public override function bytesLoaded():Number
+		{
+			return m_stream.bytesLoaded;
+		}
+
+		public override function bytesTotal():Number
+		{
+			return m_stream.bytesTotal;
+		}
+
+		public function width():Number
+		{
+			return m_width;
+		}
+
+		public function height():Number
+		{
+			return m_height;
+		}
+		
+		/*
+		* overridden in order to use the built in buffering mechanism of the netstream object 
+		*/
+		public override function isBuffered():Boolean
+		{
+			return m_buffered;
+		}
+
+		public override function bufferStatus():Number
+		{
+			return m_stream.bufferLength / (m_stream.bufferTime / 100);
+		}
+
+		protected override function updateBuffer():void
+		{
+			super.updateBuffer();
+			if (isLoaded() || isNaN(m_buffer.requiredBufferLength()))
 			{
-				offset = m_lastPosition;
-			}
-			m_nStream.seek(offset/1000);
-			m_nStream.pause(false);
-			m_isPlaying = true;
-			if (m_nStream.bytesLoaded > 2000)
-			{
-				setBuffering(false);
-			}
-		}
-		public function pause () : void
-		{
-			if (m_isPlaying)
-			{
-				m_lastPosition = m_nStream.time * 1000;
-				m_isPlaying = false;
-				m_nStream.pause(true);
-			}
-		}
-		public function resume () : void
-		{
-			this.play (m_lastPosition);
-		}
-		public function stop () : void
-		{
-			m_lastPosition = 0;
-			m_nStream.pause(true);
-			m_nStream.seek(0);
-			m_isPlaying = false;
-		}
-		
-		public function isPlaying () : Boolean
-		{
-			return m_isPlaying;
-		}
-		
-		public function setVolume (volume:Number) : void
-		{
-			if (volume > 100) volume = 100;
-			else if (volume < 0) volume = 0;
-			m_volume = volume;
-			m_sound.setVolume(volume);
-		}
-		public function getVolume () : Number
-		{
-			return m_volume;
-		}
-		
-		public function getBytesLoaded () : Number
-		{
-			return m_nStream.bytesLoaded;
-		}
-		public function getBytesTotal () : Number
-		{
-			return m_nStream.bytesTotal;
-		}
-		
-		public function getWidth () : Number
-		{
-			return m_videoWidth;
-		}
-		public function getHeight () : Number
-		{
-			return m_videoHeight;
-		}
-		
-		public function getDuration () : Number
-		{
-			return m_duration;
-		}
-		public function getDurationLoaded () : Number
-		{
-			if (m_duration === null) return null;
-			return m_duration / m_nStream.bytesTotal * m_nStream.bytesLoaded;
-		}
-		
-		public function getPosition () : Number
-		{
-			return m_nStream.time * 1000;
-		}
-		public function getLoadingTimeLeft () : Number
-		{
-			var loadingTime:Number = getTimer () - m_loadingStartTime;
-			var timeLeft:Number = loadingTime / 
-				m_nStream.bytesLoaded * m_nStream.bytesTotal - loadingTime;
-			return timeLeft;
-		}
-		
-		public function getPercentLoaded () : Number
-		{
-			if (m_nStream.bytesTotal < 50) return 0;
-			return m_nStream.bytesLoaded * 100 / m_nStream.bytesTotal;
-		}
-		
-		public function getMetaData() : Object
-		{
-			return m_metaData;
-		}
-		
-		public function destroy () : void {
-			clearInterval (m_checkBufferID);
-			m_nStream.close();
-			delete m_nStream;
-			delete m_nConn;
-			delete m_sound;
-		}
-		
-		
-		
-		protected function checkBuffer () : void
-		{
-			if (!m_duration) {
-				m_nStream.pause(true);
 				return;
 			}
-			if (m_isBuffering)
+			m_stream.bufferTime = m_buffer.requiredBufferLength();
+			if (m_stream.bufferLength >= m_stream.bufferTime)
 			{
-				var loadingTime:Number = getLoadingTimeLeft();
-				if (loadingTime*1.1 < getDuration () - m_lastPosition)
-				{
-					setBuffering (false);
-				}
-			}
-			else if (m_isPlaying)
-			{
-				if (m_nStream.bufferLength < 0.01 && 
-					m_nStream.time < m_duration / 1000 - 0.1)
-				{
-					setBuffering (true);
-				}
+				m_buffered = true;
 			}
 		}
-		
-		protected function onStreamStatusChange (status:Object) : void
+
+		/**
+		* Events thrown by NetConnection object
+		*/
+		public function onMetaData(info:Object):void 
 		{
-			if (status.level == 'error')
+			m_width = info.width;
+			m_height = info.height;
+			m_framerate = info.framerate;
+			m_duration = info.duration;
+			if (info.videodatarate && info.audiodatarate)
 			{
-				trace('f FLVPlayer Error: ' + status.code);
+				// videodatarate and audiodatarate are in Kbps
+				m_buffer.setMediaBitrate((info.videodatarate + info.audiodatarate) / 8 * 1024);
+			}
+			m_buffer.setMediaLength(m_duration);
+
+			if (isNaN(m_duration) || m_duration == 0)
+			{
+				broadcastError('Duration of video not embedded. Please reencode video with ' + 
+					'appropriate encoder which does handle this.', true);
 			}
 			
-			if (status.code == "NetStream.Play.Stop" && 
-				m_nStream.time * 1000 > m_duration - 1500)
-			{
-				m_isPlaying = false;
-				m_lastPosition = 0;
-				dispatchEvent(new MediaEvent(
-					MediaEvent.PLAYBACK_FINISH, true));
-			}
+			dispatchEvent(new MediaEvent(MediaEvent.DIMENSIONS_KNOWN));
 		}
-		protected function onMetaData (metaData:Object) : void
-		{
-			m_metaData = metaData;
-			m_duration = metaData.duration * 1000;
-			m_videoWidth = metaData.width;
-			m_videoHeight = metaData.height;
-			setBuffering(true);
-			delete m_nStream.onMetaData;
-			var event : MediaEvent = 
-				new MediaEvent(MediaEvent.VIDEO_INITIALIZE, true);
-			event.metaData = metaData;
-			dispatchEvent(event);
-		};
-		protected function onCuePoint(cuePointData:Object) : void
-		{
-			var event : MediaEvent = 
-				new MediaEvent(MediaEvent.CUE_POINT, true);
-			event.cuePoint = cuePointData;
-			dispatchEvent(event);
-		};
 		
-		protected function setBuffering(buffering:Boolean) : void
+		public function onCuePoint(info:Object):void 
 		{
-			//TODO: notify listeners of change
-			if (buffering)
+			trace("cuepoint: time=" + info.time + " name=" + info.name + " type=" + info.type);
+		}
+		
+		
+		
+		/***************************************************************************
+		*							protected methods							   *
+		***************************************************************************/
+		protected override function doLoad():void
+		{
+			m_video.attachNetStream(m_stream);
+			m_stream.play(m_source.url());
+			m_stream.pause();
+			m_video.clear();
+		}
+
+		protected override function doUnload():void
+		{
+			m_stream.close();
+			m_video.clear();
+		}
+
+		protected override function doPlay():void
+		{
+			m_stream.resume();
+		}
+
+		protected override function doPause():void
+		{
+			m_stream.pause();
+		}
+
+		protected override function doStop():void
+		{
+			m_stream.pause();
+			m_video.clear();
+		}
+
+		protected override function doSeek(offset:Number):void
+		{
+			m_stream.seek(offset);
+		}
+		
+		protected override function doSetVolume(vol:Number):void
+		{
+			m_soundTransform.volume = vol;
+			m_stream.soundTransform = m_soundTransform;
+		}
+		
+		protected function stream_netStatus(e:NetStatusEvent):void
+		{
+			if (state() == STATE_PREBUFFERING)
 			{
-				m_lastPosition = m_nStream.time * 1000;
-				m_isBuffering = true;
-				m_nStream.setBufferTime(10000);
-				m_nStream.pause(true);
-				m_sound.setVolume(0);
-				dispatchEvent(new MediaEvent(MediaEvent.BUFFERING, true));
+				return;
 			}
-			else
+
+			switch (e.info.code)
 			{
-				m_isBuffering = false;
-				m_nStream.setBufferTime(0.1);
-				if (m_isPlaying) {
-					m_nStream.pause(false);
-				}
-				m_sound.setVolume(m_volume);
-				dispatchEvent(new MediaEvent(
-					MediaEvent.PLAYBACK_START, true));
-			}
+				case "NetStream.Play.Stop" :
+					mediaReachedEnd();
+					break;
+
+				case "NetStream.Play.StreamNotFound" :
+					broadcastError("File " + m_source + " not found", true);
+					break;
+
+				case "NetStream.Buffer.Full" :
+					m_buffered = true;
+					break;
+
+				case "NetStream.Buffer.Flush" :
+					m_buffered = isLoaded();
+					break;
+
+				case "NetStream.Buffer.Empty" :
+					m_buffered = false;
+					break;
+			}		
 		}
 	}
-	
-	
-	
-	
 }

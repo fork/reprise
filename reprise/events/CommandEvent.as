@@ -16,6 +16,7 @@ package reprise.events {
 	
 	public class CommandEvent extends Event
 	{
+		public static const COMPLETE : String = 'completeCommandEvent';
 		public var success : Boolean;
 			
 		public function CommandEvent(type:String, didSucceed:Boolean = false)

@@ -28,9 +28,15 @@ package reprise.events
 		public static const BUFFERING : String = "buffering";
 		public static const VIDEO_INITIALIZE : String = "videoInitialize";
 		public static const CUE_POINT : String = "cuePoint";
+		public static const LOAD_COMPLETE : String = 'loadCompleteMediaEvent';
+		public static const PLAY_PROGRESS : String = 'playProgressMediaEvent';
+		public static const LOAD_PROGRESS : String = 'loadProgressMediaEvent';
+		public static const DIMENSIONS_KNOWN : String = 'dimensionsKnownMediaEvent';
+		public static const ERROR : String = 'errorMediaEvent';
 		
 		public var metaData : Object;
 		public var cuePoint : Object;
+		public var message : String;
 		
 		
 		/***************************************************************************

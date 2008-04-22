@@ -130,5 +130,11 @@ package reprise.utils {
 		{
 			return Math.atan2(y, x) * (180 / Math.PI);
 		}
+		
+		public static function round(value:Number, precision:uint = 0):Number
+		{
+			var pow:uint = Math.pow(10, precision);
+			return Math.round(value * pow) / pow;
+		}
 	}
 }

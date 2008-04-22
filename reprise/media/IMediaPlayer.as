@@ -15,31 +15,27 @@ package reprise.media
 	
 	public interface IMediaPlayer extends IEventDispatcher
 	{
-		function load(source : String) : void;
-		function play(offset : Number) : void;
-		function pause() : void;
-		function resume() : void;
-		function stop() : void;
+		public function load(source : String) : void;
+		public function play(offset : Number) : void;
+		public function pause() : void;
+		public function resume() : void;
+		public function stop() : void;
 	
-		function isPlaying() : Boolean;
+		public function isPlaying() : Boolean;
 	
-		function setVolume(volume : Number) : void;
-		function getVolume() : Number;
+		public function setVolume(volume : Number) : void;
+		public function getVolume() : Number;
 	
-		function getBytesLoaded() : Number;
-		function getBytesTotal() : Number;
+		public function getBytesLoaded() : Number;
+		public function getBytesTotal() : Number;
 	
-		function getDuration() : Number;
-		function getDurationLoaded() : Number;
-		function getPosition() : Number;
-		function getLoadingTimeLeft() : Number;
+		public function getDuration() : Number;
+		public function getDurationLoaded() : Number;
+		public function getPosition() : Number;
+		public function getLoadingTimeLeft() : Number;
 	
-		function getPercentLoaded() : Number;
+		public function getPercentLoaded() : Number;
 	
-		function destroy() : void;
-	}
-	
-	
-	
-	
+		public function destroy() : void;
+	}	
 }
