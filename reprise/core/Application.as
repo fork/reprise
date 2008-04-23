@@ -108,14 +108,15 @@ package reprise.core
 			{
 				return;
 			}
-			var cssURL : String = stage.loaderInfo.parameters.css_url || 
-				(hasOwnProperty('cssURL') && this['cssURL']) || 
-				'flash/style.css';
-			if (cssURL)
+			var cssURL:String = 'flash/styles.css';
+			if (hasOwnProperty('cssURL'))
 			{
-				m_css = addResource(new CSS(cssURL)) as CSS;
+				cssURL = this['cssURL'];
 			}
+			cssURL ||= stage.loaderInfo.parameters.css_url;
+			m_css = addResource(new CSS(cssURL)) as CSS;
 		}
+		
 		protected function loadResources() : void
 		{
 		}
