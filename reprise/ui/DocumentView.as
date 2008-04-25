@@ -11,8 +11,13 @@
 
 package reprise.ui
 { 
+	import flash.display.StageScaleMode;
+	import flash.events.Event;
+	import flash.utils.clearTimeout;
+	import flash.utils.getTimer;
+	import flash.utils.setTimeout;
+	
 	import reprise.core.UIRendererFactory;
-	import reprise.core.ccInternal;
 	import reprise.css.CSS;
 	import reprise.css.CSSDeclaration;
 	import reprise.css.CSSProperty;
@@ -20,16 +25,12 @@ package reprise.ui
 	import reprise.i18n.II18NService;
 	import reprise.services.tracking.ITrackingService;
 	
-	import flash.display.StageScaleMode;
-	import flash.events.Event;
-	import flash.utils.getTimer;
-	
 	public class DocumentView extends UIComponent
 	{
 		/***************************************************************************
 		*							public properties							   *
 		***************************************************************************/
-		public static var className : String = "html";
+		public static var className : String = "body";
 		
 		public var stageDimensionsChanged : Boolean;
 		
@@ -51,6 +52,8 @@ package reprise.ui
 		
 		protected var m_widthIsRelative : Boolean;
 		protected var m_heightIsRelative : Boolean;
+		
+		protected var m_stageInvalidationTimeout : int;
 		
 		/***************************************************************************
 		*							public methods								   *
@@ -199,8 +202,7 @@ package reprise.ui
 		public function markChildAsInvalid(child : UIObject) : void
 		{
 			//TODO: check if child.toString() is ok to use
-			m_invalidChildren.push(
-				{element : child, path : child.toString()});
+			m_invalidChildren.push({element : child, path : child.toString()});
 			stage.invalidate();
 		}
 		
@@ -221,6 +223,7 @@ package reprise.ui
 		
 		protected override function initDefaultStyles() : void
 		{
+			m_elementDefaultStyles.setStyle('frameRate', '24');
 			m_elementDefaultStyles.setStyle('width', '100%');
 			m_elementDefaultStyles.setStyle('height', '100%');
 			m_elementDefaultStyles.setStyle('padding', '0');
@@ -234,6 +237,11 @@ package reprise.ui
 		{
 			super.validateElement(forceValidation, validateStyles);
 			stageDimensionsChanged = false;
+		}
+		protected override function calculateStyles() : void
+		{
+			super.calculateStyles();
+			stage.frameRate = m_currentStyles.frameRate;
 		}
 		protected override function resolveRelativeStyles(styles:CSSDeclaration) : void
 		{
@@ -310,8 +318,13 @@ package reprise.ui
 			//validate elements that have been marked as invalid during validation
 			if (m_invalidChildren.length)
 			{
-				validateElements();
+				m_stageInvalidationTimeout = setTimeout(invalidateStage, 5);
 			}
+		}
+		protected function invalidateStage() : void
+		{
+			clearTimeout(m_stageInvalidationTimeout);
+			stage.invalidate();
 		}
 		
 		protected function stage_resize(event : Event) : void
