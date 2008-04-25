@@ -44,7 +44,8 @@ package reprise.css.propertyparsers {
 			'tooltipDelay',
 			'tooltipRenderer',
 			'blendMode',
-			'opacity'
+			'opacity',
+			'frameRate'
 			/* clip */
 		];
 		
@@ -213,6 +214,11 @@ package reprise.css.propertyparsers {
 		public static function parseOpacity(val:String, file:String):CSSProperty
 		{
 			return strToFloatProperty(val, file);
+		}
+		
+		public static function parseFrameRate(val:String, file:String):CSSProperty
+		{
+			return strToIntProperty(val, file);
 		}
 	}
 }
