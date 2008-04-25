@@ -11,15 +11,7 @@
 
 package reprise.ui
 {
-	import reprise.controls.Scrollbar;
-	import reprise.core.UIRendererFactory;
-	import reprise.css.CSSDeclaration;
-	import reprise.css.CSSProperty;
-	import reprise.css.math.ICSSCalculationContext;
-	import reprise.css.propertyparsers.Filters;
-	import reprise.ui.renderers.ICSSRenderer;
-	import reprise.utils.GfxUtil;
-	import reprise.utils.StringUtil;
+	import com.robertpenner.easing.Linear;
 	
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
@@ -28,6 +20,18 @@ package reprise.ui
 	import flash.filters.DropShadowFilter;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.utils.getTimer;
+	
+	import reprise.controls.Scrollbar;
+	import reprise.core.UIRendererFactory;
+	import reprise.css.CSSDeclaration;
+	import reprise.css.CSSProperty;
+	import reprise.css.math.ICSSCalculationContext;
+	import reprise.css.propertyparsers.Filters;
+	import reprise.css.transitions.ActiveTransitionVO;
+	import reprise.ui.renderers.ICSSRenderer;
+	import reprise.utils.GfxUtil;
+	import reprise.utils.StringUtil;
 	
 	public class UIComponent extends UIObject implements ICSSCalculationContext
 	{
@@ -54,8 +58,10 @@ package reprise.ui
 		protected var m_selectorPath : String;
 		protected var m_currentStyles : Object;
 		protected var m_complexStyles : CSSDeclaration;
+		protected var m_specifiedStyles : CSSDeclaration;
 		protected var m_elementDefaultStyles : CSSDeclaration;
 		protected var m_instanceStyles : CSSDeclaration;
+		protected var m_activeTransitions : Object;
 	
 		protected var m_left : Number = 0;
 		protected var m_top : Number = 0;
@@ -911,7 +917,7 @@ package reprise.ui
 			var oldSpecifiedDimensions : Point = 
 				new Point(m_currentStyles.width, m_currentStyles.height);
 			
-			if (m_stylesInvalidated)
+			if (m_stylesInvalidated || m_activeTransitions)
 			{
 				calculateStyles();
 				if (m_stylesInvalidated)
@@ -1152,7 +1158,7 @@ package reprise.ui
 			refreshSelectorPath();
 			
 			var styles:CSSDeclaration = m_elementDefaultStyles.clone();
-			var oldStyles:CSSDeclaration = m_complexStyles;
+			var oldStyles:CSSDeclaration = m_specifiedStyles;
 			
 			if (m_parentElement != this && m_parentElement is UIComponent)
 			{
@@ -1168,45 +1174,27 @@ package reprise.ui
 			
 			styles.mergeCSSDeclaration(m_instanceStyles);
 			
+			//check if styles or other relevant factors have changed and stop validation 
+			//if not.
 			if (!(m_containingBlock && m_containingBlock.m_specifiedDimensionsChanged) && 
-				styles.compare(oldStyles) && 
-				!(this == m_rootElement && 
-					DocumentView(this).stageDimensionsChanged))
+				styles.compare(oldStyles) && !m_activeTransitions && 
+				!(this == m_rootElement && DocumentView(this).stageDimensionsChanged))
 			{
 				m_stylesInvalidated = false;
 				return;
 			}
 			
-			var floatProperty : CSSProperty = styles.getStyle('float');
-			if (floatProperty != null && floatProperty.valueOf() != 'none')
-			{
-				m_float = floatProperty.valueOf() as String;
-			}
-			else
-			{
-				m_float = null;
-			}
+			m_specifiedStyles = styles;
+			styles = processTransitions(oldStyles, styles);
+			m_complexStyles = styles;
+			m_currentStyles = styles.toObject();
 			
-			var positioningProperty:CSSProperty = styles.getStyle('position');
-			var positioning:String;
-			if (!positioningProperty)
-			{
-				positioning = m_positioningType = 'static';
-			}
-			else
-			{
-				positioning = m_positioningType = 
-					String(positioningProperty.valueOf());
-			}
 			
-			if (!m_float && (positioning == 'static' || positioning == 'relative'))
-			{
-				m_positionInFlow = 1;
-			}
-			else
-			{
-				m_positionInFlow = 0;
-			}
+			resolvePositioningProperties(styles);
+			resolveContainingBlock();
+			resolveRelativeStyles(styles);
+			
+			
 			var autoFlag:String = CSSProperty.AUTO_FLAG;
 			
 			var prop:CSSProperty;
@@ -1255,51 +1243,13 @@ package reprise.ui
 				m_bottom = prop.valueOf() as Number;
 			}
 			
-			
 			m_positionOffset = new Point(0, 0);
-			if (positioning == 'relative')
+			if (m_positioningType == 'relative')
 			{
 				m_positionOffset.x = m_left;
 				m_positionOffset.y = m_top;
 			}
 			
-			/*resolve containing block.
-			 * The containing block is defined as follows:
-			 * - if an explicit containg block is provided using 
-			 * overrideContainingBlock, the override is used
-			 * - if the elements' position is 'static' or 'relative', its 
-			 * containing block is its parentElement
-			 * - if the elements' position is 'absolute', its containing block
-			 * is the next ancestor with a position other than 'static'
-			 * - if the elements' position is 'static', its containing block
-			 * is the viewPort
-			 */
-			 if (m_explicitContainingBlock)
-			 {
-				m_containingBlock = m_explicitContainingBlock;
-			}
-			else
-			{
-				var parentComponent:UIComponent = UIComponent(m_parentElement);
-				if (positioning == 'fixed')
-				{
-					m_containingBlock = m_rootElement;
-				}
-				else if (positioning == 'absolute')
-				{
-					var inspectedBlock:UIComponent = parentComponent;
-					while (inspectedBlock && 
-						inspectedBlock.m_positioningType == 'static')
-					{
-						inspectedBlock = inspectedBlock.m_containingBlock;
-					}
-					m_containingBlock = inspectedBlock;
-				}
-				else
-				{
-					m_containingBlock = parentComponent;
-				}
-			}
 			
 			//calculate border widths
 			var borderWidthProp : CSSProperty;
@@ -1353,10 +1303,6 @@ package reprise.ui
 				m_borderBottomWidth = 0;
 			}
 			
-			
-			m_complexStyles = styles;
-			m_currentStyles = styles.toObject();
-			resolveRelativeStyles(styles);
 	
 			if (m_currentStyles.tabIndex != null)
 			{
@@ -1412,6 +1358,199 @@ package reprise.ui
 			m_paddingBoxHeight = m_paddingTop + m_height + m_paddingBottom;
 //			trace(m_selectorPath);
 //			trace(m_complexStyles);
+		}
+		
+		protected function resolvePositioningProperties(styles : CSSDeclaration) : void
+		{
+			var floatProperty : CSSProperty = styles.getStyle('float');
+			if (floatProperty != null && floatProperty.valueOf() != 'none')
+			{
+				m_float = floatProperty.valueOf() as String;
+			}
+			else
+			{
+				m_float = null;
+			}
+			
+			var positioningProperty:CSSProperty = styles.getStyle('position');
+			var positioning:String;
+			if (!positioningProperty)
+			{
+				positioning = m_positioningType = 'static';
+			}
+			else
+			{
+				positioning = m_positioningType = 
+					String(positioningProperty.valueOf());
+			}
+			
+			if (!m_float && (positioning == 'static' || positioning == 'relative'))
+			{
+				m_positionInFlow = 1;
+			}
+			else
+			{
+				m_positionInFlow = 0;
+			}
+		}
+		
+		/**
+		 * resolves the element that acts as the containing block for this element.
+		 * 
+		 * The containing block is defined as follows:
+		 * - if an explicit containg block is provided using 
+		 * overrideContainingBlock, the override is used
+		 * - if the elements' position is 'static' or 'relative', its 
+		 * containing block is its parentElement
+		 * - if the elements' position is 'absolute', its containing block
+		 * is the next ancestor with a position other than 'static'
+		 * - if the elements' position is 'static', its containing block
+		 * is the viewPort
+		 */
+		protected function resolveContainingBlock() : void
+		{
+			 if (m_explicitContainingBlock)
+			 {
+				m_containingBlock = m_explicitContainingBlock;
+			}
+			else
+			{
+				var parentComponent:UIComponent = UIComponent(m_parentElement);
+				if (m_positioningType == 'fixed')
+				{
+					m_containingBlock = m_rootElement;
+				}
+				else if (m_positioningType == 'absolute')
+				{
+					var inspectedBlock:UIComponent = parentComponent;
+					while (inspectedBlock && 
+						inspectedBlock.m_positioningType == 'static')
+					{
+						inspectedBlock = inspectedBlock.m_containingBlock;
+					}
+					m_containingBlock = inspectedBlock;
+				}
+				else
+				{
+					m_containingBlock = parentComponent;
+				}
+			}
+		}
+		
+		protected function processTransitions(
+			oldStyles : CSSDeclaration, newStyles : CSSDeclaration) : CSSDeclaration
+		{
+			var transitionPropName : String;
+			var transition : ActiveTransitionVO;
+			var startTime : int = getTimer();
+			if (m_currentStyles.WebkitTransitionProperty)
+			{
+				var transitionProperties : Array = 
+					m_currentStyles.WebkitTransitionProperty;
+				var transitionDurations : Array = 
+					m_currentStyles.WebkitTransitionDuration;
+				var transitionDelays : Array = 
+					m_currentStyles.WebkitTransitionDelay;
+				var transitionEasings : Array = 
+					m_currentStyles.WebkitTransitionTimingFunction;
+				
+				//TODO: add support for modifying running transitions
+				//remove any transitions that aren't supposed to be active anymore
+				if (m_activeTransitions)
+				{
+					for (transitionPropName in m_activeTransitions)
+					{
+						if (transitionProperties.indexOf(transitionPropName) == -1)
+						{
+							delete m_activeTransitions[transitionPropName];
+						}
+					}
+				}
+				else
+				{
+					m_activeTransitions = {};
+				}
+				
+				//add all new properties and update already active ones
+				for (var i : int = transitionProperties.length; i--;)
+				{
+					transitionPropName = transitionProperties[i];
+					var oldValue : CSSProperty = (oldStyles && 
+						oldStyles.getStyle(transitionPropName)) as CSSProperty;
+					var targetValue : CSSProperty = 
+						newStyles.getStyle(transitionPropName);
+					
+					//ignore properties that don't have previous values or target values
+					//TODO: check if we can implement default values for new elements
+					if (!oldValue || !targetValue || 
+						oldValue.specifiedValue() == targetValue.specifiedValue())
+					{
+						continue;
+					}
+					if (transitionEasings[i])
+					{ 
+						var easing : Function =
+							transitionEasings[i].valueOf() as Function;
+					}
+					else
+					{
+						easing = Linear.easeNone;
+					}
+					transition = m_activeTransitions[transitionPropName];
+					if (!transition)
+					{
+						transition = new ActiveTransitionVO();
+						transition.property = transitionPropName;
+						transition.duration = transitionDurations[i];
+						transition.delay = transitionDelays[i];
+						transition.easing = easing;
+						transition.startTime = startTime;
+						transition.startValue = oldValue;
+						transition.endValue = targetValue;
+						m_activeTransitions[transitionPropName] = transition;
+					}
+					else if (transition.endValue != targetValue)
+					{
+						trace("update");
+						transition.easing = easing;
+						transition.updateValues(targetValue, transitionDurations[i], 
+							transitionDelays[i], startTime, this);
+					}
+				}
+			}
+			
+			if (!m_activeTransitions)
+			{
+				return newStyles;
+			}
+			
+			var styles : CSSDeclaration = newStyles.clone();
+			var activeTransitionsCount : int = 0;
+			for (transitionPropName in m_activeTransitions)
+			{
+				transition = m_activeTransitions[transitionPropName];
+				transition.setValueForTimeInContext(startTime, this);
+				styles.setPropertyForKey(transition.currentValue, transitionPropName);
+				if (transition.hasCompleted)
+				{
+					delete m_activeTransitions[transitionPropName];
+				}
+				else
+				{
+					activeTransitionsCount++;
+				}
+			}
+			
+			if (!activeTransitionsCount)
+			{
+				m_activeTransitions = null;
+			}
+			else
+			{
+				m_stylesInvalidated = true;
+				invalidate();
+			}
+			return styles;
 		}
 		
 		protected function resolveRelativeStyles(styles:CSSDeclaration) : void
