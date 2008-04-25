@@ -1853,7 +1853,7 @@ package reprise.ui
 					else if (!child.m_rightIsAuto)
 					{
 						child.x = child.m_containingBlock.m_paddingBoxWidth - 
-							child.m_borderBoxWidth - 
+							child.m_paddingBoxWidth - child.m_borderRightWidth - 
 							child.m_right - child.m_marginRight - absolutePosition.x;
 					}
 					
@@ -1883,8 +1883,8 @@ package reprise.ui
 					else if (!child.m_bottomIsAuto)
 					{
 						child.y = child.m_containingBlock.m_paddingBoxHeight - 
-							child.m_borderBoxHeight - child.m_bottom - 
-							child.m_marginBottom - absolutePosition.y;
+							child.m_paddingBoxHeight - child.m_borderBottomWidth - 
+							child.m_bottom - child.m_marginBottom - absolutePosition.y;
 					}
 				}
 				child.applyOutOfFlowChildPositions();
