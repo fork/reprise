@@ -297,6 +297,11 @@ package reprise.media
 			return m_startTime;
 		}
 		
+		public function loadProgress():Number
+		{
+			return bytesLoaded() / (bytesTotal() / 100);
+		}
+		
 		
 		
 		/***************************************************************************

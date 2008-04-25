@@ -151,7 +151,7 @@ package reprise.ui {
 			}
 			else
 			{
-				super.addChild(child);
+				m_contentDisplay.addChild(child);
 			}
 			return child;
 		}
@@ -168,7 +168,7 @@ package reprise.ui {
 			}
 			else
 			{
-				super.addChildAt(child, index);
+				m_contentDisplay.addChildAt(child, index);
 			}
 			return child;
 		}
