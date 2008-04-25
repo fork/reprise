@@ -141,12 +141,12 @@ package reprise.css
 			return m_specifiedValue == 'auto';
 		}
 		
-		public function specifiedValue() : Object
+		public function specifiedValue() : *
 		{
 			return m_specifiedValue;
 		}
 	
-		public function setSpecifiedValue(value : Object) : void
+		public function setSpecifiedValue(value : *) : void
 		{
 			m_specifiedValue = value;
 			if (value == 'auto')
@@ -163,6 +163,10 @@ package reprise.css
 				{
 					m_calculation = new CSSCalculationPercentage(value.toString());
 				}
+			}
+			else
+			{
+				m_computedValue = null;
 			}
 		}
 		
