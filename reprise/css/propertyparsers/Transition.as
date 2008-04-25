@@ -239,7 +239,8 @@ package reprise.css.propertyparsers
 		{
 			var intermediateResult : Object = strToProperty(val, file);
 			var property : CSSProperty = intermediateResult.property;
-			var easingName : String = intermediateResult.filteredString;
+			var easingName : String = 
+				CSSParsingHelper.camelCaseCSSValueName(intermediateResult.filteredString);
 			var regExp : RegExp = /ease(InOut|In|Out)(\w+)/;
 			var matchResult : Array = regExp.exec(easingName);
 			var easing : Function = EASINGS.linear;
