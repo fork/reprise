@@ -15,7 +15,6 @@ package reprise.css.propertyparsers
 	import com.robertpenner.easing.Bounce;
 	import com.robertpenner.easing.Circ;
 	import com.robertpenner.easing.Cubic;
-	import com.robertpenner.easing.Elastic;
 	import com.robertpenner.easing.Linear;
 	import com.robertpenner.easing.Quad;
 	import com.robertpenner.easing.Quart;
@@ -77,7 +76,8 @@ package reprise.css.propertyparsers
 				var partResult : Object = parseWebkitTransitionPart(part, file);
 				if (partResult)
 				{
-					properties.push(partResult.property);
+					properties.push(
+						CSSParsingHelper.camelCaseCSSValueName(partResult.property));
 					durations.push(partResult.duration || null);
 					easings.push(partResult.easing || null);
 					delays.push(partResult.delay || null);
@@ -182,7 +182,8 @@ package reprise.css.propertyparsers
 				return property;
 			}
 			property.setSpecifiedValue(
-				(intermediateResult.filteredString as String).split(','));
+				(intermediateResult.filteredString as String).split(',').
+				map(CSSParsingHelper.camelCaseCSSValueName));
 			return property;
 		}
 		
