@@ -98,7 +98,6 @@ package reprise.css.transitions
 		{
 			var durationValue : int = duration.valueOf() as int;
 			var currentTime : int = time - startTime;
-//			trace('time: ' + currentTime, durationValue, time, startTime);
 			if (durationValue <= currentTime)
 			{
 				hasCompleted = true;
@@ -109,7 +108,6 @@ package reprise.css.transitions
 			var start : Number = startValue.valueOf() as Number;
 			var value : Number = easing(currentTime, start, end - start, durationValue);
 			value = Math.round(value);
-//			trace("set " + property + " to " + value);
 			currentValue.setSpecifiedValue(value);
 		}
 	}

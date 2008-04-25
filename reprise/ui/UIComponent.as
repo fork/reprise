@@ -1511,7 +1511,6 @@ package reprise.ui
 					}
 					else if (transition.endValue != targetValue)
 					{
-						trace("update");
 						transition.easing = easing;
 						transition.updateValues(targetValue, transitionDurations[i], 
 							transitionDelays[i], startTime, this);
