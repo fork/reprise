@@ -113,7 +113,7 @@ package reprise.core
 			{
 				cssURL = this['cssURL'];
 			}
-			cssURL ||= stage.loaderInfo.parameters.css_url;
+			cssURL = stage.loaderInfo.parameters.css_url || cssURL;
 			m_css = addResource(new CSS(cssURL)) as CSS;
 		}
 		
