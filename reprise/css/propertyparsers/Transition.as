@@ -47,7 +47,6 @@ package reprise.css.propertyparsers
 			Back : Back,
 			Bounce : Bounce,
 			Circ : Circ,
-			Elastic : Elastic,
 			Sine : Sine
 		};
 		
@@ -79,8 +78,9 @@ package reprise.css.propertyparsers
 				if (partResult)
 				{
 					properties.push(partResult.property);
-					durations.push(partResult.duration || 0);
-					delays.push(partResult.delay || 0);
+					durations.push(partResult.duration || null);
+					easings.push(partResult.easing || null);
+					delays.push(partResult.delay || null);
 				}
 			}
 			
@@ -130,7 +130,6 @@ package reprise.css.propertyparsers
 			//the second part has to be a duration
 			if ('0123456789.'.indexOf(currentPart.charAt(0)) == -1)
 			{
-				//anything but a duration is invalid here, return nothing
 				return null;
 			}
 			result.duration = strToDurationProperty(currentPart, file);
@@ -142,7 +141,8 @@ package reprise.css.propertyparsers
 			//the third part can be either an easing function name or a duration
 			if ('0123456789.'.indexOf(currentPart.charAt(0)) == -1)
 			{
-				result.easing = parseWebkitTransitionTimingFunction(currentPart, file);
+				result.easing = 
+					parseWebkitTransitionTimingFunctionPart(currentPart, file);
 				currentPart = parts.shift();
 			}
 			else
@@ -154,6 +154,10 @@ package reprise.css.propertyparsers
 					//there shouldn't be any parts left
 					return null;
 				}
+				return result;
+			}
+			if (!parts.length)
+			{
 				return result;
 			}
 			//the fourth part has to be a delay
@@ -178,7 +182,7 @@ package reprise.css.propertyparsers
 				return property;
 			}
 			property.setSpecifiedValue(
-				(intermediateResult.filteredString as String).split(' '));
+				(intermediateResult.filteredString as String).split(','));
 			return property;
 		}
 		
@@ -194,7 +198,7 @@ package reprise.css.propertyparsers
 			var entries : Array = [];
 			
 			for each (var entry : String in 
-				(intermediateResult.filteredString as String).split(' '))
+				(intermediateResult.filteredString as String).split(','))
 			{
 				entries.push(strToDurationProperty(entry, file));
 			}
@@ -219,10 +223,25 @@ package reprise.css.propertyparsers
 			{
 				return property;
 			}
-			var easing : Function = EASINGS.linear;
+			var entries : Array = [];
+			
+			for each (var entry : String in 
+				(intermediateResult.filteredString as String).split(','))
+			{
+				entries.push(parseWebkitTransitionTimingFunctionPart(entry, file));
+			}
+			property.setSpecifiedValue(entries);
+			return property;
+		}
+		public static function parseWebkitTransitionTimingFunctionPart(
+			val:String, file : String) : CSSProperty
+		{
+			var intermediateResult : Object = strToProperty(val, file);
+			var property : CSSProperty = intermediateResult.property;
 			var easingName : String = intermediateResult.filteredString;
-			var regExp : RegExp = /ease(In|Out|InOut)(\w+)/;
+			var regExp : RegExp = /ease(InOut|In|Out)(\w+)/;
 			var matchResult : Array = regExp.exec(easingName);
+			var easing : Function = EASINGS.linear;
 			if (matchResult)
 			{
 				easing = EASINGS[matchResult[2]]['ease' + matchResult[1]];
