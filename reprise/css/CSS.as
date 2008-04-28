@@ -338,7 +338,7 @@ package reprise.css
 		}
 	
 		public function registerProperty(
-			name : String, type : uint, inheritable : Boolean) : void
+			name : String, type : uint, inheritable : Boolean = false) : void
 		{
 			RuntimeParser.registerProperty(name, type, inheritable);
 		}
