@@ -1303,7 +1303,7 @@ package reprise.ui
 				m_borderBottomWidth = 0;
 			}
 			
-	
+			
 			if (m_currentStyles.tabIndex != null)
 			{
 				m_tabIndex = m_currentStyles.tabIndex;

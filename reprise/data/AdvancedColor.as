@@ -199,11 +199,11 @@ package reprise.data
 			}
 		}
 		
-		public function setHSB(h:uint, s:uint, br:uint) : void
+		public function setHSB(h:Number, s:Number, br:Number) : void
 		{
-			var r : uint;
-			var g : uint;
-			var b : uint;
+			var r : Number;
+			var g : Number;
+			var b : Number;
 		
 			if (!isNaN(s)) 
 			{

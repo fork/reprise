@@ -9,225 +9,154 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-package reprise.media { 
-	import reprise.utils.ProxyFunction;
+package reprise.media
+{
 	
-	import flash.display.MovieClip;
-	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.events.EventDispatcher;
+	import flash.events.ProgressEvent;
 	import flash.media.Sound;
-	import flash.utils.clearInterval;
-	import flash.utils.getTimer;
-	import flash.utils.setInterval;
-	public class MP3Player extends EventDispatcher implements IMediaPlayer
-	{
-		//******************************************************
-		//*                  public properties
-		//******************************************************
-		public static var EVENT_PLAYBACK_START : String = "playbackStartEvent";
-		public static var EVENT_PLAYBACK_FINISH : String = "playbackFinishEvent";
-		public static var EVENT_BUFFERING : String = "bufferingEvent";
-		
-		public var bufferingEvent:Event;
-		public var playbackStartedEvent:Event;
-		public var playbackFinishedEvent:Event;
+	import flash.media.SoundTransform;
+	import flash.media.SoundChannel;
+	import flash.net.URLRequest;
+	import reprise.events.MediaEvent;
+	import reprise.external.IResource;
+	import reprise.external.MP3Resource;
+	import reprise.media.AbstractPlayer;
 	
+	
+	public class MP3Player extends AbstractPlayer
+	{
 		
-		//******************************************************
-		//*                  protected properties
-		//******************************************************
 		protected var m_sound:Sound;
-		protected var m_soundTarget:Sprite;
+		protected var m_soundTransform:SoundTransform;
+		protected var m_soundChannel:SoundChannel;
 		
-		protected var m_loadingStartTime:Number;
 		
-		protected var m_lastPosition:Number;
-		protected var m_isPlaying:Boolean;
-		protected var m_isBuffering:Boolean;
 		
-		protected var m_checkBufferID:Number;
-		
-		protected var m_volume:Number;
-		
-		//******************************************************
-		//*                  public methods
-		//******************************************************
-		public function MP3Player (target:Sprite)
+		/***************************************************************************
+		*							public methods								   *
+		***************************************************************************/
+		public function MP3Player(resource:IResource)
 		{
-			m_soundTarget = target;
-			m_sound = new Sound(target);
-			m_sound.onSoundComplete = ProxyFunction.create(this, onSoundComplete);
-			m_volume = 100;
+			super();
+			setResource(resource);
 		}
 		
-		public function load (source:String) : void
+		public override function setResource(resource:IResource):void
 		{
-			m_loadingStartTime = getTimer ();
-			m_sound.loadSound(source, true);
-			pause ();
-			clearInterval (m_checkBufferID);
-			m_checkBufferID = setInterval(checkBuffer, 50);
-			setBuffering (true);
-			m_lastPosition = 0;
+			super.setResource(resource);
+			m_sound = Sound(resource.content());
+			m_sound.addEventListener(Event.ID3, sound_id3);
+			m_soundTransform = new SoundTransform(1.0, 0.0);
+		}
+
+		public override function bytesLoaded():Number
+		{
+			return m_sound.bytesLoaded;
+		}
+
+		public override function bytesTotal():Number
+		{
+			return m_sound.bytesTotal;
 		}
 		
-		public function play (offset:Number) : void
+		public override function isBuffered():Boolean
 		{
-			if (offset === null)
+			return !m_sound.isBuffering && super.isBuffered();
+		}
+		
+		public override function position():Number
+		{
+			if (m_soundChannel)
 			{
-				m_sound.start(m_lastPosition);
-			} else {
-				m_sound.start(offset/1000);
+				return m_soundChannel.position / 1000;
 			}
-			m_isPlaying = true;
-			if (m_sound.getBytesLoaded() > 2000)
+			return m_recentPosition;
+		}
+		
+		public override function duration():Number
+		{
+			return m_sound.length / (m_sound.bytesLoaded / m_sound.bytesTotal) / 1000;
+		}
+		
+		
+		
+		/***************************************************************************
+		*							protected methods							   *
+		***************************************************************************/
+		protected override function doLoad():void
+		{
+			m_sound.load(new URLRequest(m_source.url()));
+		}
+
+		protected override function doUnload():void
+		{
+			try
 			{
-				setBuffering(false);
+				m_sound.close();
 			}
-		}
-		public function pause () : void
-		{
-			if (m_isPlaying)
+			catch (e:Error)
 			{
-				m_lastPosition = m_sound.position;
-				m_isPlaying = false;
-				m_sound.stop();
-			}
-		}
-		public function resume () : void
-		{
-			this.play (m_lastPosition);
-		}
-		public function stop () : void
-		{
-			m_lastPosition = 0;
-			m_sound.stop();
-			m_isPlaying = false;
-		}
-		
-		public function isPlaying () : Boolean
-		{
-			return m_isPlaying;
-		}
-		public function isBuffering () : Boolean
-		{
-			return m_isBuffering;
-		}
-		
-		public function setVolume (volume:Number) : void
-		{
-			if (volume > 100)
-			{
-				volume = 100;
-			} else if (volume < 0) {
-				volume = 0;
-			}
-			m_volume = volume;
-			m_sound.setVolume(volume);
-		}
-		public function getVolume () : Number
-		{
-			return m_volume;
-		}
-		
-		public function getBytesLoaded () : Number
-		{
-			return m_sound.getBytesLoaded();
-		}
-		public function getBytesTotal () : Number
-		{
-			return m_sound.getBytesTotal();
-		}
-		
-		public function getDuration () : Number
-		{
-			return m_sound.duration * m_sound.getBytesTotal() / 
-				m_sound.getBytesLoaded();
-		}
-		public function getDurationLoaded () : Number
-		{
-			return m_sound.duration;
-		}
-		
-		public function getPosition () : Number
-		{
-			if (m_isPlaying)
-			{
-				return m_sound.position;
-			} else {
-				return m_lastPosition;
-			}
-		}
-		public function getLoadingTimeLeft () : Number
-		{
-			var loadingTime:Number = getTimer () - m_loadingStartTime;
-			var timeLeft:Number = loadingTime / m_sound.getBytesLoaded() * 
-				m_sound.getBytesTotal() - loadingTime;
-			return timeLeft;
-		}
-		
-		public function getPercentLoaded () : Number
-		{
-			if (m_sound.getBytesTotal() < 50)
-			{
-				return 0;
-			}
-			return m_sound.getBytesLoaded() * 100 / m_sound.getBytesTotal();
-		}
-		
-		public function destroy () : void
-		{
-			clearInterval (m_checkBufferID);
-			m_sound.stop();
-			delete m_sound;
-		}
-		
-		
-		//******************************************************
-		//*                  protected methods
-		//******************************************************
-		protected function checkBuffer () : void
-		{
-			if (m_isBuffering)
-			{
-				var loadingTime:Number = getLoadingTimeLeft();
-				if (loadingTime*1.1 < getDuration () - m_lastPosition)
-				{
-					setBuffering (false);
-				}
-			}
-			else if (m_isPlaying)
-			{
-				if (m_sound.position == 
-					m_sound.duration && m_sound.position < getDuration ())
-					{
-					setBuffering (true);
-				}
+				trace(e);
 			}
 		}
 		
-		protected function setBuffering (buffering:Boolean) : void
+		protected override function doPlay():void
 		{
-			if (buffering)
+			if (m_soundChannel)
 			{
-				m_lastPosition = m_sound.position;
-				m_isBuffering = true;
-				m_sound.stop ();
-				m_sound.setVolume(0);
-				dispatchEvent(new Event(EVENT_BUFFERING, this));
-			} else {
-				m_isBuffering = false;
-				m_sound.setVolume(m_volume);
-				m_sound.start(m_lastPosition/1000);
-				dispatchEvent(new Event(EVENT_PLAYBACK_START, this));
+				m_soundChannel.removeEventListener(Event.SOUND_COMPLETE, soundChannel_complete);
+			}
+			m_soundChannel = m_sound.play(m_recentPosition * 1000, 0, m_soundTransform);
+			m_soundChannel.addEventListener(Event.SOUND_COMPLETE, soundChannel_complete);
+		}
+
+		protected override function doPause():void
+		{
+			m_soundChannel.stop();
+		}
+
+		protected override function doStop():void
+		{
+			m_soundChannel.stop();
+		}
+
+		protected override function doSeek(offset:Number):void
+		{
+			if (!isPlaying())
+			{
+				m_recentPosition = offset;
+				return;
+			}
+			pause();
+			m_recentPosition = offset;
+			play();
+		}
+		
+		protected override function doSetVolume(vol:Number):void
+		{
+			m_soundTransform.volume = vol;
+			if (m_soundChannel)
+			{
+				m_soundChannel.soundTransform = m_soundTransform;
 			}
 		}
 		
-		protected function onSoundComplete () : void
+		protected function soundChannel_complete(e:Event):void
 		{
-			stop();
-			dispatchEvent(new Event(EVENT_PLAYBACK_FINISH, this));
+			mediaReachedEnd();
+		}
+		
+		protected function sound_id3(e:Event):void
+		{
+			trace('--------------------- ID3 ---------------------');
+			for (var key:String in m_sound.id3)
+			{
+				trace(key + ' - ' + m_sound.id3[key]);
+			}
+			//m_duration = m_sound.id3.TIME;
+			trace(m_sound.id3.TIME);
+			trace('--------------------- /ID3 ---------------------');
 		}
 	}
 }

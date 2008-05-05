@@ -93,7 +93,10 @@ package reprise.external {
 		
 		protected override function doCancel() : void
 		{
-			m_loader.unload();
+			if (m_loader)
+			{
+				m_loader.unload();
+			}
 		}
 		
 		//Loader events

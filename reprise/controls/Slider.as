@@ -180,8 +180,9 @@ package reprise.controls
 			{
 				return;
 			}
-			applyCurrentDragValue();
 			removeEventListener(Event.ENTER_FRAME, self_enterFrame);
+			m_isDragging = false;
+			applyCurrentDragValue();
 			dispatchEvent(new Event(Event.CHANGE));
 		}
 		

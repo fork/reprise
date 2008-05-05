@@ -13,7 +13,7 @@ package reprise.utils {
 	import reprise.css.propertyparsers.Background;
 	import reprise.data.AdvancedColor;
 	
-	import flash.display.Sprite;
+	import flash.display.Graphics;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	public class Gradient
@@ -71,7 +71,7 @@ package reprise.utils {
 			m_origin = new Point(0, 0);
 		}	
 		
-		public function beginGradientFill(target:Sprite, width:Number = 0, 
+		public function beginGradientFill(target:Graphics, width:Number = 0, 
 			height:Number = 0, rotation:Number = 0) : void
 		{
 			if (m_alphas == null || m_alphas.length != m_colors.length)
@@ -91,11 +91,11 @@ package reprise.utils {
 					m_origin.x, m_origin.y);
 			}
 			
-			target.graphics.beginGradientFill(m_fillType, m_colors, m_alphas, m_ratios, 
+			target.beginGradientFill(m_fillType, m_colors, m_alphas, m_ratios, 
 				matrix, m_spreadMethod, m_interpolationMethod, m_focalPointRatio);
 		}
 		
-		public function lineGradientStyle(target:Sprite, width:Number = 0, height:Number = 0,
+		public function lineGradientStyle(target:Graphics, width:Number = 0, height:Number = 0,
 				rotation:Number = 0) : void
 		{
 			if (m_alphas == null || m_alphas.length != m_colors.length)
@@ -115,7 +115,7 @@ package reprise.utils {
 					m_origin.x, m_origin.y);
 			}
 			
-			target.graphics.lineGradientStyle(m_fillType, m_colors, m_alphas, m_ratios, matrix, m_spreadMethod,
+			target.lineGradientStyle(m_fillType, m_colors, m_alphas, m_ratios, matrix, m_spreadMethod,
 				m_interpolationMethod, m_focalPointRatio);		
 		}
 		

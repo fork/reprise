@@ -213,6 +213,10 @@ package reprise.commands {
 		protected function unregisterListenersForAsynchronousCommand(
 			cmd:IAsynchronousCommand):void
 		{
+			if (!cmd)
+			{
+				return;
+			}
 			cmd.removeEventListener(Event.COMPLETE, command_complete);
 			cmd.removeEventListener(Event.CANCEL, command_cancel);
 		}

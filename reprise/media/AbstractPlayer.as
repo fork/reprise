@@ -199,7 +199,7 @@ package reprise.media
 		public function seek(offset:uint):void
 		{
 			if ([STATE_PLAYING, STATE_PAUSED, STATE_IDLE].indexOf(m_state) == -1 ||
-				m_status ^ STATUS_IS_LOADING & STATUS_LOAD_FINISHED)
+				(!(m_status & STATUS_IS_LOADING) && !(m_status & STATUS_LOAD_FINISHED)))
 			{
 				return;
 			}
@@ -223,6 +223,8 @@ package reprise.media
 		
 		public function setVolume(vol:Number):void
 		{
+			vol = Math.max(0, vol);
+			vol = Math.min(1, vol);
 			m_volume = vol;
 			doSetVolume(vol);
 		}
@@ -242,7 +244,7 @@ package reprise.media
 			return 0;
 		}
 		
-		public function duration():uint
+		public function duration():Number
 		{
 			return m_duration;
 		}
@@ -324,6 +326,7 @@ package reprise.media
 			m_buffer.setUserBandwidth(m_speed);
 			m_buffer.setBytesLoaded(bytesLoaded());
 			m_buffer.setMediaSize(bytesTotal());
+			m_buffer.setMediaLength(duration());
 		}
 		
 		protected function log(msg:String):void

@@ -208,6 +208,10 @@ package reprise.external
 		protected override function unregisterListenersForAsynchronousCommand(
 			cmd:IAsynchronousCommand):void
 		{
+			if (!cmd)
+			{
+				return;
+			}
 			super.unregisterListenersForAsynchronousCommand(cmd);
 			cmd.removeEventListener(ResourceEvent.PROGRESS, resourceProgress);
 		}
