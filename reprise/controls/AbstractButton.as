@@ -125,7 +125,6 @@ package reprise.controls
 		{
 			super.initialize();
 			
-			mouseChildren = false;
 			createButtonDisplay();
 			initializeButtonHandlers();
 		}
@@ -136,8 +135,8 @@ package reprise.controls
 		}
 		protected function initializeButtonHandlers() : void
 		{
-			addEventListener(MouseEvent.ROLL_OVER, buttonDisplay_over);
-			addEventListener(MouseEvent.ROLL_OUT, buttonDisplay_out);
+			addEventListener(MouseEvent.MOUSE_OVER, buttonDisplay_over);
+			addEventListener(MouseEvent.MOUSE_OUT, buttonDisplay_out);
 			addEventListener(MouseEvent.MOUSE_DOWN, buttonDisplay_down);
 			addEventListener(MouseEvent.CLICK, buttonDisplay_click);
 		}

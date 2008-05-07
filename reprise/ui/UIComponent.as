@@ -1392,6 +1392,20 @@ package reprise.ui
 			{
 				m_positionInFlow = 0;
 			}
+			
+			if (m_currentStyles.cursor == 'pointer')
+			{
+				if (!buttonMode)
+				{
+					buttonMode = true;
+					useHandCursor = true;
+				}
+			}
+			else if (buttonMode)
+			{
+				buttonMode = false;
+				useHandCursor = false;
+			}
 		}
 		
 		/**

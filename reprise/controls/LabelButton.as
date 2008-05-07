@@ -61,6 +61,11 @@ package reprise.controls
 		/***************************************************************************
 		*							protected methods								   *
 		***************************************************************************/
+		protected override function initialize() : void
+		{
+			super.initialize();
+			mouseChildren = false;
+		}
 		protected override function createChildren() : void
 		{
 			m_labelDisplay = Label(addComponent('label', null, Label));
