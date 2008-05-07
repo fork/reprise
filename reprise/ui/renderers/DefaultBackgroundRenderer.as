@@ -11,6 +11,14 @@
 
 package reprise.ui.renderers
 { 
+	import flash.display.BitmapData;
+	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.filters.DropShadowFilter;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	
 	import reprise.css.CSSProperty;
 	import reprise.css.propertyparsers.Background;
 	import reprise.css.propertyparsers.Filters;
@@ -21,23 +29,14 @@ package reprise.ui.renderers
 	import reprise.external.ImageResource;
 	import reprise.utils.GfxUtil;
 	import reprise.utils.Gradient;
-	
-	import flash.display.BitmapData;
-	import flash.display.DisplayObjectContainer;
-	import flash.display.Sprite;
-	import flash.events.Event;
-	import flash.filters.DropShadowFilter;
-	import flash.geom.Matrix;
-	import flash.geom.Point;
-	import flash.geom.Rectangle;
 	public class DefaultBackgroundRenderer extends AbstractCSSRenderer
 	{
 		/***************************************************************************
 		*							protected properties							   *
 		***************************************************************************/
 		protected var m_backgroundImageContainer : Sprite;
-		protected var m_activeBackgroundAnimationContainer : DisplayObjectContainer;
-		protected var m_inactiveBackgroundAnimationContainer : DisplayObjectContainer;
+		protected var m_activeBackgroundAnimationContainer : Sprite;
+		protected var m_inactiveBackgroundAnimationContainer : Sprite;
 		protected var m_backgroundMask : Sprite;
 		
 		protected var m_backgroundImage : BitmapData = null;
@@ -159,7 +158,8 @@ package reprise.ui.renderers
 		}
 		protected function loadBackgroundImage() : void
 		{
-			if (m_styles.backgroundImageType != 'animation')
+			if (!m_styles.backgroundImageType || 
+				m_styles.backgroundImageType != 'animation')
 			{
 				// cancel background animation loader since we don't need it
 				if (m_backgroundImageLoader && m_backgroundImageLoader is ImageResource && 
@@ -202,7 +202,7 @@ package reprise.ui.renderers
 			}
 			
 			// if we're loading a background image, cancel it, since we don't need it
-			if (m_backgroundImageLoader.isExecuting() && 
+			if (m_backgroundImageLoader && m_backgroundImageLoader.isExecuting() && 
 				m_backgroundImageLoader is BitmapResource)
 			{
 				m_backgroundImageLoader.cancel();
@@ -212,10 +212,11 @@ package reprise.ui.renderers
 			}
 			
 			// if we're already loading the right animation, do nothing
-			if (m_backgroundImageLoader.url() == m_styles.backgroundImage && 
+			if (m_backgroundImageLoader && 
+				m_backgroundImageLoader.url() == m_styles.backgroundImage && 
 				m_backgroundImageLoader is ImageResource)
 			{
-				if (!ImageResource(m_backgroundImageLoader.isExecuting()))
+				if (!m_backgroundImageLoader.isExecuting())
 				{
 					// we force redrawing here, due to the fact that our size or 
 					// the image position could have changed
@@ -234,8 +235,8 @@ package reprise.ui.renderers
 			}
 			
 			m_inactiveBackgroundAnimationContainer = m_activeBackgroundAnimationContainer;
-			m_activeBackgroundAnimationContainer = DisplayObjectContainer(
-				m_backgroundImageContainer.addChild(new DisplayObjectContainer()));
+			m_activeBackgroundAnimationContainer = Sprite(
+				m_backgroundImageContainer.addChild(new Sprite()));
 			m_activeBackgroundAnimationContainer.name = 'm_backgroundAnimation';
 	
 			m_backgroundImageLoader = new ImageResource();
@@ -497,12 +498,15 @@ package reprise.ui.renderers
 				return;
 			}
 			
-			m_inactiveBackgroundAnimationContainer.parent.removeChild(
-				m_inactiveBackgroundAnimationContainer);
-			m_inactiveBackgroundAnimationContainer = null;
+			if (m_inactiveBackgroundAnimationContainer)
+			{
+				m_inactiveBackgroundAnimationContainer.parent.removeChild(
+					m_inactiveBackgroundAnimationContainer);
+				m_inactiveBackgroundAnimationContainer = null;
+			}
 			
-			var imgContainer : DisplayObjectContainer = 
-				m_activeBackgroundAnimationContainer;
+			var imgContainer : Sprite = m_activeBackgroundAnimationContainer;
+			imgContainer.addChild(m_backgroundImageLoader.content());
 			var imgWidth : Number = imgContainer.width;
 			var imgHeight : Number = imgContainer.height;
 					
@@ -518,7 +522,7 @@ package reprise.ui.renderers
 			}
 	
 			imgContainer.scale9Grid = null;
-			imgContainer.scaleX = imgContainer.scaleY = 100;
+			imgContainer.scaleX = imgContainer.scaleY = 1;
 			var origin : Point = new Point(
 				m_styles.backgroundPositionX | 0, m_styles.backgroundPositionY | 0);
 			var xProperty : CSSProperty = 
@@ -541,7 +545,8 @@ package reprise.ui.renderers
 			m_backgroundImageContainer.graphics.clear();
 		}
 		
-		protected function constructScale9Rect(imgWidth : Number, imgHeight : Number) : Rectangle
+		protected function constructScale9Rect(
+			imgWidth : Number, imgHeight : Number) : Rectangle
 		{
 			if (m_styles.backgroundScale9Type == null || 
 				m_styles.backgroundScale9Type == Background.SCALE9_TYPE_NONE ||
