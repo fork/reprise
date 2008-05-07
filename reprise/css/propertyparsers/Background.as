@@ -42,7 +42,8 @@ package reprise.css.propertyparsers {
 			'backgroundScale9RectRight',
 			'backgroundScale9RectBottom',
 			'backgroundScale9RectLeft',
-			'backgroundImageType'
+			'backgroundImageType',
+			'backgroundImagePreload'
 		];	
 		
 		public static var REPEAT_REPEAT_XY	: String	= 'repeat';	/* default */
@@ -138,7 +139,7 @@ package reprise.css.propertyparsers {
 			{
 				res.addEntriesFromResult(parseBackgroundPosition(parts[counter] + " " + 
 					parts[counter + 1] + important, file));
-			}	
+			}
 			return res;
 		}
 		
@@ -391,6 +392,10 @@ package reprise.css.propertyparsers {
 		public static function parseBackgroundImageType(val:String, file:String) : CSSProperty
 		{
 			return strToStringProperty(val.toLowerCase(), file);
+		}
+		public static function parseBackgroundImagePreload(val:String, file:String) : CSSProperty
+		{		
+			return strToBoolProperty(val, ['preload'], file);
 		}
 	}
 }

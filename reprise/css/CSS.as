@@ -11,19 +11,20 @@
 
 package reprise.css
 {	
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
+	import flash.utils.getTimer;
+	
 	import reprise.core.Application;
 	import reprise.core.ApplicationRegistry;
 	import reprise.css.propertyparsers.RuntimeParser;
 	import reprise.data.collection.IndexedArray;
 	import reprise.events.CommandEvent;
 	import reprise.events.ResourceEvent;
+	import reprise.external.BitmapResource;
 	import reprise.external.IResource;
 	import reprise.external.ResourceLoader;
 	import reprise.utils.StringUtil;
-	
-	import flash.events.Event;
-	import flash.events.EventDispatcher;
-	import flash.utils.getTimer;
 	
 	public class CSS extends EventDispatcher implements IResource
 	{
@@ -49,6 +50,7 @@ package reprise.css
 		
 		protected var m_cssFile : CSSImport;
 		protected var m_loader : ResourceLoader;
+		protected var m_imagePreloadingResource : ResourceLoader;
 		protected var m_importQueue : Array;
 		protected var m_cssSegments : IndexedArray;
 		protected	var m_declarationList : CSSDeclarationList;
@@ -519,7 +521,21 @@ package reprise.css
 				'---------------------------------------------';
 			trace('d ' + stats);
 			
-			dispatchEvent(new CommandEvent(Event.COMPLETE, success));
+			if (!m_imagePreloadingResource)
+			{
+				dispatchEvent(new CommandEvent(Event.COMPLETE, success));
+			}
+			else
+			{
+				m_imagePreloadingResource.addEventListener(
+					Event.COMPLETE, imagePreloader_complete);
+				m_imagePreloadingResource.execute();
+			}
+		}
+		protected function imagePreloader_complete(event : CommandEvent) : void
+		{
+			trace("preloading complete");
+			dispatchEvent(new CommandEvent(Event.COMPLETE, event.success));
 		}
 		
 		protected function parseCSSSegment(segment : CSSSegment) : Boolean
@@ -535,8 +551,19 @@ package reprise.css
 				var cssClassDefArr:Array = classesArr[i].split("{");
 				if (cssClassDefArr.length == 2)
 				{
+					//parse all properties of this class into a declaration
 					var declaration : CSSDeclaration = 
 						CSSParsingHelper.parseDeclarationString(cssClassDefArr[1], url);
+					
+					//add assets to preloader queue if necessary
+					var preloadProp : CSSProperty = 
+						declaration.getStyle('backgroundImagePreload');
+					if (preloadProp && preloadProp.valueOf())
+					{
+						var imageProp : CSSProperty = 
+							declaration.getStyle('backgroundImage');
+						imageProp && enqueuePreloadableProperty(imageProp);
+					}
 					
 					var classNames:Array = cssClassDefArr[0].split("\n").join(" ").
 						split("  ").join(" ").split(", ").join(",").split(",");			
@@ -552,6 +579,19 @@ package reprise.css
 			}
 			m_parseTime += getTimer() - timestamp;		
 			return true;
+		}
+		
+		protected function enqueuePreloadableProperty(prop : CSSProperty) : void
+		{
+			if (!m_imagePreloadingResource)
+			{
+				m_imagePreloadingResource = new ResourceLoader();
+			}
+			var loader : BitmapResource = 
+				new BitmapResource(prop.valueOf() as String, true);
+			loader.setApplicationURL(
+				ApplicationRegistry.instance().applicationForURL(null).applicationURL());
+			m_imagePreloadingResource.addResource(loader);
 		}
 		
 		/**
