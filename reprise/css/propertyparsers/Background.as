@@ -125,7 +125,7 @@ package reprise.css.propertyparsers {
 			}
 			
 			//get attachment value
-			result = val.match(new RegExp('scroll|fixed'));
+			result = val.match(CSSParsingHelper.attachmentExpression);
 			if (result)
 			{
 				res.addPropertyForKey(strToStringProperty(
@@ -139,6 +139,14 @@ package reprise.css.propertyparsers {
 			{
 				res.addEntriesFromResult(
 					parseBackgroundPosition(result[0] + important, file));
+			}
+			
+			//get preload value
+			result = val.match(CSSParsingHelper.preloadExpression);
+			if (result)
+			{
+				res.addPropertyForKey(parseBackgroundImagePreload(
+					result[0] + important, file), 'backgroundImagePreload');
 			}
 			return res;
 		}
@@ -396,28 +404,6 @@ package reprise.css.propertyparsers {
 		public static function parseBackgroundImagePreload(val:String, file:String) : CSSProperty
 		{		
 			return strToBoolProperty(val, ['preload'], file);
-		}
-		
-		protected static function backgroundExpression() : RegExp
-		{
-			if (!g_backgroundExpression)
-			{
-				var percentOrLength : String = CSSParsingHelper.percentageExpression + 
-					'|' + CSSParsingHelper.lengthExpression;
-				var expression : String = '' + 
-//					'(?:' + 
-//					'(?P<color>' + CSSParsingHelper.colorExpression + ')|' + 
-					'(?P<image>' + CSSParsingHelper.URIExpression + ')|' + 
-					'(?P<repeat>' + CSSParsingHelper.repeatExpression + ')|' + 
-					'(?P<attachment>scroll|fixed)' + 
-//					'(?P<position>(?:(?:left|center|right|' + percentOrLength + 
-//					 ')|(?:left|center|right|' + percentOrLength + ')){1,2})' + 
-//					'){1,}' + 
-					'';
-				trace(expression);
-				g_backgroundExpression = new RegExp(expression, 'g');
-			}
-			return g_backgroundExpression;
 		}
 	}
 }

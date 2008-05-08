@@ -33,6 +33,9 @@ package reprise.css
 			'|' + CSSParsingHelper.lengthExpression.source + ')?)|' + 
 			'(?:(?:left|center|right|top|bottom)[ ]?(?:left|center|right|top|bottom)?)');
 		
+		public static var attachmentExpression : RegExp = /scroll|fixed/;
+		public static var preloadExpression : RegExp = /no[-]preload|preload/;
+		
 		
 		protected static var g_colorExpression : RegExp;
 		
