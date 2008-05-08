@@ -18,6 +18,23 @@ package reprise.css
 	
 	public class CSSParsingHelper
 	{
+		public static var percentageExpression : RegExp = /\d+%/;
+		public static var lengthExpression : RegExp = /\d+px|\d+/;
+		public static var URIExpression : RegExp = 
+			/(?:url\([ ]*(['"]).*\1[ ]*\)|url\([ ]*[^'"][^)]*\))/;
+		public static var repeatExpression : RegExp = 
+			/repeat[-]x|repeat[-]y|no[-]repeat|repeat/;
+		
+		public static var positionExpression : RegExp = 
+			new RegExp('(?:(?:left|center|right|' + CSSParsingHelper.percentageExpression + 
+			'|' + CSSParsingHelper.lengthExpression + 
+			')[ ]?(?:center|top|bottom|' + CSSParsingHelper.percentageExpression + 
+			'|' + CSSParsingHelper.lengthExpression + ')?)|' + 
+			'(?:(?:left|center|right|top|bottom)[ ]?(?:left|center|right|top|bottom)?)');
+		
+		
+		protected static var g_colorExpression : RegExp;
+		
 		public function CSSParsingHelper() {}
 		
 		
@@ -159,6 +176,24 @@ package reprise.css
 				nameParts[i] = part.charAt(0).toUpperCase() + part.substr(1);
 			}
 			return nameParts.join('');
+		}
+		
+		public static function get colorExpression() : RegExp
+		{
+			if (!g_colorExpression)
+			{
+				var expression : String = 
+					'(?:#[0-9]{8}|#[0-9]{6}|#[0-9]{4}|#[0-9]{3})(?!\\d)|' + 
+					'rgb\\(\\s*\\d+%?\\s*,\\s*\\d+%?\\s*,\\s*\\d+%?\\s*\\)|' + 
+					'rgba\\(\\s*\\d+%?\\s*,\\s*\\d+%?\\s*,\\s*\\d+%?\\s*,\\s*[0-9.]*%?\\s*\\)';
+				var colorNames : Object = AdvancedColor.g_htmlColors;
+				for (var name : String in colorNames)
+				{
+					expression += '|' + name;
+				}
+				g_colorExpression = new RegExp(expression);
+			}
+			return g_colorExpression;
 		}
 	}
 }

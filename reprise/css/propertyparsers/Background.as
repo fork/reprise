@@ -10,10 +10,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 package reprise.css.propertyparsers { 
-	import reprise.css.CSSProperty;
-	import reprise.css.CSSPropertyParser;
 	import reprise.css.CSSParsingHelper;
 	import reprise.css.CSSParsingResult;
+	import reprise.css.CSSProperty;
+	import reprise.css.CSSPropertyParser;
 	import reprise.utils.StringUtil;
 	
 	
@@ -72,6 +72,9 @@ package reprise.css.propertyparsers {
 		public static var IMAGE_NONE : String = 'none';
 		
 		
+		protected static var g_backgroundExpression : RegExp;
+		
+		
 		
 				
 		public function Background() {}
@@ -91,55 +94,53 @@ package reprise.css.propertyparsers {
 			
 			var res : CSSParsingResult = new CSSParsingResult();
 			
-			var counter : Number = 0;
-			var parts : Array = val.split(' ');
-			var part : String;
+			var result : Array;
 			
-			var repeatLookup : Array = []; 		
-			repeatLookup[REPEAT_REPEAT_XY] = true;
-			repeatLookup[REPEAT_REPEAT_X] = true;
-			repeatLookup[REPEAT_REPEAT_Y] = true;
-			repeatLookup[REPEAT_NO_REPEAT] = true;
-			
-			var attachmentLookup : Array = [];
-			attachmentLookup[ATTACHMENT_FIXED] = true;
-			attachmentLookup[ATTACHMENT_SCROLL] = true;
-			
-			// color
-			part = parts[counter];
-			if (CSSParsingHelper.valueIsColor(part))
+			//get image value
+			//(has to be done first because the url can contain pretty much everything else
+			result = val.match(CSSParsingHelper.URIExpression);
+			if (result)
 			{
-				res.addPropertyForKey(strToColorProperty(part + important, file), 'backgroundColor');
-				part = parts[++counter];
+				res.addPropertyForKey(
+					strToURLProperty(result[0] + important, file), 'backgroundImage');
+				val = val.split(result[0]).join('');
 			}
 			
-			// image
-			if (part != null && part.indexOf('url') != -1)
+			//get color value
+			result = val.match(CSSParsingHelper.colorExpression);
+			if (result)
 			{
-				res.addPropertyForKey(strToURLProperty(part + important, file), 'backgroundImage');
-				part = parts[++counter];
+				res.addPropertyForKey(
+					strToColorProperty(result[0] + important, file), 'backgroundColor');
+				val = val.split(result[0]).join('');
 			}
 			
-			// repeat
-			if (repeatLookup[part])
+			//get repeat value
+			result = val.match(CSSParsingHelper.repeatExpression);
+			if (result)
 			{
-				res.addPropertyForKey(strToStringProperty(part + important, file), 'backgroundRepeat');
-				part = parts[++counter];
+				res.addPropertyForKey(
+					strToStringProperty(result[0] + important, file), 'backgroundRepeat');
+				val = val.split(result[0]).join('');
 			}
 			
-			// attachment
-			if (attachmentLookup[part])
+			//get attachment value
+			result = val.match(new RegExp('scroll|fixed'));
+			if (result)
 			{
-				res.addPropertyForKey(strToStringProperty(part + important, file), 'backgroundAttachment');
-				part = parts[++counter];
+				res.addPropertyForKey(strToStringProperty(
+					result[0] + important, file), 'backgroundAttachment');
+				val = val.split(result[0]).join('');
 			}
-						
-			// position
-			if (counter < parts.length - 1)
+			
+			//get position value
+			result = val.match(CSSParsingHelper.positionExpression);
+			if (result)
 			{
-				res.addEntriesFromResult(parseBackgroundPosition(parts[counter] + " " + 
-					parts[counter + 1] + important, file));
+				res.addEntriesFromResult(
+					parseBackgroundPosition(result[0] + important, file));
 			}
+			
 			return res;
 		}
 		
@@ -396,6 +397,28 @@ package reprise.css.propertyparsers {
 		public static function parseBackgroundImagePreload(val:String, file:String) : CSSProperty
 		{		
 			return strToBoolProperty(val, ['preload'], file);
+		}
+		
+		protected static function backgroundExpression() : RegExp
+		{
+			if (!g_backgroundExpression)
+			{
+				var percentOrLength : String = CSSParsingHelper.percentageExpression + 
+					'|' + CSSParsingHelper.lengthExpression;
+				var expression : String = '' + 
+//					'(?:' + 
+//					'(?P<color>' + CSSParsingHelper.colorExpression + ')|' + 
+					'(?P<image>' + CSSParsingHelper.URIExpression + ')|' + 
+					'(?P<repeat>' + CSSParsingHelper.repeatExpression + ')|' + 
+					'(?P<attachment>scroll|fixed)' + 
+//					'(?P<position>(?:(?:left|center|right|' + percentOrLength + 
+//					 ')|(?:left|center|right|' + percentOrLength + ')){1,2})' + 
+//					'){1,}' + 
+					'';
+				trace(expression);
+				g_backgroundExpression = new RegExp(expression, 'g');
+			}
+			return g_backgroundExpression;
 		}
 	}
 }
