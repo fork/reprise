@@ -143,13 +143,13 @@ package reprise.controls
 		
 		protected function activate() : void
 		{
-			addPseudoClass("active");
+			addPseudoClass("focus");
 			m_selected = true;
 		}
 		
 		protected function deactivate() : void
 		{
-			removePseudoClass("active");
+			removePseudoClass("focus");
 			m_selected = false;
 		}
 		
@@ -169,12 +169,12 @@ package reprise.controls
 			stage.addEventListener(MouseEvent.MOUSE_UP, buttonDisplay_up);
 			if (m_enabled)
 			{
-				addPseudoClass("down");
+				addPseudoClass("active");
 			}
 		}
 		protected function buttonDisplay_up(event : MouseEvent) : void
 		{
-			removePseudoClass("down");
+			removePseudoClass("active");
 			if (!(event.target == this || contains(DisplayObject(event.target))))
 			{
 		        dispatchEvent(new MouseEvent(MouseEventConstants.MOUSE_UP_OUTSIDE));
