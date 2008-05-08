@@ -135,12 +135,11 @@ package reprise.css.propertyparsers {
 			
 			//get position value
 			result = val.match(CSSParsingHelper.positionExpression);
-			if (result)
+			if (result && result[0])
 			{
 				res.addEntriesFromResult(
 					parseBackgroundPosition(result[0] + important, file));
 			}
-			
 			return res;
 		}
 		

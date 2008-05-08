@@ -26,10 +26,11 @@ package reprise.css
 			/repeat[-]x|repeat[-]y|no[-]repeat|repeat/;
 		
 		public static var positionExpression : RegExp = 
-			new RegExp('(?:(?:left|center|right|' + CSSParsingHelper.percentageExpression + 
-			'|' + CSSParsingHelper.lengthExpression + 
-			')[ ]?(?:center|top|bottom|' + CSSParsingHelper.percentageExpression + 
-			'|' + CSSParsingHelper.lengthExpression + ')?)|' + 
+			new RegExp('(?:(?:left|center|right|' + 
+			CSSParsingHelper.percentageExpression.source + '|' + 
+			CSSParsingHelper.lengthExpression.source + 
+			')[ ]?(?:center|top|bottom|' + CSSParsingHelper.percentageExpression.source + 
+			'|' + CSSParsingHelper.lengthExpression.source + ')?)|' + 
 			'(?:(?:left|center|right|top|bottom)[ ]?(?:left|center|right|top|bottom)?)');
 		
 		
