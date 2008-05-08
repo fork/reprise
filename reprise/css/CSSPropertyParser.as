@@ -37,7 +37,7 @@ package reprise.css {
 		{
 			var prop : CSSProperty = new CSSProperty();
 			var obj : Object = CSSParsingHelper.removeImportantFlagFromString(val);
-			val = obj.result;
+			val = StringUtil.trim(obj.result);
 			prop.setImportant(obj.important);
 			prop.setCSSFile(file);
 			
@@ -181,16 +181,7 @@ package reprise.css {
 				trueFlags = ['true', '1'];
 			}
 			
-			var isTrue : Boolean = false;
-			var i : Number = trueFlags.length;
-			while (i--)
-			{
-				if (val.indexOf(trueFlags[i]) != -1)
-				{
-					isTrue = true;
-					break;
-				}
-			}
+			var isTrue : Boolean = trueFlags.indexOf(val) > -1;
 			prop.setSpecifiedValue(isTrue);
 			return prop;		
 		}
