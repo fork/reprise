@@ -187,7 +187,8 @@ package reprise.css
 			if (!g_colorExpression)
 			{
 				var expression : String = 
-					'(?:#[0-9]{8}|#[0-9]{6}|#[0-9]{4}|#[0-9]{3})(?!\\d)|' + 
+					'(?:#[0-9abcdefABCDEF]{8}|#[0-9abcdefABCDEF]{6}|' + 
+					'#[0-9abcdefABCDEF]{4}|#[0-9abcdefABCDEF]{3})(?!\\d)|' + 
 					'rgb\\(\\s*\\d+%?\\s*,\\s*\\d+%?\\s*,\\s*\\d+%?\\s*\\)|' + 
 					'rgba\\(\\s*\\d+%?\\s*,\\s*\\d+%?\\s*,\\s*\\d+%?\\s*,\\s*[0-9.]*%?\\s*\\)';
 				var colorNames : Object = AdvancedColor.g_htmlColors;
