@@ -39,26 +39,26 @@ package reprise.media
 		public static const STATE_PAUSED:uint = 4;
 		public static const STATE_STOPPED:uint = 5;
 		
+		public static const STATUS_DURATION_KNOWN:uint = 1 << 0;
+		public static const STATUS_FILESIZE_KNOWN:uint = 1 << 1;
+		public static const STATUS_BANDWIDTH_KNOWN:uint = 1 << 2;
+		public static const STATUS_IS_LOADING:uint = 1 << 3;
+		public static const STATUS_LOAD_FINISHED:uint = 1 << 4;
+		public static const STATUS_SHOULD_PLAY:uint = 1 << 5;
+		public static const STATUS_BUFFER_FULL:uint = 1 << 6;
+		public static const STATUS_DID_AUTOPLAY:uint = 1 << 7;
+		public static const BUFFERING_RELEVANT_STATUS:uint = 
+			STATUS_DURATION_KNOWN | STATUS_FILESIZE_KNOWN | STATUS_BANDWIDTH_KNOWN;
+		
 		
 		
 		/***************************************************************************
 		*							protected properties						   *
 		***************************************************************************/
-		protected static const STATUS_DURATION_KNOWN:uint = 1 << 0;
-		protected static const STATUS_FILESIZE_KNOWN:uint = 1 << 1;
-		protected static const STATUS_BANDWIDTH_KNOWN:uint = 1 << 2;
-		protected static const STATUS_IS_LOADING:uint = 1 << 3;
-		protected static const STATUS_LOAD_FINISHED:uint = 1 << 4;
-		protected static const STATUS_SHOULD_PLAY:uint = 1 << 5;
-		protected static const STATUS_BUFFER_FULL:uint = 1 << 6;
-		protected static const STATUS_DID_AUTOPLAY:uint = 1 << 7;
-		protected static const BUFFERING_RELEVANT_STATUS:uint = 
-			STATUS_DURATION_KNOWN | STATUS_FILESIZE_KNOWN | STATUS_BANDWIDTH_KNOWN;
-		
 		protected static const OPTIONS_AUTOPLAY:uint = 1 << 0;
 		protected static const OPTIONS_LOOP:uint = 1 << 1;
 		
-		protected var m_debug:Boolean = true;
+		protected var m_debug:Boolean = false;
 		
 		protected var m_state:uint;
 		protected var m_status:uint;
@@ -196,15 +196,14 @@ package reprise.media
 			goIdle();
 		}
 		
-		public function seek(offset:uint):void
+		public function seek(offset:Number):void
 		{
 			if ([STATE_PLAYING, STATE_PAUSED, STATE_IDLE].indexOf(m_state) == -1 ||
 				(!(m_status & STATUS_IS_LOADING) && !(m_status & STATUS_LOAD_FINISHED)))
 			{
 				return;
 			}
-			
-			if (isNaN(offset))
+			if (isNaN(offset) || offset < 0)
 			{
 				offset = 0;
 			}
@@ -212,7 +211,6 @@ package reprise.media
 			{
 				offset = durationLoaded();
 			}
-			
 			doSeek(offset);
 		}
 		
@@ -254,6 +252,11 @@ package reprise.media
 			return m_state;
 		}
 		
+		public function status():uint
+		{
+			return m_status;
+		}
+		
 		public function isPlaying():Boolean
 		{
 			return m_state == STATE_PLAYING;
@@ -276,12 +279,17 @@ package reprise.media
 		
 		public function isBuffered():Boolean
 		{
-			return m_buffer.bufferFill() >= 100;
+			return isLoaded() || m_buffer.bufferFill() >= 100;
 		}		
 
 		public function bufferStatus():Number
 		{
 			return m_buffer.bufferFill();
+		}
+		
+		public function remainingBufferingDuration():Number
+		{
+			return m_buffer.remainingBufferingDuration();
 		}
 
 		public function durationLoaded():Number

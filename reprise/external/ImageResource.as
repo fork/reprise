@@ -9,7 +9,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-package reprise.external { 
+package reprise.external 
+{
 	import flash.display.BitmapData;
 	import flash.display.Loader;
 	import flash.display.MovieClip;
@@ -17,11 +18,12 @@ package reprise.external {
 	import flash.events.Event;
 	import flash.events.HTTPStatusEvent;
 	import flash.events.IOErrorEvent;
+	
 	public class ImageResource extends AbstractResource
 	{
 		
 		/***************************************************************************
-		*							protected properties							   *
+		*							protected properties						   *
 		***************************************************************************/
 		protected var m_loader : Loader;
 		

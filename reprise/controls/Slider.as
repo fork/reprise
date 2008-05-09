@@ -47,7 +47,10 @@ package reprise.controls
 			value = Math.min(value, m_maxValue);
 			value = Math.max(value, m_minValue);
 			m_value = value;
-			applyValue();
+			if (!m_isDragging)
+			{
+				applyValue();
+			}
 		}
 		
 		public function value():Number
@@ -159,6 +162,7 @@ package reprise.controls
 		{
 			setValue(positionToValue(m_dragStartThumbPosition + 
 				(m_track.mouseX - m_dragStartMousePosition)));
+			applyValue();
 		}
 		
 		

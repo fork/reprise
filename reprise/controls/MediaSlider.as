@@ -30,6 +30,12 @@ package reprise.controls
 		public function MediaSlider() {}
 		
 		
+		public override function setValue(value:Number):void
+		{
+			value = Math.min(value, m_maxValue / 100 * m_loadValue);
+			super.setValue(value);
+		}
+		
 		public function setLoadValue(status:Number):void
 		{
 			status = Math.max(0, status);
