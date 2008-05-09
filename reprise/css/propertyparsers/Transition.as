@@ -30,11 +30,11 @@ package reprise.css.propertyparsers
 	{
 		public static var KNOWN_PROPERTIES : Array = 
 		[
-			'WebkitTransition',
-			'WebkitTransitionProperty',
-			'WebkitTransitionDuration',
-			'WebkitTransitionTimingFunction',
-			'WebkitTransitionDelay'
+			'RepriseTransition',
+			'RepriseTransitionProperty',
+			'RepriseTransitionDuration',
+			'RepriseTransitionTimingFunction',
+			'RepriseTransitionDelay'
 		];
 		public static var EASINGS : Object = 
 		{
@@ -55,7 +55,7 @@ package reprise.css.propertyparsers
 		}
 		
 		
-		public static function parseWebkitTransition(
+		public static function parseRepriseTransition(
 			val:String, file:String) : CSSParsingResult
 		{
 			var obj : Object = CSSParsingHelper.removeImportantFlagFromString(val);
@@ -73,7 +73,7 @@ package reprise.css.propertyparsers
 			
 			for each (var part : String in val.split(','))
 			{
-				var partResult : Object = parseWebkitTransitionPart(part, file);
+				var partResult : Object = parseRepriseTransitionPart(part, file);
 				if (partResult)
 				{
 					properties.push(
@@ -87,26 +87,26 @@ package reprise.css.propertyparsers
 			var propertyProp : CSSProperty = new CSSProperty();
 			propertyProp.setImportant(important);
 			propertyProp.setSpecifiedValue(properties);
-			result.addPropertyForKey(propertyProp, 'WebkitTransitionProperty');
+			result.addPropertyForKey(propertyProp, 'RepriseTransitionProperty');
 			
 			var durationProp : CSSProperty = new CSSProperty();
 			durationProp.setImportant(important);
 			durationProp.setSpecifiedValue(durations);
-			result.addPropertyForKey(durationProp, 'WebkitTransitionDuration');
+			result.addPropertyForKey(durationProp, 'RepriseTransitionDuration');
 			
 			var easingProp : CSSProperty = new CSSProperty();
 			easingProp.setImportant(important);
 			easingProp.setSpecifiedValue(easings);
-			result.addPropertyForKey(easingProp, 'WebkitTransitionTimingFunction');
+			result.addPropertyForKey(easingProp, 'RepriseTransitionTimingFunction');
 			
 			var delayProp : CSSProperty = new CSSProperty();
 			delayProp.setImportant(important);
 			delayProp.setSpecifiedValue(delays);
-			result.addPropertyForKey(delayProp, 'WebkitTransitionDelay');
+			result.addPropertyForKey(delayProp, 'RepriseTransitionDelay');
 			
 			return result;
 		}
-		public static function parseWebkitTransitionPart(
+		public static function parseRepriseTransitionPart(
 			str : String, file : String) : Object
 		{
 			var result : Object = {};
@@ -142,7 +142,7 @@ package reprise.css.propertyparsers
 			if ('0123456789.'.indexOf(currentPart.charAt(0)) == -1)
 			{
 				result.easing = 
-					parseWebkitTransitionTimingFunctionPart(currentPart, file);
+					parseRepriseTransitionTimingFunctionPart(currentPart, file);
 				currentPart = parts.shift();
 			}
 			else
@@ -172,7 +172,7 @@ package reprise.css.propertyparsers
 		}
 		
 		
-		public static function parseWebkitTransitionProperty(
+		public static function parseRepriseTransitionProperty(
 			val:String, file:String) : CSSProperty
 		{
 			var intermediateResult : Object = strToProperty(val, file);
@@ -187,7 +187,7 @@ package reprise.css.propertyparsers
 			return property;
 		}
 		
-		public static function parseWebkitTransitionDuration(
+		public static function parseRepriseTransitionDuration(
 			val:String, file:String) : CSSProperty
 		{
 			var intermediateResult : Object = strToProperty(val, file);
@@ -207,15 +207,15 @@ package reprise.css.propertyparsers
 			return property;
 		}
 		
-		public static function parseWebkitTransitionDelay(
+		public static function parseRepriseTransitionDelay(
 			val:String, file:String) : CSSProperty
 		{
 			//no need to duplicate the code as the properties 
 			//duration and delay are identical in structure
-			return parseWebkitTransitionDuration(val, file);
+			return parseRepriseTransitionDuration(val, file);
 		}
 		
-		public static function parseWebkitTransitionTimingFunction(
+		public static function parseRepriseTransitionTimingFunction(
 			val:String, file:String) : CSSProperty
 		{
 			var intermediateResult : Object = strToProperty(val, file);
@@ -229,12 +229,12 @@ package reprise.css.propertyparsers
 			for each (var entry : String in 
 				(intermediateResult.filteredString as String).split(','))
 			{
-				entries.push(parseWebkitTransitionTimingFunctionPart(entry, file));
+				entries.push(parseRepriseTransitionTimingFunctionPart(entry, file));
 			}
 			property.setSpecifiedValue(entries);
 			return property;
 		}
-		public static function parseWebkitTransitionTimingFunctionPart(
+		public static function parseRepriseTransitionTimingFunctionPart(
 			val:String, file : String) : CSSProperty
 		{
 			var intermediateResult : Object = strToProperty(val, file);

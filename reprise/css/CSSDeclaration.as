@@ -23,6 +23,7 @@ package reprise.css
 	import reprise.css.propertyparsers.Margin;
 	import reprise.css.propertyparsers.Padding;
 	import reprise.css.propertyparsers.Transition;
+	import reprise.css.transitions.TransitionVOFactory;
 	import reprise.utils.StringUtil;
 	public class CSSDeclaration
 	{
@@ -103,6 +104,8 @@ package reprise.css
 		{
 			var properties : Array = collection.KNOWN_PROPERTIES;
 			var inheritableProperties : Object = collection.INHERITABLE_PROPERTIES || {};
+			var transitions : Object = collection.PROPERTY_TRANSITIONS || {};
+			
 			var i : int = properties.length;
 			while (i--)
 			{
@@ -112,6 +115,10 @@ package reprise.css
 				if (inheritableProperties[prop])
 				{
 					m_inheritableProperties[prop] = true;
+				}
+				if (transitions[prop])
+				{
+					TransitionVOFactory.registerProperty(prop, transitions[prop]);
 				}
 			}
 			

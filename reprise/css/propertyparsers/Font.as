@@ -12,6 +12,7 @@
 package reprise.css.propertyparsers { 
 	import reprise.css.CSSProperty;
 	import reprise.css.CSSPropertyParser;
+	import reprise.css.transitions.ColorTransitionVO;
 	
 	
 	
@@ -60,6 +61,11 @@ package reprise.css.propertyparsers {
 			textTransform : true,
 			letterSpacing : true,
 			leading : true
+		};
+		
+		public static var PROPERTY_TRANSITIONS	: Object	=
+		{
+			color : ColorTransitionVO
 		};
 		
 		

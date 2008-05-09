@@ -28,7 +28,7 @@ package reprise.ui
 	import reprise.css.CSSProperty;
 	import reprise.css.math.ICSSCalculationContext;
 	import reprise.css.propertyparsers.Filters;
-	import reprise.css.transitions.ActiveTransitionVO;
+	import reprise.css.transitions.CSSPropertyTransition;
 	import reprise.ui.renderers.ICSSRenderer;
 	import reprise.utils.GfxUtil;
 	import reprise.utils.StringUtil;
@@ -1455,18 +1455,18 @@ package reprise.ui
 			oldStyles : CSSDeclaration, newStyles : CSSDeclaration) : CSSDeclaration
 		{
 			var transitionPropName : String;
-			var transition : ActiveTransitionVO;
+			var transition : CSSPropertyTransition;
 			var startTime : int = getTimer();
-			if (m_currentStyles.WebkitTransitionProperty)
+			if (m_currentStyles.RepriseTransitionProperty)
 			{
 				var transitionProperties : Array = 
-					m_currentStyles.WebkitTransitionProperty;
+					m_currentStyles.RepriseTransitionProperty;
 				var transitionDurations : Array = 
-					m_currentStyles.WebkitTransitionDuration;
+					m_currentStyles.RepriseTransitionDuration;
 				var transitionDelays : Array = 
-					m_currentStyles.WebkitTransitionDelay;
+					m_currentStyles.RepriseTransitionDelay;
 				var transitionEasings : Array = 
-					m_currentStyles.WebkitTransitionTimingFunction;
+					m_currentStyles.RepriseTransitionTimingFunction;
 				
 				//TODO: add support for modifying running transitions
 				//remove any transitions that aren't supposed to be active anymore
@@ -1513,8 +1513,7 @@ package reprise.ui
 					transition = m_activeTransitions[transitionPropName];
 					if (!transition)
 					{
-						transition = new ActiveTransitionVO();
-						transition.property = transitionPropName;
+						transition = new CSSPropertyTransition(transitionPropName);
 						transition.duration = transitionDurations[i];
 						transition.delay = transitionDelays[i];
 						transition.easing = easing;

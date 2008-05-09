@@ -14,6 +14,9 @@ package reprise.css.propertyparsers {
 	import reprise.css.CSSParsingResult;
 	import reprise.css.CSSProperty;
 	import reprise.css.CSSPropertyParser;
+	import reprise.css.transitions.ColorListTransitionVO;
+	import reprise.css.transitions.ColorTransitionVO;
+	import reprise.css.transitions.NumericListTransitionVO;
 	import reprise.utils.StringUtil;
 	
 	
@@ -44,7 +47,14 @@ package reprise.css.propertyparsers {
 			'backgroundScale9RectLeft',
 			'backgroundImageType',
 			'backgroundImagePreload'
-		];	
+		];
+		
+		public static var PROPERTY_TRANSITIONS	: Object	=
+		{
+			backgroundColor : ColorTransitionVO,
+			backgroundGradientRatios : NumericListTransitionVO,
+			backgroundGradientColors : ColorListTransitionVO
+		};
 		
 		public static var REPEAT_REPEAT_XY	: String	= 'repeat';	/* default */
 		public static var REPEAT_REPEAT_X	: String	= 'repeat-x';

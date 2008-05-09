@@ -13,7 +13,7 @@ package reprise.css.transitions
 {
 	import reprise.css.CSSProperty;
 	
-	public class ActiveTransitionVO
+	public class CSSPropertyTransition
 	{
 		/***************************************************************************
 		*							public properties							   *
@@ -23,9 +23,8 @@ package reprise.css.transitions
 		public var delay : CSSProperty;
 		public var easing : Function;
 		
-		public var endValue : CSSProperty;
 		public var currentValue : CSSProperty;
-		
+		public var currentRatio : Number;
 		public var startTime : int;
 		
 		public var hasCompleted : Boolean;
@@ -35,63 +34,75 @@ package reprise.css.transitions
 		*							protected properties							   *
 		***************************************************************************/
 		protected var m_startValue : CSSProperty;
+		protected var m_endValue : CSSProperty;
 		
-		public function ActiveTransitionVO()
+		protected var m_propertyTransition : PropertyTransitionVO;
+		
+	
+		/***************************************************************************
+		*							public methods								   *
+		***************************************************************************/
+		public function CSSPropertyTransition(name : String)
 		{
+			property = name;
+			m_propertyTransition = TransitionVOFactory.transitionForPropertyName(name);
 		}
 		
 		public function set startValue(value : CSSProperty) : void
 		{
 			m_startValue = value;
-			currentValue = value.clone();
+			currentValue = CSSProperty(value.clone(true));
+			m_propertyTransition.startValue = value.specifiedValue();
+			m_propertyTransition.currentValue = currentValue.specifiedValue();
 		}
 		public function get startValue() : CSSProperty
 		{
 			return m_startValue;
 		}
 		
+		public function set endValue(value : CSSProperty) : void
+		{
+			m_endValue = value;
+			m_propertyTransition.endValue = value.specifiedValue();
+		}
+		public function get endValue() : CSSProperty
+		{
+			return m_endValue;
+		}
+		
 		public function updateValues(endValue : CSSProperty, 
 			duration : CSSProperty, delay : CSSProperty, 
 			startTime : int, context : Object) : void
 		{
-			setValueForTimeInContext(startTime, context);
-			var current : Number = currentValue.specifiedValue();
-			this.startValue = this.endValue;
+			var oldStart : CSSProperty = this.startValue;
+			var oldEnd : CSSProperty = this.endValue;
+			var oldCurrent : CSSProperty = this.currentValue;
+			
 			this.endValue = endValue;
 			this.duration = duration;
 			this.delay = delay;
 			this.startTime = startTime;
 			
-			var durationValue : int = duration.valueOf() as int;
-			var stepAmount : int;
-			var stepTimeOffset : int = 0;
-			var lastStepValue : Number; 
-			setValueForTimeInContext(startTime, context);
-			var stepValue : Number = currentValue.specifiedValue();
-			var shelter : int = 1000;
-			if (startValue.valueOf() < current && endValue.valueOf() > current 
-				||
-				startValue.valueOf() > current && endValue.valueOf() < current)
+			//check if the current transition is just reversed and adjust time if true
+			if (oldStart == endValue)
 			{
-				stepAmount = 10;
+				this.startValue = oldEnd;
+				var durationValue : int = duration.valueOf() as int;
+				var targetRatio : Number = 1 - currentRatio;
+				var timeOffset : int = 0;
+				var ratio : Number = 0;
+				while (ratio < targetRatio)
+				{
+					timeOffset += 5;
+					ratio = easing(timeOffset, 0, 1, durationValue);
+				}
+				this.startTime -= timeOffset;
 			}
 			else
 			{
-				stepAmount = -10;
+				//let the transition start from the current value without adjusting time
+				this.startValue = oldCurrent;
 			}
-			do
-			{
-				lastStepValue = stepValue;
-				stepTimeOffset += stepAmount;
-				setValueForTimeInContext(startTime + stepTimeOffset, context);
-				stepValue = currentValue.specifiedValue();
-			}
-			while (Math.max(current, stepValue) - Math.min(current, stepValue) 
-				<=
-				Math.max(current, lastStepValue) - 
-				Math.min(current, lastStepValue) && shelter--);
-			
-			this.startTime -= stepTimeOffset + stepAmount;
 		}
 		
 		public function setValueForTimeInContext(time : int, context : Object) : void
@@ -106,9 +117,9 @@ package reprise.css.transitions
 			}
 			var end : Number = endValue.valueOf() as Number;
 			var start : Number = startValue.valueOf() as Number;
-			var value : Number = easing(currentTime, start, end - start, durationValue);
-			value = Math.round(value);
-			currentValue.setSpecifiedValue(value);
+			currentRatio = easing(currentTime, 0, 1, durationValue);
+			currentValue.setSpecifiedValue(
+				m_propertyTransition.setCurrentValueToRatio(currentRatio));
 		}
 	}
 }
