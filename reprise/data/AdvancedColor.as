@@ -10,8 +10,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 package reprise.data
-{ 
-	public class AdvancedColor
+{
+	import reprise.core.Cloneable;
+	 
+	public class AdvancedColor implements Cloneable
 	{
 		
 		/***************************************************************************
@@ -316,6 +318,13 @@ package reprise.data
 		public function valueOf() : Object
 		{
 			return m_value;
+		}
+		
+		public function clone(deep : Boolean = false) : Cloneable
+		{
+			var clone : AdvancedColor = new AdvancedColor(m_value);
+			clone.m_opacity = m_opacity;
+			return clone;
 		}
 		
 		public function toString() : String

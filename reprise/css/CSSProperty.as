@@ -11,13 +11,14 @@
 
 package reprise.css
 {
+	import reprise.core.Cloneable;
 	import reprise.css.math.AbstractCSSCalculation;
 	import reprise.css.math.CSSCalculationGroup;
 	import reprise.css.math.CSSCalculationPercentage;
 	import reprise.css.math.ICSSCalculationContext;
 	 
 	// @see http://www.w3.org/TR/REC-CSS2/cascade.html
-	public class CSSProperty
+	public class CSSProperty implements Cloneable
 	{
 		/***************************************************************************
 		*							public properties							   *
@@ -210,16 +211,58 @@ package reprise.css
 				resolveCalculation(reference, context);
 		}
 		
-		public function clone() : CSSProperty
+		public function clone(deep : Boolean = false) : Cloneable
 		{
 			var prop : CSSProperty = new CSSProperty();
 			prop.m_important = m_important;
 			prop.m_unit = m_unit;
-			prop.m_specifiedValue = m_specifiedValue;
 			prop.m_inheritsValue = m_inheritsValue;
 			prop.m_isRelativeValue = m_isRelativeValue;
-			prop.m_computedValue = m_computedValue;
 			prop.m_cssFile = m_cssFile;
+			
+			if (deep)
+			{
+				if (m_specifiedValue is Cloneable)
+				{
+					prop.m_specifiedValue = Cloneable(m_specifiedValue).clone(true);
+					if (m_computedValue)
+					{
+						prop.m_computedValue = Cloneable(m_computedValue).clone(true);
+					}
+				}
+				else if (m_specifiedValue is Array)
+				{
+					var i : int;
+					var specValue : Array = (m_specifiedValue as Array).concat();
+					if (specValue[i] is Cloneable)
+					{
+						i = specValue.length;
+						while (i--)
+						{
+							specValue[i] = Cloneable(specValue[i]).clone(true);
+						}
+					}
+					prop.m_specifiedValue = specValue;
+					if (m_computedValue)
+					{
+						var compValue : Array = (m_computedValue as Array).concat();
+						if (compValue[i] is Cloneable)
+						{
+							i = compValue.length;
+							while (i--)
+							{
+								compValue[i] = Cloneable(compValue[i]).clone(true);
+							}
+						}
+						prop.m_computedValue = compValue;
+					}
+				}
+			}
+			else
+			{
+				prop.m_specifiedValue = m_specifiedValue;
+				prop.m_computedValue = m_computedValue;
+			}
 			return prop;
 		}
 	
