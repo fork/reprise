@@ -88,9 +88,9 @@ The background-position property sets the starting position of a background imag
 * y px
 
 ### Examples
-	background-position: 0% 100%
-	background-position: bottom right
-	background-position: 5px 10px
+	background-position: 0% 100%;
+	background-position: bottom right;
+	background-position: 5px 10px;
 
 
 ***
@@ -104,6 +104,10 @@ The background-position property sets the starting position of a background imag
 ***
 
 ## background-gradient
+
+### Examples
+	background-gradient: linear 90 colors(#efefef #333) ratios(0 255);
+	background-gradient: radial 0 colors(rgba(255, 255, 255, 0.2) #efefefff);
 
 ***
 
